@@ -48,7 +48,7 @@
     <div class="stage-copy">
       <p class="h3">Shown only while you wait. <span class="soft">Gone when the answer lands.</span></p>
       <button class="cmd" id="copy-install" aria-label="Copy install command">
-        <span class="dollar">$</span><span class="txt">npm i -g lingersh &amp;&amp; linger init --spinner</span><span class="tag">copy</span>
+        <span class="dollar">$</span><span class="txt">npm i -g lingersh-arc &amp;&amp; linger init --spinner</span><span class="tag">copy</span>
       </button>
     </div>
 
@@ -94,7 +94,7 @@
           <p class="p-sm">It edits your Claude Code settings and nothing else on the machine.</p>
         </div>
         <div class="demo">
-          <div><span class="dim">$</span> <span class="ink">npm i -g lingersh</span></div>
+          <div><span class="dim">$</span> <span class="ink">npm i -g lingersh-arc</span></div>
           <div><span class="dim">$</span> <span class="ink">linger init --spinner</span></div>
           <div><span class="ok">✓</span> statusLine installed</div>
           <div><span class="ok">✓</span> spinnerVerbs installed</div>
@@ -289,7 +289,7 @@ publisher login · expires in 5 min</span></div>
     <pre class="ascii-star" id="ascii-star" aria-hidden="true"></pre>
     <h2 class="display">Try Linger</h2>
     <button class="cmd" id="copy-install-2" aria-label="Copy install command">
-      <span class="dollar">$</span><span class="txt">npm i -g lingersh &amp;&amp; linger init --spinner</span><span class="tag">copy</span>
+      <span class="dollar">$</span><span class="txt">npm i -g lingersh-arc &amp;&amp; linger init --spinner</span><span class="tag">copy</span>
     </button>
     <div class="sub">
       <span>Leaving takes one command:</span>
@@ -312,7 +312,7 @@ publisher login · expires in 5 min</span></div>
 <script type="module">
   import { copyButton, $ } from '/app.js';
 
-  const INSTALL = 'npm i -g lingersh && linger init --spinner';
+  const INSTALL = 'npm i -g lingersh-arc && linger init --spinner';
   copyButton($('#copy-install'), () => INSTALL);
   copyButton($('#copy-install-2'), () => INSTALL);
   $('#copy-uninstall').addEventListener('click', async (e) => {

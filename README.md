@@ -1,47 +1,70 @@
-# Linger
+# Linger on Arc
 
-> Terminal-native ad marketplace that turns AI coding wait states into revenue — paid out in USDC on Solana.
+> Terminal-native ad marketplace that turns AI coding wait states into revenue, paid out in USDC on Arc.
 
-While Claude Code is thinking, a single clearly-disclosed sponsored line appears. Verified impressions accrue to the developer's balance and settle in USDC on Solana. No bank account, no country restrictions.
+While Claude Code is thinking, a single clearly-disclosed sponsored line appears in the status line. Verified impressions accrue to the developer's balance, and the developer can withdraw any amount at any time, straight from an on-chain vault, in one Arc transaction. No bank account, no country restrictions, no payout threshold.
 
-**Status: live on Solana devnet.** No real money has moved — every amount is devnet USDC.
+**Status: live on Arc mainnet.** Real USDC moves through `LingerVault`.
 
-- **Site & API:** https://lingerserver-production.up.railway.app
-- **CLI:** [`lingersh`](https://www.npmjs.com/package/lingersh) on npm
+| | |
+|---|---|
+| Site & API | _filled in at deploy_ |
+| Vault (Arc mainnet) | _filled in at deploy_ |
+| Built with | [Arc Studio](https://studio.arc.io) — the vault contract, its audit and its tests |
 
 ```bash
-npm i -g lingersh && linger init --spinner   # install the status line + daemon
-linger login                                 # connect a wallet (Phantom / Solflare / Backpack)
-linger balance                               # what you've earned
+npm i -g lingersh-arc && linger init --spinner   # status line + daemon
+linger login                                     # connect MetaMask / Rabby / Coinbase Wallet
+linger balance                                   # what you've earned
 ```
 
-Advertisers sign in at [`/advertisers/app`](https://lingerserver-production.up.railway.app/advertisers/app), deposit devnet USDC and launch a campaign. Developers see what they earned at [`/app`](https://lingerserver-production.up.railway.app/app) and can withdraw any amount, at any time. See [Verification status](#verification-status) for exactly what has and hasn't been exercised.
-
-The plan of record is [`ROADMAP.md`](ROADMAP.md).
+Advertisers sign in at `/advertisers/app`, deposit USDC with one click from their wallet and launch a campaign. Developers see what they earned at `/app` and withdraw whenever they like.
 
 ---
 
-## Why Solana
+## Why Arc
 
-Per-impression amounts are tiny — a fraction of a cent. On traditional rails the fixed cost of a payout (transfer fee, FX spread, compliance overhead) routinely exceeds the payout itself, which forces platforms into high thresholds, monthly batches, and a short list of supported countries. Developers in Turkey, Latin America, South Asia and Africa generate value they cannot collect.
+Per-impression amounts are tiny, a fraction of a cent. On traditional rails the fixed cost of a payout (transfer fee, FX spread, compliance overhead) routinely exceeds the payout itself. That forces platforms into high thresholds, monthly batches, and a short list of supported countries, and developers in Turkey, Latin America, South Asia and Africa generate value they cannot collect.
 
-A Solana transfer costs 5,000 lamports (0.000005 SOL) per signature plus an optional priority fee, and USDC is a first-class SPL token that every major wallet already shows. That makes it possible to drop the payout threshold entirely: a developer can withdraw any amount the moment it is verified.
+Arc removes the parts that made this awkward on other chains:
 
-One cost to be aware of: a recipient's USDC token account (ATA) must exist before they can receive USDC, and the *sender* opens it — about 0.002 SOL of rent per new recipient. The platform pays it once per publisher; with no threshold, a first withdrawal of a few cents costs the platform more than it sends. That is a deliberate choice for now and is tracked as an open question in the roadmap.
+- **Gas is USDC.** The operator wallet holds one asset. There is no second token to keep topped up, and fees are predictable in dollars.
+- **Any address can receive.** No token account to open per recipient, so a first payout of a few cents costs the platform only gas.
+- **Deterministic, sub-second finality.** A payout with a receipt is final. The ledger's definition of "paid" is simple and true.
 
-## What has been measured
+## How money moves
 
-**Ad surface** — Claude Code exposes official extension points (`statusLine`, `spinnerVerbs`). No patching of the host application, no output interception. This measurement is independent of the chain and still holds. Throwaway probes live in [`spikes/`](spikes/).
+```
+advertiser wallet ──USDC transfer──▶ LingerVault ──payout(batchId, [devs], [amounts])──▶ developer wallets
+                                         ▲
+                     operator (server hot wallet) signs payout, pays gas
+```
 
-| Question | Result |
+- **Deposits** are plain ERC-20 transfers into the vault (or `deposit()`). The server reads USDC `Transfer` logs into the vault and credits the sender. Advertisers sign in with the same wallet, so no memo is needed.
+- **Payouts** are atomic batches. The vault records each `batchId` and refuses to pay it twice, so even a server that crashes mid-payout and retries cannot double-pay on-chain. That guarantee sits underneath the ledger's own idempotency.
+- **The money is not in the hot wallet.** The operator can only call `payout`. The owner (a separate wallet) can `pause`, replace the operator, or `rescue` funds.
+
+`LingerVault` was written, security-reviewed (manual review and Slither) and tested (40 Foundry tests, including a conservation invariant) in Arc Studio, then deployed to Arc testnet from there. The prompt that produced it is in [`contracts/vault/ARC-STUDIO-PROMPT.md`](contracts/vault/ARC-STUDIO-PROMPT.md), and the Studio session is recorded in [`contracts/vault/arc-studio-session.json`](contracts/vault/arc-studio-session.json).
+
+## Payment rail: failure modes encoded
+
+`ArcRail` (in `packages/payments`) sits behind a small `PaymentRail` interface. Every rule exists because of a way money can go wrong:
+
+| Rule | Why |
 |---|---|
-| Does the line refresh while the model is working? | Yes — 100% of qualifying windows, ~34 refreshes each |
-| How much of the wait is actually long enough to sell? | 50% of turns exceed 10s; p50 37s, p90 322s |
-| What does the client cost? | ~13,700 invocations/day/session; shim round-trip 22ms |
+| Build and sign once, record, *then* send. Retries resend the same bytes. | A crash between "sent" and "recorded" would otherwise leave money paid but still payable. Same bytes = same nonce = applied at most once. |
+| `estimateGas` simulates the batch before signing. | A blocked recipient, an already-paid batch, a paused vault or an empty vault fails here, before anything is recorded or signed. |
+| "Paid" means `receipt.status === success`. | A reverted transaction still costs gas and still lands on-chain. |
+| A missing transaction is dead only once its nonce is spent, and the nonce is read *before* the receipt. | The reverse order could declare a transaction dead in the instant it is included, and rebuilding it would pay twice. |
+| Vault USDC and operator gas are tracked separately. | A full vault with an operator out of gas stops silently. |
 
-An early version of the measurement defined the wait window as tool execution time. That was wrong — tools finish in under a second and the inventory looked like zero. The wait a user actually experiences is the model thinking, which lives in the gaps *between* hooks. The correction is documented in ADR-001.
+These are proven against a real EVM node with the real vault in [`packages/payments/test/integration/arc-anvil.test.ts`](packages/payments/test/integration/arc-anvil.test.ts): double send, replayed batch id, blocked recipient, spent nonce. A smoke script ([`scripts/arc-smoke.mjs`](scripts/arc-smoke.mjs)) runs the whole loop against a live server: sign in, deposit, credit, campaign, withdraw from the vault, verify on-chain.
 
-**Payment rail** — the failure modes that shaped the design (one bad destination drops a whole batch, a failed transaction still lands and still costs a fee, retries must re-send identical bytes) are encoded in the code, covered by unit tests against a mock rail, and proven on devnet by `test:devnet` (6/6, see below).
+## Identity is a wallet
+
+Publishers and advertisers sign in by signing a plain-text message with any EIP-1193 wallet (MetaMask, Rabby, Coinbase Wallet; discovered via EIP-6963). `personal_sign` prefixes the message per EIP-191, so the signature can never be a transaction. The server recovers the signer and issues a token. The publisher id *is* the EIP-55 checksummed address, so the same wallet signing in with lowercase and checksummed spellings is one account, not two.
+
+Address policy rejects pasted private keys and mnemonics (without echoing them), contracts (funds could be locked, and they cannot sign in), the USDC and vault addresses themselves, and addresses blocked by the USDC issuer.
 
 ## Architecture
 
@@ -54,89 +77,63 @@ statusLine shim ──22ms──> lingerd ──> turn state machine
     └──── ✶ Sponsor … ───────┘       disk queue
                                           │
                                           ▼
-                                   Linger backend ──> Solana (USDC / SPL)
+                                   Linger backend ──> Arc (USDC, LingerVault)
 ```
 
-The daemon holds the ad in memory so the shim never touches the network. If the daemon is down, unreachable, or unsure, the shim prints **nothing** — never an error, never a stale line. Fail closed.
-
-**Identity is a wallet.** Publishers and advertisers sign in by signing a plain-text message with Phantom, Solflare or Backpack (`signMessage`, verified with ed25519). The message is not a transaction and cannot be submitted to the network. The publisher id *is* the wallet address.
+The daemon holds the ad in memory so the shim never touches the network. If the daemon is down, unreachable, or unsure, the shim prints **nothing**: no error, no stale line. It fails closed.
 
 ## Design principles
 
 **Disclosure is not optional.** Every surface, including the spinner verb, starts with `✶`. An ad is never formatted to look like the tool's own output.
 
-**Ad copy is hostile input.** A creative containing control characters is an attack attempt, not sloppy input — it is rejected, not sanitized and served. 20 attack vectors are covered by tests, from OSC 52 clipboard writes to bidi override.
+**Ad copy is hostile input.** A creative containing control characters is treated as an attack attempt. It is rejected, not sanitized and served. Tests cover 20 attack vectors, from OSC 52 clipboard writes to bidi override.
 
-**Only what is measured is billed.** The ad is shown only during an active turn plus a short grace period. Idle time is not shown and not counted, even though it could be.
+**Only what is measured is billed.** The ad is shown only during an active turn plus a short grace period.
 
-**Money is integers.** Amounts are branded `bigint` micro-USDC (1e-6 — the USDC mint's own precision, so ledger amounts and on-chain amounts are the same number). Floats are banned. The ledger is double-entry and every reversal is a negation of the original entries, never a recomputation.
-
-**Settled means finalized.** A payout is only "paid" when the transaction has no error *and* is finalized. A submitted transaction, or one that landed and failed, is not paid.
+**Money is integers.** Amounts are branded `bigint` micro-USDC (1e-6), the precision of Arc's USDC ERC-20 interface, so ledger amounts and on-chain amounts are the same number. Native USDC (gas) has 18 decimals and is never mixed into the ledger. Floats are banned. The ledger is double-entry.
 
 ## Repo layout
 
 ```
-ROADMAP.md              the plan: milestones, exit criteria, open questions
-STITCH-BRIEF.md         frontend brief (for a UI design tool)
-PROJECT.md              living design document — ADRs, data model, open questions
+contracts/vault/        LingerVault (Solidity, Foundry) — built with Arc Studio
 packages/protocol/      shared types, money, sanitizer, schemas
-packages/payments/      SolanaRail, address policy, wallet sign-in, payout job
-packages/server/        HTTP API, ledger, ad selection, deposits, withdrawals
+packages/payments/      ArcRail, deposit source, address policy, wallet sign-in, payout job
+packages/server/        HTTP API, ledger, ad selection, deposits, withdrawals, web panels
 packages/cli/           daemon, unix socket, shim, disk queue, `linger` command
-contracts/vault/        Anchor program (escrow vault) — not wired into the server yet
-scripts/                devnet faucet pool, end-to-end test campaign
-spikes/                 throwaway probes
+scripts/arc-smoke.mjs   end-to-end money loop against a live server
+spikes/                 throwaway probes (ad-surface measurements)
+PROJECT.md              design document — ADRs, data model
 ```
 
 ## Development
 
 ```bash
 pnpm install
-pnpm test        # unit tests across all packages
+pnpm test              # unit tests across all packages
 pnpm typecheck
+pnpm test:contracts    # forge test (needs Foundry; see contracts/vault/README.md)
+
+# rail against a real EVM node + the real vault (needs Foundry)
+(cd contracts/vault && forge build)
+LINGER_ANVIL=1 pnpm --filter @linger/payments test
 ```
 
-Requires Node 22+ and pnpm. The Anchor program needs Rust, the Solana CLI and Anchor:
-
-```bash
-cd contracts/vault
-export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-anchor build && cargo test
-```
-
-Run the server locally (in-memory database, devnet):
+Run the server locally (in-memory database, Arc testnet):
 
 ```bash
 pnpm --filter @linger/server build
 PORT=8787 node packages/server/dist/server.mjs
 ```
 
-See [`.env.example`](.env.example) for every variable.
+See [`.env.example`](.env.example) for every variable, and [`contracts/vault/README.md`](contracts/vault/README.md) for deploying the vault.
 
 ## Verification status
 
 | Area | Status |
 |---|---|
-| Unit tests (protocol, payments, server, CLI) | ✅ pass — 700+ tests |
-| `SolanaRail` against a real Solana cluster (`test:devnet`) | ✅ 6/6 pass on devnet (2026-09-23): ATA creation, multi-payout, idempotent resend, frozen destination, expired blockhash |
-| Anchor vault program: build + 15 litesvm tests | ✅ pass |
-| Deployed backend (Railway, devnet, persistent SQLite volume) | ✅ live |
-| CLI published to npm, clean global install | ✅ `lingersh` |
-| Wallet login with a real Phantom wallet (CLI + web) | ✅ checked on the live server |
-| Advertiser deposit credited by the deposit watcher → campaign served → impressions verified after the hold | ✅ checked on the live server |
-| Developer withdrawal on the live server | ⏳ code path unit-tested and on-chain rail proven; not yet exercised end-to-end on the deployment |
-| Vault program wired into the server | ❌ not started (server uses a hot-wallet treasury) |
-
-## Status
-
-- [x] Assumptions measured — ad surface
-- [x] `protocol` — money, sanitizer, schemas, injectable clock
-- [x] Daemon — turn state machine, unix socket, shim, disk queue
-- [x] Backend — ad serving, impression ingest, ledger, campaigns, withdrawals
-- [x] Wallet sign-in — message signature (Phantom / Solflare / Backpack)
-- [x] Payments code — `SolanaRail`, address policy, payout job, deposit watcher
-- [x] Payments proven on devnet
-- [x] Deployed (devnet) and CLI on npm
-- [ ] Vault program integrated
-
-Mainnet, click attribution, and adapters beyond Claude Code are explicitly out of scope for now. See [`ROADMAP.md`](ROADMAP.md).
+| Unit tests (protocol, payments, server, CLI) | ✅ 718 pass |
+| `LingerVault` Foundry tests (unit + invariant) | ✅ 40 pass |
+| `ArcRail` + deposit source against anvil with the real vault | ✅ 7 pass |
+| Full money loop (login → deposit → credit → campaign → withdraw from vault) on a local chain | ✅ |
+| Vault deployed on Arc testnet from Arc Studio | ✅ `0x2a7db15f85f947b7374847382b00133d470d6eda` |
+| Vault on Arc mainnet + live server | _filled in at deploy_ |

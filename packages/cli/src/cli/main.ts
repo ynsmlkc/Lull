@@ -55,7 +55,7 @@ const statusLineCommand = (): string => `${process.execPath} ${shimPath()}`
 /**
  * Paket GECICI bir konumdan mi calisiyor?
  *
- * `npx lingersh init` paketi `~/.npm/_npx/<hash>/` altina indirir. Kurulum
+ * `npx lingersh-arc init` paketi `~/.npm/_npx/<hash>/` altina indirir. Kurulum
  * oraya MUTLAK YOL yazar — statusLine, uc hook ve daemon girisi hep o
  * klasoru gosterir.
  *
@@ -86,7 +86,7 @@ async function cmdInit(argv: string[]): Promise<void> {
     fail(
       'LNG-1004',
       `Linger is running from a ${gecici} — cannot install from here`,
-      'Install it permanently:  npm i -g lingersh && linger init',
+      'Install it permanently:  npm i -g lingersh-arc && linger init',
     )
   }
 
@@ -382,7 +382,7 @@ export async function main(argv: readonly string[]): Promise<void> {
  * false; `main()` hic cagrilmiyor. Program cikis kodu 0 ile, TEK BIR
  * KARAKTER BASMADAN sonlaniyordu.
  *
- * Belirtisi yoktu: hata yok, uyari yok, cikis kodu basarili. `npx lingersh
+ * Belirtisi yoktu: hata yok, uyari yok, cikis kodu basarili. `npx lingersh-arc
  * init` yazan biri hicbir sey olmadigini goruyordu. Gelistirmede hic
  * gorunmedi cunku orada `node dist/linger.mjs` ile, yani dosya adiyla
  * cagriliyor.

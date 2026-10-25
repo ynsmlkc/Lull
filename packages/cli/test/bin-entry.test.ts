@@ -6,7 +6,7 @@
  * (`linger`, uzantisiz), giris noktasi kontrolu ise dosya ADINI
  * karsilastiriyordu — `".../linger.mjs".endsWith("linger")` false.
  *
- * `main()` hic cagrilmadi. Hata yok, uyari yok, cikis kodu 0. `npx lingersh
+ * `main()` hic cagrilmadi. Hata yok, uyari yok, cikis kodu 0. `npx lingersh-arc
  * init` yazan kullanici mutlak sessizlik gordu.
  *
  * Gelistirmede gorunmedi cunku her test `node dist/linger.mjs` ile, yani
@@ -96,7 +96,7 @@ if (derlenmis) {
 /**
  * Gecici konumdan kurulum REDDEDILMELI.
  *
- * `npx lingersh init` paketi `~/.npm/_npx/<hash>/` altina indirir ve kurulum
+ * `npx lingersh-arc init` paketi `~/.npm/_npx/<hash>/` altina indirir ve kurulum
  * settings.json'a O YOLU yazar. Klasor gecicidir; silindigi gun statusLine
  * olmayan bir dosyayi cagirir, reklam durur ve sebebi gorunmez.
  *
@@ -121,14 +121,14 @@ describe.skipIf(!derlenmis)('gecici konumdan kurulum', () => {
   it('_npx onbelleginden kurulmaz ve NEDEN oldugunu soyler', () => {
     // npm'in npx yerlesimini taklit et.
     const sahte = mkdtempSync(join(tmpdir(), 'linger-npxsim-'))
-    const kok = join(sahte, '_npx', 'abc123', 'node_modules', 'lingersh')
+    const kok = join(sahte, '_npx', 'abc123', 'node_modules', 'lingersh-arc')
     mkdirSync(join(kok, 'dist'), { recursive: true })
     copyFileSync(DIST, join(kok, 'dist', 'linger.mjs'))
-    writeFileSync(join(kok, 'package.json'), JSON.stringify({ name: 'lingersh', version: '0.0.0' }))
+    writeFileSync(join(kok, 'package.json'), JSON.stringify({ name: 'lingersh-arc', version: '0.0.0' }))
 
     const r = initDene(kok)
     expect(r.kod).not.toBe(0)                       // sessizce basarili DONMEZ
-    expect(r.cikti).toContain('npm i -g lingersh')   // ne yapacagini soyler
+    expect(r.cikti).toContain('npm i -g lingersh-arc')   // ne yapacagini soyler
   })
 })
 
@@ -150,15 +150,15 @@ describe('sitedeki kurulum komutu', () => {
   it('site kalici kurulum komutu gosteriyor, npx degil', () => {
     for (const p of ['../../server/public/index.html', '../../server/public/app/index.html']) {
       const h = oku(p)
-      expect(h).toContain('npm i -g lingersh')
-      expect(h).not.toContain('npx lingersh init')
+      expect(h).toContain('npm i -g lingersh-arc')
+      expect(h).not.toContain('npx lingersh-arc init')
     }
   })
 
   it('README de ayni komutu veriyor', () => {
     const r = oku('../README.md')
-    expect(r).toContain('npm i -g lingersh')
-    expect(r).not.toContain('npx lingersh init')
+    expect(r).toContain('npm i -g lingersh-arc')
+    expect(r).not.toContain('npx lingersh-arc init')
   })
 
   /**

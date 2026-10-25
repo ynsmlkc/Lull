@@ -1,3 +1,5 @@
+> **Note (Arc port, 2026-10-25):** this design document predates the move to Arc. The product, ledger, fraud and ad-surface sections still apply. The payment-rail sections describe the previous chain; the current rail is `ArcRail` with `LingerVault` (see README.md).
+
 # Linger
 
 > AI kodlama araçlarının bekleme anlarını, Solana üzerinden otomatik ödenen bir reklam yüzeyine çeviren terminal-native pazaryeri.

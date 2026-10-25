@@ -1,5 +1,5 @@
 {
-  "name": "lingersh",
+  "name": "lingersh-arc",
   "version": "0.1.16",
   "description": "AI kodlama araclarinin bekleme anlarini kazanca cevirir. Terminal reklamlari, Arc uzerinden USDC odemesi.",
   "keywords": [
@@ -15,11 +15,11 @@
   "author": "ynsmlkc",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ynsmlkc/Linger.git"
+    "url": "git+https://github.com/ynsmlkc/linger-arc.git"
   },
-  "homepage": "https://github.com/ynsmlkc/Linger#readme",
+  "homepage": "https://github.com/ynsmlkc/linger-arc#readme",
   "bugs": {
-    "url": "https://github.com/ynsmlkc/Linger/issues"
+    "url": "https://github.com/ynsmlkc/linger-arc/issues"
   },
   "type": "module",
   "bin": {

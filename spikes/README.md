@@ -6,28 +6,23 @@ Sonuçlar `PROJECT.md`'ye tablo olarak işlendikten sonra bu klasör silinir. Te
 
 ---
 
-## Kıvılcım 2 — Solana batch ödeme ⏳ devnet'te henüz koşulmadı
+## Kıvılcım 2 — Arc batch ödeme ✅ yerel EVM düğümünde koşuldu
 
-Bu kıvılcımın kodu artık atılacak kod değil: `packages/payments/test/integration/devnet-payout.test.ts`. Kendi geçici SPL mint'ini devnet'te oluşturur (Circle musluğu captcha'lı), sonra `SolanaRail`'i gerçek ağda dener.
+Bu kıvılcımın kodu artık atılacak kod değil: `packages/payments/test/integration/arc-anvil.test.ts`. Yerel bir `anvil` açar, gerçek `LingerVault`'u ve sahte bir USDC'yi deploy eder, sonra `ArcRail`'i ve yatırma kaynağını gerçek düğümde dener.
 
 ```bash
-# devnet SOL'lu bir cüzdanın gizli anahtarı (faucet.solana.com'dan SOL al):
-LINGER_DEVNET=1 LINGER_DEVNET_PAYER=<base58 gizli anahtar> \
-  pnpm --filter @linger/payments test:devnet
+(cd contracts/vault && forge build)
+LINGER_ANVIL=1 pnpm --filter @linger/payments test
 ```
-
-**Kanıtlanacak iddialar** (hiçbiri ölçülmedi — koşulduğunda bu tablo doldurulacak):
 
 | İddia | Sonuç |
 |---|---|
-| ATA'sı olmayan alıcılar için hesap ilk ödemede açılıyor | ⏳ |
-| Tek transaction'da çoklu ödeme, tutarlar zincirde birebir tutuyor (1 micro dahil) | ⏳ |
-| Dondurulmuş hedef TÜM batch'i düşürüyor; suçlu talimat indeksinden bulunuyor | ⏳ |
-| Aynı byte'ları iki kez göndermek ikinci ödeme YAPMIYOR | ⏳ |
-| Blockhash ömrü dolmuş, hiç görülmemiş imza `expired` dönüyor | ⏳ |
-| Batch başına ücret ve 1232 bayt sınırında kaç hedef sığıyor (ATA'lı / ATA'sız) | ⏳ ölçülmedi |
-
-Bu ölçümler `PROJECT.md` §8'e işlendikten sonra buradaki satırlar silinir.
+| Kasaya gelen transfer gönderen adresiyle okunuyor, aynı cursor tekrar getirmiyor | ✅ |
+| Tek transaction'da çoklu ödeme, tutarlar zincirde birebir tutuyor | ✅ |
+| Aynı byte'ları iki kez göndermek ikinci ödeme YAPMIYOR | ✅ |
+| Aynı `batchId` ile yeniden kurulan batch kasada reddediliyor | ✅ |
+| Engelli alıcı simülasyonda yakalanıyor, batch hiç imzalanmıyor | ✅ |
+| Gönderilmemiş transaction `pending`; nonce'u harcanınca `expired` | ✅ |
 
 ---
 

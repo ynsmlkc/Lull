@@ -1,4 +1,4 @@
-# lingersh
+# lingersh-arc
 
 Turn the waiting into earnings.
 
@@ -7,7 +7,7 @@ status line while the model works. When the answer arrives, it is gone. You
 get paid in USDC on Solana.
 
 ```
-npm i -g lingersh && linger init --spinner
+npm i -g lingersh-arc && linger init --spinner
 ```
 
 After install, the command is `linger`.
@@ -30,7 +30,7 @@ impression, no payment.
 ## Install
 
 ```bash
-npm i -g lingersh && linger init --spinner             # install and start
+npm i -g lingersh-arc && linger init --spinner             # install and start
 linger init --spinner   # also use the "Thinking…" words at the top
 ```
 
