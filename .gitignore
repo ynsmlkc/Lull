@@ -24,3 +24,4 @@ PROBLEMS.md
 .arc-*.json
 .arc-data/
 contracts/vault/.env
+.arc-*.env
