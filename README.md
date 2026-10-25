@@ -8,8 +8,9 @@ While Claude Code is thinking, a single clearly-disclosed sponsored line appears
 
 | | |
 |---|---|
-| Site & API | _filled in at deploy_ |
-| Vault (Arc mainnet) | _filled in at deploy_ |
+| Site & API | https://lullserver-production.up.railway.app |
+| Vault (Arc mainnet) | [`0x6f3f3008eb689F2f0AC82dC08bBBb5Fc3ECc15c5`](https://explorer.arc.io/address/0x6f3f3008eb689F2f0AC82dC08bBBb5Fc3ECc15c5) |
+| CLI | [`lullsh`](https://www.npmjs.com/package/lullsh) on npm |
 | Built with | [Arc Studio](https://studio.arc.io) — the vault contract, its audit and its tests |
 
 ```bash
@@ -136,4 +137,6 @@ See [`.env.example`](.env.example) for every variable, and [`contracts/vault/REA
 | `ArcRail` + deposit source against anvil with the real vault | ✅ 7 pass |
 | Full money loop (login → deposit → credit → campaign → withdraw from vault) on a local chain | ✅ |
 | Vault deployed on Arc testnet from Arc Studio | ✅ `0x2a7db15f85f947b7374847382b00133d470d6eda` |
-| Vault on Arc mainnet + live server | _filled in at deploy_ |
+| Vault deployed on Arc mainnet | ✅ [`0x6f3f3008eb689F2f0AC82dC08bBBb5Fc3ECc15c5`](https://explorer.arc.io/address/0x6f3f3008eb689F2f0AC82dC08bBBb5Fc3ECc15c5) (tx [`0x7f54f795…`](https://explorer.arc.io/tx/0x7f54f7955f06aa1383858fa290295545ebc2f695841a113be775f50dbdc7213c)) |
+| Live server on Arc mainnet | ✅ https://lullserver-production.up.railway.app |
+| Money loop with real USDC on mainnet (`scripts/arc-smoke.mjs`) | ✅ deposit [`0x786c6a1b…`](https://explorer.arc.io/tx/0x786c6a1b1cd2aa394efe188246709294a2d4c9d31633c27c700aae89d7ce35a0) credited in 13s → campaign → vault payout [`0xeaf637b2…`](https://explorer.arc.io/tx/0xeaf637b21d7a92c4358d79dc3c334efe637c4e8728d800788b260b103bbf3892) |
