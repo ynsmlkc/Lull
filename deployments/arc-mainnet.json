@@ -1,0 +1,15 @@
+{
+  "network": "arc-mainnet",
+  "chainId": 5042,
+  "LullVault": "0x6f3f3008eb689F2f0AC82dC08bBBb5Fc3ECc15c5",
+  "deployTx": "0x7f54f7955f06aa1383858fa290295545ebc2f695841a113be775f50dbdc7213c",
+  "block": 27826765,
+  "usdc": "0x3600000000000000000000000000000000000000",
+  "operator": "0x074FA7b3154c49cB93ef69aA2647Bd3dD4877dbd",
+  "owner": "0x074FA7b3154c49cB93ef69aA2647Bd3dD4877dbd",
+  "server": "https://lullserver-production.up.railway.app",
+  "smoke": {
+    "deposit": "0x786c6a1b1cd2aa394efe188246709294a2d4c9d31633c27c700aae89d7ce35a0",
+    "payout": "0xeaf637b21d7a92c4358d79dc3c334efe637c4e8728d800788b260b103bbf3892"
+  }
+}

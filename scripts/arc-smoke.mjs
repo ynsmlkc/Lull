@@ -42,7 +42,7 @@ async function call(path, { method = 'GET', body, token } = {}) {
   const res = await fetch(API + path, {
     method,
     headers: {
-      'x-lull-client-version': '0.1.16',
+      'x-lull-client-version': '0.1.0',
       ...(body ? { 'content-type': 'application/json' } : {}),
       ...(token ? { authorization: `Bearer ${token}` } : {}),
     },

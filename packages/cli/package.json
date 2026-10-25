@@ -1,6 +1,6 @@
 {
   "name": "lullsh",
-  "version": "0.1.16",
+  "version": "0.1.0",
   "description": "AI kodlama araclarinin bekleme anlarini kazanca cevirir. Terminal reklamlari, Arc uzerinden USDC odemesi.",
   "keywords": [
     "claude-code",

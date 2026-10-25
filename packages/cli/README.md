@@ -4,7 +4,7 @@ Turn the waiting into earnings.
 
 When you ask Claude Code something, one sponsored line of text sits in your
 status line while the model works. When the answer arrives, it is gone. You
-get paid in USDC on Solana.
+get paid in USDC on Arc.
 
 ```
 npm i -g lullsh && lull init --spinner
@@ -43,7 +43,7 @@ lull login      # connect your wallet — earnings go here
 lull balance    # what you have earned
 ```
 
-`lull login` opens a page on your own machine and you sign a message with Phantom, Solflare or Backpack.
+`lull login` opens a page on your own machine and you sign a message with MetaMask, Rabby or Coinbase Wallet.
 **Your private key never enters this tool.**
 
 Your identity *is* your wallet address. No GitHub, no email, no password.
@@ -99,8 +99,8 @@ overwrites the other.
 
 ## Status
 
-Devnet. The payout code is implemented and unit-tested; it has not yet been
-run against Solana devnet, and mainnet is out of scope for now.
+Arc mainnet. Earnings are paid from the LullVault contract in USDC, and you
+can withdraw any amount at any time from the panel.
 
 Without a server connection `lull` shows sample ads and **records no
 earnings**. `lull init` tells you when that is the case.
