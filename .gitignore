@@ -25,3 +25,10 @@ PROBLEMS.md
 .arc-data/
 contracts/vault/.env
 .arc-*.env
+apps/vault-dashboard/node_modules/
+apps/vault-dashboard/dist/
+apps/vault-dashboard/lib/
+apps/vault-dashboard/out/
+apps/vault-dashboard/cache/
+apps/vault-dashboard/.arc-studio/
+apps/vault-dashboard/studio-stderr.log

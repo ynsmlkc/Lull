@@ -1,0 +1,253 @@
+{
+  "status": "completed",
+  "appId": "115f0ad4-c41f-4e3a-b5d5-28b2d1cc27ea",
+  "threadId": "f5dffb24-92d2-436a-9926-e4eef47a28fa",
+  "sandboxId": "ig3vhuagsac0l64vudk7k",
+  "finalText": "Reading the relevant skills and existing contract files in parallel. Good. Now let me read the design reference for Arc Dark mode and also check the existing config and onchain-facts: I have everything I need. Now let me proceed with the rename and build everything in parallel. Now renaming contract, updating test files, building the app UI, updating config, and fonts all at once. Now I'll update the LullVault.sol contract name, update all test files, update the wagmi config to add Arc mainnet, update index.html with fonts, update index.css, and build the full App.tsx: Now update both test files to replace LingerVault with LullVault: Now update the t.sol import to use LullMocks too, then delete the old LingerVault.sol: The test still imports from `LingerMocks` — fix that: Now update `index.html` with fonts and title, update `src/index.css` with Arc Dark tokens, update `src/config.ts` to add Arc mainnet, and write the full app. All at once: Now update `src/config.ts` to include Arc mainnet: Now write the main App.tsx — this is the big piece. I'll break it into a component architecture. First the main App and then supporting components: Now let's verify the mainnet reads from the sandbox to confirm stats are real, run the lint/typecheck, and check the dev server: Mainnet reads confirmed. Now run lint/typecheck:\n- Balance: `0x7a120` = 500,000 (6 decimals) = **0.500000 USDC** ✓\n- operator: `0x074fa7b3154c49cb93ef69aa2647bd3dd4877dbd`\n- owner: `0x074fa7b3154c49cb93ef69aa2647bd3dd4877dbd` (same address)\n- paused: `0x0` = false (Active) ✓ Two floating promise fixes needed: Clean. Now check dev server: Dev server is running. Now update AGENTS.md and README: Everything is done. Here's what was built and verified:\n\n**Rename:** `LingerVault.sol` → `LullVault.sol` (contract name, all test files `LullVault.t.sol` / `LullVault.Invariant.t.sol`, mocks `LullMocks.sol`, import paths). The old `LingerVault.sol` was deleted.\n\n**Mainnet reads verified from the sandbox:**\n- `balanceOf(vault)` on the USDC ERC-20: `500000` (6 dec) = **0.500000 USDC** ✓\n- `operator()`: `0x074fa7b3…4877dbd` ✓\n- `owner()`: same address ✓\n- `paused()`: `false` (Active) ✓\n\n**Dashboard built:**\n1. **Header** with title, tagline, links to lullserver, GitHub, and the explorer contract address.\n2. **Live stats card** — USDC held, payouts status (Active/Paused, green/red), operator, owner — all read from Arc mainnet via `useReadContract` with a 15s refetch interval.\n3. **Activity feed** — scans from block 27826765 in 10,000-block chunks via `getLogs` for `Paid`, `BatchPaid`, `Deposited`, and USDC `Transfer(…→vault)` events. Each row shows event type badge, description with amounts in USDC (6 dec), and a truncated tx hash linking to `explorer.arc.io/tx/…`.\n4. **Fund the vault card** — EIP-1193/EIP-6963 wallet connect (ConnectKit), Arc mainnet chain switch, amount input with quick chips ($1/$5/$10/$25/$50), one `transfer(vault, amount)` call, success state with explorer tx link. Note explaining deposits credit the sender's advertiser account.\n5. Arc Dark theme throughout, Space Grotesk for display text, DM Sans for body, JetBrains Mono for hashes.",
+  "todos": [
+    {
+      "id": "todo:read contracts skill:0",
+      "text": "Read contracts skill",
+      "status": "done"
+    },
+    {
+      "id": "todo:read frontend-design skill:0",
+      "text": "Read frontend-design skill",
+      "status": "done"
+    },
+    {
+      "id": "todo:read onchain-patterns skill:0",
+      "text": "Read onchain-patterns skill",
+      "status": "done"
+    },
+    {
+      "id": "todo:rename lingervault → lullvault (file, contract, tests):0",
+      "text": "Rename LingerVault → LullVault (file, contract, tests)",
+      "status": "done"
+    },
+    {
+      "id": "todo:build lull vault dashboard react app:0",
+      "text": "Build Lull Vault dashboard React app",
+      "status": "done"
+    },
+    {
+      "id": "todo:verify mainnet reads (stats + events):0",
+      "text": "Verify mainnet reads (stats + events)",
+      "status": "done"
+    },
+    {
+      "id": "todo:lint/typecheck + confirm dev server:0",
+      "text": "Lint/typecheck + confirm dev server",
+      "status": "done"
+    }
+  ],
+  "filesChanged": [
+    "AGENTS.md",
+    "README.md",
+    "contracts/LullVault.sol",
+    "contracts/test/LullVault.t.sol",
+    "index.html",
+    "src/App.tsx",
+    "src/components/ActivityFeed.tsx",
+    "src/components/FundVault.tsx",
+    "src/components/VaultStats.tsx",
+    "src/config.ts",
+    "src/constants.ts",
+    "src/index.css"
+  ],
+  "fileDiffs": [
+    {
+      "path": "AGENTS.md",
+      "action": "write",
+      "addedLines": 44,
+      "removedLines": 0,
+      "isFragment": false,
+      "truncated": false,
+      "hunk": "+# Lull Vault — Project Memory\n+\n+> Built with Arc Studio — https://studio.arc.io\n+\n+## What This App Does\n+\n+Public dashboard for the Lull Vault: live vault stats, activity feed of on-chain events, and a \"Fund the vault\" flow that lets advertisers send USDC directly to the vault on Arc mainnet.\n+\n+## Contract\n+\n+- **LullVault** on Arc mainnet (chain ID 5042)\n+- Address: `0x6f3f3008eb689F2f0AC82dC08bBBb5Fc3ECc15c5`\n+- Deploy block: 27826765\n+- Explorer: https://explorer.arc.io/address/0x6f3f3008eb689F2f0AC82dC08bBBb5Fc3ECc15c5\n+- USDC (ERC-20): `0x3600000000000000000000000000000000000000` (6 decimals). Native USDC on Arc uses 18 decimals — never mix.\n+\n+## Tech Stack\n+\n+- Frontend: React 18, Vite, TypeScript, Tailwind CSS (Arc Dark theme)\n+- Web3: wagmi v2, viem v2, ConnectKit\n+- Contracts: Solidity 0.8.28 + Foundry. Sources in `contracts/LullVault.sol`, tests in `contracts/test/LullVault.t.sol` and `contracts/test/LullVault.Invariant.t.sol`.\n+- Wallet: injected (MetaMask, Rabby, Coinbase Wallet)\n+- Chain: Arc mainnet (chainId 5042)\n+- Token: USDC (6 decimals, `0x3600000000000000000000000000000000000000`)\n+\n+## Key Files\n+\n+- `src/App.tsx` — top-level layout (header, stats, fund card, activity feed)\n+- `src/components/VaultStats.tsx` — live reads: balance, operator, owner, paused (15s refresh)\n+- `src/components/ActivityFeed.tsx` — Paid / BatchPaid / Deposited / Transfer events from block 27826765\n+- `src/components/FundVault.tsx` — wallet connect + USDC transfer to vault\n+- `src/constants.ts` — vault address, USDC address, ABIs, chain ID\n+- `src/config.ts` — wagmi config (arcMainnet, arcTestnet, mainnet)\n+\n+## Verified Mainnet Reads (2026-10-25)\n+\n+- balance(): 500,000 (6 dec) = 0.500000 USDC ✓\n+- operator(): 0x074fa7b3154c49cb93ef69aa2647bd3dd4877dbd ✓\n+- owner(): 0x074fa7b3154c49cb93ef69aa2647bd3dd4877dbd ✓\n+- paused(): false (Active) ✓\n+\n+## Rename History\n+\n+Contract was renamed from LingerVault → LullVault. Old LingerVault.sol deleted. All test files updated to LullVault."
+    },
+    {
+      "path": "contracts/LullVault.sol",
+      "action": "edit",
+      "addedLines": 3,
+      "removedLines": 3,
+      "isFragment": true,
+      "truncated": false,
+      "hunk": "-/// @title LingerVault\n+/// @title LullVault\n /// @notice Holds advertiser USDC and executes operator-authorized, atomic developer payouts.\n /// @dev Accounting and payout authorization are maintained off-chain. Amounts are in the\n /// token's smallest units (six decimals for USDC). Direct ERC-20 transfers are supported.\n /// The owner can replace the operator, pause payouts, and rescue all held USDC.\n-contract LingerVault is Ownable2Step, Pausable, ReentrancyGuard {\n+contract LullVault is Ownable2Step, Pausable, ReentrancyGuard {\n     /// @param usdc_ USDC token; on Arc, 0x3600000000000000000000000000000000000000.\n-    /// @param owner_ Initial owner; subsequent ownership transfers require acceptance.\n+    /// @param owner_  Initial owner; subsequent ownership transfers require acceptance.\n     /// @param operator_ Initial server hot wallet permitted to pay batches.\n     constructor(IERC20 usdc_, address owner_, address operator_) Ownable(owner_) {"
+    },
+    {
+      "path": "contracts/test/LullVault.t.sol",
+      "action": "edit",
+      "addedLines": 1,
+      "removedLines": 1,
+      "isFragment": true,
+      "truncated": false,
+      "hunk": "-import {MockERC20, MockBlockableERC20} from \"./mocks/LingerMocks.sol\";\n+import {MockERC20, MockBlockableERC20} from \"./mocks/LullMocks.sol\";"
+    },
+    {
+      "path": "index.html",
+      "action": "write",
+      "addedLines": 20,
+      "removedLines": 0,
+      "isFragment": false,
+      "truncated": false,
+      "hunk": "+<!DOCTYPE html>\n+<html lang=\"en\">\n+  <head>\n+    <meta charset=\"UTF-8\" />\n+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n+    <meta name=\"generator\" content=\"Arc Studio by Circle — https://studio.arc.io\" />\n+    <title>Lull Vault</title>\n+    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\" />\n+    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin />\n+    <link\n+      rel=\"stylesheet\"\n+      href=\"https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap\"\n+    />\n+  </head>\n+  <body>\n+    <!-- Built with Arc Studio — https://studio.arc.io -->\n+    <div id=\"root\"></div>\n+    <script type=\"module\" src=\"/src/main.tsx\"></script>\n+  </body>\n+</html>"
+    },
+    {
+      "path": "README.md",
+      "action": "write",
+      "addedLines": 69,
+      "removedLines": 0,
+      "isFragment": false,
+      "truncated": false,
+      "hunk": "+# Lull Vault Dashboard\n+\n+A public dashboard for the Lull Vault — a USDC escrow contract on Arc mainnet that holds advertiser funds and pays out developers for serving ads in AI coding tools.\n+\n+Built with [Arc Studio](https://studio.arc.io)\n+\n+## Features\n+\n+- Live vault stats (USDC balance, operator, owner, pause state) refreshed every 15 seconds\n+- Activity feed of all Paid, BatchPaid, Deposited, and inbound USDC Transfer events from contract deployment onward\n+- \"Fund the vault\" card: connect a wallet, switch to Arc mainnet, enter an amount, and send a USDC transfer in one transaction\n+- Explorer links for every event and transaction\n+\n+## Tech Stack\n+\n+- React 18, Vite, TypeScript, Tailwind CSS\n+- wagmi v2, viem, ConnectKit (injected wallets: MetaMask, Rabby, Coinbase Wallet)\n+- Arc mainnet (chain ID 5042), USDC (ERC-20, 6 decimals)\n+- Solidity 0.8.28, Foundry (unit + invariant tests)\n+\n+## Contract\n+\n+| | |\n+|---|---|\n+| Contract | LullVault |\n+| Network | Arc mainnet (chain ID 5042) |\n+| Address | `0x6f3f3008eb689F2f0AC82dC08bBBb5Fc3ECc15c5` |\n+| USDC | `0x3600000000000000000000000000000000000000` |\n+| Explorer | https://explorer.arc.io/address/0x6f3f3008eb689F2f0AC82dC08bBBb5Fc3ECc15c5 |\n+\n+## Development\n+\n+### Prerequisites\n+\n+- [Bun](https://bun.sh) (package manager and runtime)\n+- [Foundry](https://getfoundry.sh) (for contract builds and tests)\n+\n+### Install\n+\n+```bash\n+bun install\n+```\n+\n+### Environment Variables\n+\n+None required for the dashboard. The app reads Arc mainnet via the public RPC `https://rpc.mainnet.arc.io`.\n+\n+### Run\n+\n+```bash\n+bun run dev\n+```\n+\n+### Build\n+\n+```bash\n+bun run build\n+```\n+\n+### Test (contracts)\n+\n+```bash\n+bun run contracts:test\n+```\n+\n+## Links\n+\n+- Lull server: https://lullserver-production.up.railway.app\n+- GitHub: https://github.com/ynsmlkc/Lull"
+    },
+    {
+      "path": "src/App.tsx",
+      "action": "write",
+      "addedLines": 120,
+      "removedLines": 0,
+      "isFragment": false,
+      "truncated": false,
+      "hunk": "+import { ExternalLink } from 'lucide-react'\n+import { VaultStats } from './components/VaultStats'\n+import { ActivityFeed } from './components/ActivityFeed'\n+import { FundVault } from './components/FundVault'\n+import { VAULT_ADDRESS, ARC_MAINNET_EXPLORER } from './constants'\n+\n+export default function App() {\n+  return (\n+    <div\n+      style={{\n+        minHeight: '100dvh',\n+        background: 'var(--bg-gradient)',\n+        color: 'var(--ink)',\n+      }}\n+    >\n+      {/* Header */}\n+      <header\n+        style={{\n+          borderBottom: '1px solid var(--border)',\n+          padding: '0 20px',\n+        }}\n+      >\n+        <div\n+          style={{\n+            maxWidth: 640,\n+            margin: '0 auto',\n+            padding: '18px 0',\n+            display: 'flex',\n+            alignItems: 'flex-start',\n+            flexDirection: 'column',\n+            gap: 6,\n+          }}\n+        >\n+          <div className=\"display\" style={{ fontSize: 26, fontWeight: 700, color: 'var(--ink)' }}>\n+            Lull Vault\n+          </div>\n+          <p\n+            style={{\n+              margin: 0,\n+              fontSize: 13,\n+              color: 'var(--muted)',\n+              lineHeight: 1.5,\n+            }}\n+          >\n+            Ads for AI coding tools, paid in USDC on Arc.\n+          </p>\n+          <div style={{ display: 'flex', gap: 12, marginTop: 2, flexWrap: 'wrap' }}>\n+            <a\n+              href=\"https://lullserver-production.up.railway.app\"\n+              target=\"_blank\"\n+              rel=\"noopener noreferrer\"\n+              style={{\n+                color: 'var(--accent)',\n+                fontSize: 12,\n+                textDecoration: 'none',\n+                display: 'inline-flex',\n+                alignItems: 'center',\n+                gap: 4,\n+              }}\n+            >\n+              lullserver app <ExternalLink size={11} />\n+            </a>\n+            <a\n+              href=\"https://github.com/ynsmlkc/Lull\"\n+              target=\"_blank\"\n+              rel=\"noopener noreferrer\"\n+              style={{\n+                color: 'var(--accent)',\n+                fontSize: 12,\n+                textDecoration: 'none',\n+                display: 'inline-flex',\n+                alignItems: 'center',\n+                gap: 4,\n+              }}\n+            >\n+              GitHub <ExternalLink size={11} />\n+            </a>\n+            <a\n+              href={`${ARC_MAINNET_EXPLORER}/address/${VAULT_ADDRESS}`}\n+              target=\"_blank\"\n+              rel=\"noopener noreferrer\"\n+              style={{\n+                color: 'var(--subtle)',\n+                fontSize: 11,\n+                textDecoration: 'none',\n+                display: 'inline-flex',\n+                alignItems: 'center',\n+                gap: 4,\n+              }}\n+            >\n+              <span className=\"mono\">{VAULT_ADDRESS.slice(0, 10)}…</span>\n+              <ExternalLink size={10} />\n+            </a>\n+          </div>\n+        </div>\n+      </header>\n+\n+      {/* Main */}\n+      <main\n+        style={{\n+          maxWidth: 640,\n+          margin: '0 auto',\n+          padding: '24px 20px 48px',\n+          display: 'flex',\n+          flexDirection: 'column',\n+          gap: 28,\n+        }}\n+      >\n+        {/* Vault stats */}\n+        <VaultStats />\n+\n+        {/* Fund the vault */}\n+        <FundVault />\n+\n+        {/* Activity feed */}\n+        <ActivityFeed />\n+      </main>\n+    </div>\n+  )\n+}"
+    },
+    {
+      "path": "src/components/ActivityFeed.tsx",
+      "action": "edit",
+      "addedLines": 370,
+      "removedLines": 2,
+      "isFragment": true,
+      "truncated": true,
+      "hunk": "+import { useEffect, useRef, useState } from 'react'\n+import { createPublicClient, http, parseAbiItem, formatUnits } from 'viem'\n+import { ExternalLink, RefreshCw } from 'lucide-react'\n+import {\n+  VAULT_ADDRESS,\n+  USDC_ADDRESS,\n+  VAULT_DEPLOY_BLOCK,\n+  ARC_MAINNET_EXPLORER,\n+  ARC_MAINNET_RPC,\n+  USDC_DECIMALS_ERC20,\n+} from '../constants'\n+\n+interface ActivityEvent {\n+  type: 'Paid' | 'BatchPaid' | 'Deposited' | 'Transfer'\n+  txHash: string\n+  blockNumber: bigint\n+  description: string\n+  amountUsdc?: string\n+}\n+\n+const CHUNK = 10_000n\n+\n+const vaultEventAbis = {\n+  Paid: parseAbiItem(\n+    'event Paid(bytes32 indexed batchId, address indexed to, uint256 amount)',\n+  ),\n+  BatchPaid: parseAbiItem(\n+    'event BatchPaid(bytes32 indexed batchId, uint256 count, uint256 total)',\n+  ),\n+  Deposited: parseAbiItem(\n+    'event Deposited(address indexed from, uint256 amount)',\n+  ),\n+}\n+\n+const transferAbi = parseAbiItem(\n+  'event Transfer(address indexed from, address indexed to, uint256 value)',\n+)\n+\n+function formatUsdc6(raw: bigint) {\n+  return parseFloat(formatUnits(raw, USDC_DECIMALS_ERC20)).toFixed(2)\n+}\n+\n+function shortHash(h: string) {\n+  return `${h.slice(0, 10)}…${h.slice(-8)}`\n+}\n+\n+const typeLabel: Record<ActivityEvent['type'], string> = {\n+  Paid: 'Paid',\n+  BatchPaid: 'Batch',\n+  Deposited: 'Deposit',\n+  Transfer: 'Transfer In',\n+}\n+\n+const typeBg: Record<ActivityEvent['type'], string> = {\n+  Paid: 'rgba(172,198,233,0.15)',\n+  BatchPaid: 'rgba(172,198,233,0.10)',\n+  Deposited: 'rgba(141,216,159,0.15)',\n+  Transfer: 'rgba(141,216,159,0.12)',\n+}\n+\n+const typeColor: Record<ActivityEvent['type'], string> = {\n+  Paid: '#acc6e9',\n+  BatchPaid: '#7bafd4',\n+  Deposited: '#8dd89f',\n+  Transfer: '#8dd89f',\n+}\n+\n+export function ActivityFeed() {\n+  const [events, setEvents] = useState<ActivityEvent[]>([])\n+  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')\n+  const [progress, setProgress] = useState<string>('')\n+  const fetchedRef = useRef(false)\n+\n+  async function fetchEvents() {\n+    if (fetchedRef.current) return\n+    fetchedRef.current = true\n+    setStatus('loading')\n+    setEvents([])\n+\n+    const client = createPublicClient({\n+      transport: http(ARC_MAINNET_RPC),\n+    })\n+\n+    try {\n+      const head = await client.getBlockNumber()\n+      const collected: ActivityEvent[] = []\n+\n+      for (let from = VAULT_DEPLOY_BLOCK; from <= head; from += CHUNK) {\n+        const to = from + CHUNK - 1n < head ? from + CHUNK - 1n : head\n+        setProgress(\n+          `Scanning blocks ${from.toLocaleString()} – ${to.toLocaleString()} / ${head.toLocaleString()}`,\n+        )\n+\n+        // Vault: Paid\n+        const paidLogs = await client.getLogs({\n+          address: VAULT_ADDRESS,\n+          event: vaultEventAbis.Paid,\n+          fromBlock: from,\n+          toBlock: to,\n+        })\n+        for (const log of paidLogs) {\n+          if (!log.transactionHash) continue\n+          const amt = log.args.amount ?? 0n\n+          collected.push({\n+            type: 'Paid',\n+            txHash: log.transactionHash,\n+            blockNumber: log.blockNumber ?? 0n,\n+            description: `Paid ${formatUsdc6(amt)} USDC to ${(log.args.to as string).slice(0, 8)}…`,\n+            amountUsdc: formatUsdc6(amt),\n+          })\n+        }\n+\n+        // Vault: BatchPaid\n+        const batchLogs = await client.getLogs({\n+          address: VAULT_ADDRESS,\n+          event: vaultEventAbis.BatchPaid,\n+          fromBlock: from,\n+          toBlock: to,\n+        })\n+        for (const log of batchLogs) {\n+          if (!log.transactionHash) continue\n+          const total = log.args.total ?? 0n\n+          const count = log.args.count ?? 0n\n+          collected.push({\n+            type: 'BatchPaid',\n+            txHash: log.transactionHash,\n+            blockNumber: log.blockNumber ?? 0n,\n+            description: `Batch of ${count.toString()} paid — ${formatUsdc6(total)} USDC total`,\n+            amountUsdc: formatUsdc6(total),\n+          })\n+        }\n+\n+        // Vault: Deposited\n+        const depositLogs = await client.getLogs({\n+          address: VAULT_ADDRESS,\n+          event: vaultEventAbis.Deposited,\n+          fromBlock: from,\n+          toBlock: to,\n+        })\n+        for (const log of depositLogs) {\n+          if (!log.transactionHash) continue\n+          const amt = log.args.amount ?? 0n\n+          collected.push({\n+            type: 'Deposited',\n+            txHash: log.transactionHash,\n+            blockNumber: log.blockNumber ?? 0n,\n+            description: `${formatUsdc6(amt)} USDC deposited by ${(log.args.from as string).slice(0, 8)}…`,\n+            amountUsdc: formatUsdc6(amt),\n+          })\n+        }\n+\n+        // USDC Transfer events into the vault\n+        const transferLogs = await client.getLogs({\n+          address: USDC_ADDRESS,\n+          event: transferAbi,\n+          args: { to: VAULT_ADDRESS },\n+          fromBlock: from,\n+          toBlock: to,\n+        })\n+        for (const log of transferLogs) {\n+          if (!log.transactionHash) continue\n+          const val = log.args.value ?? 0n\n+          collected.push({\n+            type: 'Transfer',\n+            txHash: log.transactionHash,\n+            blockNumber: log.blockNumber ?? 0n,\n+            description: `${formatUsdc6(val)} USDC transferred in from ${(log.args.from as string).slice(0, 8)}…`,\n+            amountUsdc: formatUsdc6(val),\n+          })\n+        }\n+      }\n+\n+      // Deduplicate by txHash+type, sort newest first\n+      const seen = new Set<string>()\n+      const deduped = collected.filter((e) => {\n+        const key = `${e.txHash}-${e.type}`\n+        if (seen.has(key)) return false\n+        seen.add(key)\n+        return true\n+      })\n+      deduped.sort((a, b) => (a.blockNumber > b.blockNumber ? -1 : 1))\n+      setEvents(deduped)\n+      setStatus('done')\n+      setProgress('')\n+    } catch (err) {\n+      console.error('ActivityFeed fetch error:', err)\n+      setStatus('error')\n+      setProgress('')\n+      fetchedRef.current = false\n+    }\n+  }\n+\n+  useEffect(() => {\n+    fetchEvents()\n+    // eslint-disable-next-line react-hooks/exhaustive-deps\n+  }, [])\n+\n+  function retry() {\n+    fetchedRef.current = false\n+    fetchEvents()\n   useEffect(() => {\n-    fetchEvents()\n+    void fetchEvents()\n     // eslint-disable-next-line react-hooks/exhaustive-deps\n   }, [])\n   function retry() {\n     fetchedRef.current = false\n-    fetchEvents()\n+    void fetchEvents()\n   }"
+    },
+    {
+      "path": "src/components/FundVault.tsx",
+      "action": "write",
+      "addedLines": 376,
+      "removedLines": 0,
+      "isFragment": false,
+      "truncated": true,
+      "hunk": "+import { useState, useCallback } from 'react'\n+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi'\n+import { ConnectKitButton } from 'connectkit'\n+import { parseUnits } from 'viem'\n+import { ExternalLink, Wallet, AlertTriangle } from 'lucide-react'\n+import {\n+  VAULT_ADDRESS,\n+  USDC_ADDRESS,\n+  ERC20_MINIMAL_ABI,\n+  ARC_MAINNET_ID,\n+  ARC_MAINNET_EXPLORER,\n+  USDC_DECIMALS_ERC20,\n+} from '../constants'\n+\n+function parseOnchainError(error: unknown): string {\n+  const msg = (error as { message?: string })?.message?.toLowerCase() ?? ''\n+  if (msg.includes('user rejected') || (error as { code?: number })?.code === 4001) {\n+    return 'Transaction cancelled.'\n+  }\n+  if (msg.includes('insufficient') || msg.includes('exceeds balance')) {\n+    return 'Insufficient USDC balance.'\n+  }\n+  if (msg.includes('reverted')) {\n+    const m = msg.match(/reason=\"([^\"]+)\"/)\n+    return m ? `Transaction failed: ${m[1]}` : 'Transaction failed. Please try again.'\n+  }\n+  return 'Something went wrong. Please try again.'\n+}\n+\n+const QUICK_AMOUNTS = ['1', '5', '10', '25', '50']\n+\n+export function FundVault() {\n+  const { address, chainId, isConnected } = useAccount()\n+  const { switchChain, isPending: isSwitching } = useSwitchChain()\n+  const [amount, setAmount] = useState('')\n+\n+  const {\n+    writeContract: transfer,\n+    data: txHash,\n+    isPending,\n+    error: writeError,\n+    reset,\n+  } = useWriteContract()\n+\n+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({\n+    hash: txHash,\n+  })\n+\n+  const isWrongChain = isConnected && chainId !== ARC_MAINNET_ID\n+\n+  const handleFund = useCallback(() => {\n+    if (!amount || parseFloat(amount) <= 0) return\n+    if (isWrongChain) {\n+      switchChain({ chainId: ARC_MAINNET_ID })\n+      return\n+    }\n+    let parsed: bigint\n+    try {\n+      parsed = parseUnits(amount, USDC_DECIMALS_ERC20)\n+    } catch {\n+      return\n+    }\n+    if (parsed === 0n) return\n+    transfer({\n+      address: USDC_ADDRESS,\n+      abi: ERC20_MINIMAL_ABI,\n+      functionName: 'transfer',\n+      args: [VAULT_ADDRESS, parsed],\n+      chainId: ARC_MAINNET_ID,\n+    })\n+  }, [amount, isWrongChain, transfer, switchChain])\n+\n+  const canSend =\n+    isConnected &&\n+    !isWrongChain &&\n+    amount.length > 0 &&\n+    parseFloat(amount) > 0 &&\n+    !isPending &&\n+    !isConfirming\n+\n+  return (\n+    <div\n+      style={{\n+        background: 'var(--surface-strong)',\n+        border: '1px solid var(--border)',\n+        borderRadius: 14,\n+        padding: '20px 18px',\n+      }}\n+    >\n+      <div\n+        style={{\n+          fontSize: 11,\n+          fontWeight: 700,\n+          letterSpacing: '0.1em',\n+          textTransform: 'uppercase',\n+          color: 'var(--subtle)',\n+          marginBottom: 14,\n+        }}\n+      >\n+        Fund the Vault\n+      </div>\n+\n+      {!isConnected ? (\n+        <div>\n+          <p\n+            style={{\n+              fontSize: 13,\n+              color: 'var(--muted)',\n+              marginBottom: 14,\n+              lineHeight: 1.5,\n+            }}\n+          >\n+            Connect a wallet to send USDC directly to the Lull Vault. Deposits are\n+            credited to your Lull advertiser account — send from the same wallet you\n+            use to sign in at{' '}\n+            <a\n+              href=\"https://lullserver-production.up.railway.app/advertisers/app\"\n+              target=\"_blank\"\n+              rel=\"noopener noreferrer\"\n+              style={{ color: 'var(--accent)', textDecoration: 'none' }}\n+            >\n+              lullserver\n+            </a>\n+            .\n+          </p>\n+          <ConnectKitButton.Custom>\n+            {({ show }) => (\n+              <button\n+                onClick={show}\n+                style={{\n+                  width: '100%',\n+                  padding: '12px 0',\n+                  background: 'var(--accent)',\n+                  color: '#0d1b2f',\n+                  border: 'none',\n+                  borderRadius: 10,\n+                  fontFamily: 'DM Sans, sans-serif',\n+                  fontWeight: 700,\n+                  fontSize: 14,\n+                  cursor: 'pointer',\n+                  display: 'flex',\n+                  alignItems: 'center',\n+                  justifyContent: 'center',\n+                  gap: 8,\n+                }}\n+              >\n+                <Wallet size={16} />\n+                Connect Wallet\n+              </button>\n+            )}\n+          </ConnectKitButton.Custom>\n+        </div>\n+      ) : (\n+        <div>\n+          {isWrongChain && (\n+            <div\n+              style={{\n+                background: 'rgba(232,109,122,0.1)',\n+                border: '1px solid rgba(232,109,122,0.3)',\n+                borderRadius: 8,\n+                padding: '10px 12px',\n+                fontSize: 12,\n+                color: 'var(--danger)',\n+                display: 'flex',\n+                alignItems: 'center',\n+                gap: 8,\n+                marginBottom: 12,\n+              }}\n+            >\n+              <AlertTriangle size={13} />\n+              <span>Please switch to Arc mainnet to send USDC.</span>\n+            </div>\n+          )}\n+\n+          <div\n+            style={{\n+              fontSize: 11,\n+              color: 'var(--subtle)',\n+              marginBottom: 8,\n+            }}\n+          >\n+            From: <span className=\"mono\" style={{ fontSize: 11 }}>{address?.slice(0, 8)}…{address?.slice(-6)}</span>\n+          </div>\n+\n+          {/* Amount input */}\n+          <div\n+            style={{\n+              background: 'var(--surface)',\n+              border: '1px solid var(--border)',\n+              borderRadius: 10,\n+              padding: '10px 12px',\n+              display: 'flex',\n+              alignItems: 'center',\n+              gap: 8,\n+              marginBottom: 8,\n+            }}\n+          >\n+            <input\n+              type=\"number\"\n+              min=\"0\""
+    },
+    {
+      "path": "src/components/VaultStats.tsx",
+      "action": "write",
+      "addedLines": 130,
+      "removedLines": 0,
+      "isFragment": false,
+      "truncated": false,
+      "hunk": "+import { useReadContract } from 'wagmi'\n+import { formatUnitsFixed } from '@/onchain-money'\n+import { VAULT_ADDRESS, LULL_VAULT_ABI, ARC_MAINNET_ID, USDC_ADDRESS, ERC20_MINIMAL_ABI } from '../constants'\n+\n+interface Stat {\n+  label: string\n+  value: string\n+  mono?: boolean\n+  success?: boolean\n+  danger?: boolean\n+}\n+\n+function StatCard({ label, value, mono, success, danger }: Stat) {\n+  return (\n+    <div\n+      style={{\n+        background: 'var(--surface)',\n+        border: '1px solid var(--border)',\n+        borderRadius: 12,\n+        padding: '16px 18px',\n+      }}\n+    >\n+      <div\n+        style={{\n+          fontSize: 11,\n+          fontWeight: 600,\n+          letterSpacing: '0.08em',\n+          textTransform: 'uppercase',\n+          color: 'var(--subtle)',\n+          marginBottom: 6,\n+        }}\n+      >\n+        {label}\n+      </div>\n+      <div\n+        className={mono ? 'mono' : ''}\n+        style={{\n+          fontSize: mono ? 13 : 15,\n+          fontWeight: 600,\n+          color: success ? 'var(--success)' : danger ? 'var(--danger)' : 'var(--ink)',\n+          wordBreak: 'break-all',\n+        }}\n+      >\n+        {value}\n+      </div>\n+    </div>\n+  )\n+}\n+\n+export function VaultStats() {\n+  const { data: balance, isLoading: loadingBal } = useReadContract({\n+    address: USDC_ADDRESS,\n+    abi: ERC20_MINIMAL_ABI,\n+    functionName: 'balanceOf',\n+    args: [VAULT_ADDRESS],\n+    chainId: ARC_MAINNET_ID,\n+    query: { refetchInterval: 15_000 },\n+  })\n+\n+  const { data: operator, isLoading: loadingOp } = useReadContract({\n+    address: VAULT_ADDRESS,\n+    abi: LULL_VAULT_ABI,\n+    functionName: 'operator',\n+    chainId: ARC_MAINNET_ID,\n+    query: { refetchInterval: 15_000 },\n+  })\n+\n+  const { data: owner, isLoading: loadingOwner } = useReadContract({\n+    address: VAULT_ADDRESS,\n+    abi: LULL_VAULT_ABI,\n+    functionName: 'owner',\n+    chainId: ARC_MAINNET_ID,\n+    query: { refetchInterval: 15_000 },\n+  })\n+\n+  const { data: paused, isLoading: loadingPaused } = useReadContract({\n+    address: VAULT_ADDRESS,\n+    abi: LULL_VAULT_ABI,\n+    functionName: 'paused',\n+    chainId: ARC_MAINNET_ID,\n+    query: { refetchInterval: 15_000 },\n+  })\n+\n+  const formatAddr = (a: string) => `${a.slice(0, 8)}…${a.slice(-6)}`\n+\n+  const balanceStr = loadingBal\n+    ? 'Loading…'\n+    : balance !== undefined\n+      ? `${formatUnitsFixed(balance as bigint, 6, 6)} USDC`\n+      : '—'\n+\n+  const operatorStr = loadingOp ? 'Loading…' : operator ? formatAddr(operator as string) : '—'\n+  const ownerStr = loadingOwner ? 'Loading…' : owner ? formatAddr(owner as string) : '—'\n+  const pausedVal = paused as boolean | undefined\n+  const pausedStr = loadingPaused ? 'Loading…' : pausedVal === true ? 'Paused' : pausedVal === false ? 'Active' : '—'\n+\n+  return (\n+    <div>\n+      <div\n+        style={{\n+          fontSize: 11,\n+          fontWeight: 700,\n+          letterSpacing: '0.1em',\n+          textTransform: 'uppercase',\n+          color: 'var(--subtle)',\n+          marginBottom: 12,\n+        }}\n+      >\n+        Live Stats — refreshes every 15s\n+      </div>\n+      <div\n+        style={{\n+          display: 'grid',\n+          gridTemplateColumns: 'repeat(2, 1fr)',\n+          gap: 10,\n+        }}\n+      >\n+        <StatCard label=\"USDC Held\" value={balanceStr} />\n+        <StatCard\n+          label=\"Payouts\"\n+          value={pausedStr}\n+          success={pausedVal === false}\n+          danger={pausedVal === true}\n+        />\n+        <StatCard label=\"Operator\" value={operatorStr} mono />\n+        <StatCard label=\"Owner\" value={ownerStr} mono />\n+      </div>\n+    </div>\n+  )\n+}"
+    },
+    {
+      "path": "src/config.ts",
+      "action": "write",
+      "addedLines": 39,
+      "removedLines": 0,
+      "isFragment": false,
+      "truncated": false,
+      "hunk": "+/**\n+ * wagmi configuration\n+ * Built with Arc Studio — https://studio.arc.io\n+ */\n+\n+import { http, createConfig } from 'wagmi'\n+import { mainnet } from 'wagmi/chains'\n+import { arcTestnet } from 'viem/chains'\n+import { injected } from 'wagmi/connectors'\n+import { registerChain } from './tracing'\n+\n+// Arc mainnet (chain id 5042)\n+const arcMainnet = {\n+  id: 5042,\n+  name: 'Arc',\n+  nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },\n+  rpcUrls: {\n+    default: { http: ['https://rpc.mainnet.arc.io'] },\n+  },\n+  blockExplorers: {\n+    default: { name: 'Arc Explorer', url: 'https://explorer.arc.io' },\n+  },\n+} as const\n+\n+// Pre-register chain RPC URLs so trace events show correct chain names immediately\n+registerChain(arcTestnet.id, arcTestnet.rpcUrls.default.http[0])\n+registerChain(arcMainnet.id, arcMainnet.rpcUrls.default.http[0])\n+\n+export const config = createConfig({\n+  chains: [arcMainnet, arcTestnet, mainnet],\n+  connectors: [injected()],\n+  transports: {\n+    [arcMainnet.id]: http('https://rpc.mainnet.arc.io'),\n+    [arcTestnet.id]: http(),\n+    [mainnet.id]: http(),\n+  },\n+})\n+\n+export { arcMainnet }"
+    },
+    {
+      "path": "src/constants.ts",
+      "action": "write",
+      "addedLines": 93,
+      "removedLines": 0,
+      "isFragment": false,
+      "truncated": false,
+      "hunk": "+import type { Abi } from 'viem'\n+\n+export const ARC_MAINNET_ID = 5042\n+export const VAULT_ADDRESS = '0x6f3f3008eb689F2f0AC82dC08bBBb5Fc3ECc15c5' as const\n+export const USDC_ADDRESS = '0x3600000000000000000000000000000000000000' as const\n+export const VAULT_DEPLOY_BLOCK = 27826765n\n+export const ARC_MAINNET_EXPLORER = 'https://explorer.arc.io'\n+export const ARC_MAINNET_RPC = 'https://rpc.mainnet.arc.io'\n+export const USDC_DECIMALS_ERC20 = 6\n+\n+export const ERC20_MINIMAL_ABI = [\n+  {\n+    type: 'function',\n+    name: 'balanceOf',\n+    inputs: [{ name: 'account', type: 'address' }],\n+    outputs: [{ name: '', type: 'uint256' }],\n+    stateMutability: 'view',\n+  },\n+  {\n+    type: 'function',\n+    name: 'transfer',\n+    inputs: [\n+      { name: 'to', type: 'address' },\n+      { name: 'amount', type: 'uint256' },\n+    ],\n+    outputs: [{ name: '', type: 'bool' }],\n+    stateMutability: 'nonpayable',\n+  },\n+  {\n+    type: 'function',\n+    name: 'decimals',\n+    inputs: [],\n+    outputs: [{ name: '', type: 'uint8' }],\n+    stateMutability: 'view',\n+  },\n+] as const satisfies Abi\n+\n+export const LULL_VAULT_ABI = [\n+  {\n+    type: 'function',\n+    name: 'balance',\n+    inputs: [],\n+    outputs: [{ name: '', type: 'uint256' }],\n+    stateMutability: 'view',\n+  },\n+  {\n+    type: 'function',\n+    name: 'operator',\n+    inputs: [],\n+    outputs: [{ name: '', type: 'address' }],\n+    stateMutability: 'view',\n+  },\n+  {\n+    type: 'function',\n+    name: 'owner',\n+    inputs: [],\n+    outputs: [{ name: '', type: 'address' }],\n+    stateMutability: 'view',\n+  },\n+  {\n+    type: 'function',\n+    name: 'paused',\n+    inputs: [],\n+    outputs: [{ name: '', type: 'bool' }],\n+    stateMutability: 'view',\n+  },\n+  {\n+    type: 'event',\n+    name: 'Paid',\n+    inputs: [\n+      { name: 'batchId', type: 'bytes32', indexed: true },\n+      { name: 'to', type: 'address', indexed: true },\n+      { name: 'amount', type: 'uint256', indexed: false },\n+    ],\n+  },\n+  {\n+    type: 'event',\n+    name: 'BatchPaid',\n+    inputs: [\n+      { name: 'batchId', type: 'bytes32', indexed: true },\n+      { name: 'count', type: 'uint256', indexed: false },\n+      { name: 'total', type: 'uint256', indexed: false },\n+    ],\n+  },\n+  {\n+    type: 'event',\n+    name: 'Deposited',\n+    inputs: [\n+      { name: 'from', type: 'address', indexed: true },\n+      { name: 'amount', type: 'uint256', indexed: false },\n+    ],\n+  },\n+] as const satisfies Abi"
+    },
+    {
+      "path": "src/index.css",
+      "action": "write",
+      "addedLines": 42,
+      "removedLines": 0,
+      "isFragment": false,
+      "truncated": false,
+      "hunk": "+@tailwind base;\n+@tailwind components;\n+@tailwind utilities;\n+\n+:root {\n+  --bg: #0d1b2f;\n+  --bg-gradient: linear-gradient(180deg, #0d1b2f 0%, #0d1b2f 58%, #122d45 100%);\n+  --surface: rgba(255, 255, 255, 0.07);\n+  --surface-strong: rgba(255, 255, 255, 0.11);\n+  --surface-muted: #1f2f44;\n+  --ink: #f9faf3;\n+  --ink-2: #e3ecf9;\n+  --muted: #cbd5e1;\n+  --subtle: #94a3b8;\n+  --border: rgba(255, 255, 255, 0.12);\n+  --border-strong: rgba(203, 219, 242, 0.55);\n+  --accent: #acc6e9;\n+  --accent-hover: #cbdbf2;\n+  --success: #8dd89f;\n+  --danger: #e86d7a;\n+}\n+\n+* {\n+  box-sizing: border-box;\n+}\n+\n+body {\n+  margin: 0;\n+  font-family: 'DM Sans', sans-serif;\n+  min-height: 100dvh;\n+  background: var(--bg);\n+  color: var(--ink);\n+}\n+\n+.display {\n+  font-family: 'Space Grotesk', sans-serif;\n+  letter-spacing: -0.03em;\n+}\n+\n+.mono {\n+  font-family: 'JetBrains Mono', Menlo, monospace;\n+}"
+    }
+  ],
+  "contextFiles": [],
+  "workspaceFiles": [],
+  "deployments": [
+    {
+      "contract": "LingerVault",
+      "address": "0x2a7db15f85f947b7374847382b00133d470d6eda",
+      "network": "Arc Testnet",
+      "explorerUrl": "https://explorer.testnet.arc.io/address/0x2a7db15f85f947b7374847382b00133d470d6eda",
+      "txHash": "0x7be84d160040f346479649d2ed586053a41a913c10a5a6fd87b63a79ff563afe",
+      "deployedAt": "2026-10-25T13:11:39.811Z"
+    }
+  ],
+  "artifacts": {
+    "contractSources": [
+      "contracts/LullVault.sol",
+      "contracts/script/Create2Factory.sol",
+      "contracts/script/DeployCreate2.s.sol",
+      "contracts/test/LullVault.Invariant.t.sol",
+      "contracts/test/LullVault.t.sol",
+      "contracts/test/mocks/LingerMocks.sol",
+      "contracts/test/mocks/LullMocks.sol"
+    ],
+    "abis": [
+      "contracts/out/Base.sol/CommonBase.json",
+      "contracts/out/Base.sol/ScriptBase.json",
+      "contracts/out/Base.sol/TestBase.json",
+      "contracts/out/Context.sol/Context.json",
+      "contracts/out/Create2.sol/Create2.json",
+      "contracts/out/Create2Factory.sol/Create2Factory.json",
+      "contracts/out/DeployCreate2.s.sol/DeployCreate2.json",
+      "contracts/out/ERC20.sol/ERC20.json",
+      "contracts/out/Errors.sol/Errors.json",
+      "contracts/out/IERC1363.sol/IERC1363.json",
+      "contracts/out/IERC165.sol/IERC165.json",
+      "contracts/out/IERC20.sol/IERC20.json",
+      "contracts/out/IERC20Metadata.sol/IERC20Metadata.json",
+      "contracts/out/IMulticall3.sol/IMulticall3.json",
+      "contracts/out/LingerMocks.sol/MockBlockableERC20.json",
+      "contracts/out/LingerMocks.sol/MockERC20.json",
+      "contracts/out/LingerVault.Invariant.t.sol/LingerVaultInvariantTest.json",
+      "contracts/out/LingerVault.Invariant.t.sol/VaultHandler.json",
+      "contracts/out/LingerVault.sol/LingerVault.json",
+      "contracts/out/LingerVault.t.sol/LingerVaultTest.json",
+      "contracts/out/LowLevelCall.sol/LowLevelCall.json",
+      "contracts/out/Ownable.sol/Ownable.json",
+      "contracts/out/Ownable2Step.sol/Ownable2Step.json",
+      "contracts/out/Pausable.sol/Pausable.json",
+      "contracts/out/ReentrancyGuard.sol/ReentrancyGuard.json",
+      "contracts/out/SafeERC20.sol/SafeERC20.json",
+      "contracts/out/Script.sol/Script.json",
+      "contracts/out/StdAssertions.sol/StdAssertions.json",
+      "contracts/out/StdChains.sol/StdChains.json",
+      "contracts/out/StdCheats.sol/StdCheats.json",
+      "contracts/out/StdCheats.sol/StdCheatsSafe.json",
+      "contracts/out/StdConstants.sol/StdConstants.json",
+      "contracts/out/StdError.sol/stdError.json",
+      "contracts/out/StdInvariant.sol/StdInvariant.json",
+      "contracts/out/StdJson.sol/stdJson.json",
+      "contracts/out/StdMath.sol/stdMath.json",
+      "contracts/out/StdStorage.sol/stdStorage.json",
+      "contracts/out/StdStorage.sol/stdStorageSafe.json",
+      "contracts/out/StdStyle.sol/StdStyle.json",
+      "contracts/out/StdToml.sol/stdToml.json",
+      "contracts/out/StdUtils.sol/StdUtils.json",
+      "contracts/out/StorageSlot.sol/StorageSlot.json",
+      "contracts/out/Test.sol/Test.json",
+      "contracts/out/Vm.sol/Vm.json",
+      "contracts/out/Vm.sol/VmSafe.json",
+      "contracts/out/console.sol/console.json",
+      "contracts/out/draft-IERC6093.sol/IERC1155Errors.json",
+      "contracts/out/draft-IERC6093.sol/IERC20Errors.json",
+      "contracts/out/draft-IERC6093.sol/IERC721Errors.json",
+      "contracts/out/safeconsole.sol/safeconsole.json",
+      "contracts/out/interfaces/IERC165.sol/IERC165.json",
+      "contracts/out/interfaces/IERC20.sol/IERC20.json"
+    ],
+    "metadata": [
+      "contracts/contract-metadata/LingerVault.json"
+    ]
+  },
+  "webUrl": "https://studio.arc.io/app/115f0ad4-c41f-4e3a-b5d5-28b2d1cc27ea",
+  "questions": null,
+  "errorMessage": null,
+  "traceId": "01a17416-b520-722b-91d8-5b0d02af5721",
+  "budget": null
+}
