@@ -1,4 +1,4 @@
-# lingersh-arc
+# lullsh
 
 Turn the waiting into earnings.
 
@@ -7,10 +7,10 @@ status line while the model works. When the answer arrives, it is gone. You
 get paid in USDC on Solana.
 
 ```
-npm i -g lingersh-arc && linger init --spinner
+npm i -g lullsh && lull init --spinner
 ```
 
-After install, the command is `linger`.
+After install, the command is `lull`.
 
 ---
 
@@ -30,8 +30,8 @@ impression, no payment.
 ## Install
 
 ```bash
-npm i -g lingersh-arc && linger init --spinner             # install and start
-linger init --spinner   # also use the "Thinking…" words at the top
+npm i -g lullsh && lull init --spinner             # install and start
+lull init --spinner   # also use the "Thinking…" words at the top
 ```
 
 Then open a new Claude Code session.
@@ -39,11 +39,11 @@ Then open a new Claude Code session.
 ## Getting paid
 
 ```bash
-linger login      # connect your wallet — earnings go here
-linger balance    # what you have earned
+lull login      # connect your wallet — earnings go here
+lull balance    # what you have earned
 ```
 
-`linger login` opens a page on your own machine and you sign a message with Phantom, Solflare or Backpack.
+`lull login` opens a page on your own machine and you sign a message with Phantom, Solflare or Backpack.
 **Your private key never enters this tool.**
 
 Your identity *is* your wallet address. No GitHub, no email, no password.
@@ -52,21 +52,21 @@ Your identity *is* your wallet address. No GitHub, no email, no password.
 
 | Command | What it does |
 |---|---|
-| `linger init` | install and start |
-| `linger login` | connect your wallet |
-| `linger balance` | show earnings |
-| `linger whoami` | show the connected wallet |
-| `linger status` | daemon status |
-| `linger doctor` | diagnose the install |
-| `linger restart` | restart the daemon |
-| `linger pause` / `resume` | stop showing ads for now |
-| `linger logout` | disconnect the wallet |
-| `linger uninstall` | remove it |
+| `lull init` | install and start |
+| `lull login` | connect your wallet |
+| `lull balance` | show earnings |
+| `lull whoami` | show the connected wallet |
+| `lull status` | daemon status |
+| `lull doctor` | diagnose the install |
+| `lull restart` | restart the daemon |
+| `lull pause` / `resume` | stop showing ads for now |
+| `lull logout` | disconnect the wallet |
+| `lull uninstall` | remove it |
 
 ## Leaving
 
 ```bash
-linger uninstall
+lull uninstall
 ```
 
 It removes only our own entries. If you have your own settings in
@@ -102,12 +102,12 @@ overwrites the other.
 Devnet. The payout code is implemented and unit-tested; it has not yet been
 run against Solana devnet, and mainnet is out of scope for now.
 
-Without a server connection `linger` shows sample ads and **records no
-earnings**. `linger init` tells you when that is the case.
+Without a server connection `lull` shows sample ads and **records no
+earnings**. `lull init` tells you when that is the case.
 
 ## Links
 
-- [github.com/ynsmlkc/Linger](https://github.com/ynsmlkc/Linger)
+- [github.com/ynsmlkc/Lull](https://github.com/ynsmlkc/Lull)
 
 ## License
 

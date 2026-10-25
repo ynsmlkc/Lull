@@ -6,9 +6,9 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock, micros, FALLBACK_CONFIG, PROTOCOL_HEADER } from '@linger/protocol'
-import type { RemoteConfig, ImpressionEvent } from '@linger/protocol'
-import type { PaymentRail, PayoutBatch, SubmissionReceipt } from '@linger/payments'
+import { fixedClock, micros, FALLBACK_CONFIG, PROTOCOL_HEADER } from '@lull/protocol'
+import type { RemoteConfig, ImpressionEvent } from '@lull/protocol'
+import type { PaymentRail, PayoutBatch, SubmissionReceipt } from '@lull/payments'
 import { createApp } from '../src/http/app.js'
 import { RateLimiter } from '../src/http/rate-limit.js'
 import { TokenStore, hashToken } from '../src/http/auth.js'
@@ -22,9 +22,9 @@ import type { Campaign } from '../src/ads/selector.js'
 
 const PUB = 'pub-1'
 const ADV = 'adv-1'
-const DAEMON_TOKEN = 'lng_daemon_token_0123456789abcdef'
-const WALLET_TOKEN = 'lng_wallet_token_0123456789abcdef'
-const REVOKED_TOKEN = 'lng_revoked_token_0123456789abcd'
+const DAEMON_TOKEN = 'lul_daemon_token_0123456789abcdef'
+const WALLET_TOKEN = 'lul_wallet_token_0123456789abcdef'
+const REVOKED_TOKEN = 'lul_revoked_token_0123456789abcd'
 
 let clock: ReturnType<typeof fixedClock>
 let app: ReturnType<typeof createApp>
@@ -83,7 +83,7 @@ const asJson = async (r: Response): Promise<any> => r.json()
 
 const auth = (token = DAEMON_TOKEN, version = '1.0.0'): Record<string, string> => ({
   authorization: `Bearer ${token}`,
-  'x-linger-client-version': version,
+  'x-lull-client-version': version,
   'content-type': 'application/json',
 })
 
@@ -91,20 +91,20 @@ describe('yetki', () => {
   it('token yoksa 401', async () => {
     const r = await app.request('/v1/ads/next', { method: 'POST' })
     expect(r.status).toBe(401)
-    expect((await asJson(r)).code).toBe('LNG_2001')
+    expect((await asJson(r)).code).toBe('LUL_2001')
   })
 
   it('iptal edilmis token 401', async () => {
     const r = await app.request('/v1/ads/next', { method: 'POST', headers: auth(REVOKED_TOKEN) })
     expect(r.status).toBe(401)
-    expect((await asJson(r)).code).toBe('LNG_2002')
+    expect((await asJson(r)).code).toBe('LUL_2002')
   })
 
   it('kapsam yetmiyorsa 403 — daemon token\'i cuzdan degistiremez', async () => {
     // Cuzdan token'i gosterim raporlayamaz ve tersi.
     const r = await app.request('/v1/ads/next', { method: 'POST', headers: auth(WALLET_TOKEN) })
     expect(r.status).toBe(403)
-    expect((await asJson(r)).code).toBe('LNG_2003')
+    expect((await asJson(r)).code).toBe('LUL_2003')
   })
 
   it('bakiyeyi ikisi de okuyabilir', async () => {
@@ -119,7 +119,7 @@ describe('ADR-016 — surum kapisi', () => {
     config = { ...config, minClientVersion: '2.0.0' }
     const r = await app.request('/v1/ads/next', { method: 'POST', headers: auth(DAEMON_TOKEN, '1.5.0') })
     expect(r.status).toBe(426)
-    expect((await asJson(r)).code).toBe('LNG_1005')
+    expect((await asJson(r)).code).toBe('LUL_1005')
   })
 
   it('yeni istemci gecer', async () => {
@@ -134,7 +134,7 @@ describe('ADR-008 — kill switch', () => {
     config = { ...config, renderEnabled: false }
     const r = await app.request('/v1/ads/next', { method: 'POST', headers: auth() })
     expect(r.status).toBe(503)
-    expect((await asJson(r)).code).toBe('LNG_3005')
+    expect((await asJson(r)).code).toBe('LUL_3005')
   })
 
   it('config ucu YETKI ISTEMEZ — kill switch her istemciye ulasmali', async () => {
@@ -526,7 +526,7 @@ describe('protokol ve hatalar', () => {
   it('bilinmeyen uc 404 + hata zarfi', async () => {
     const r = await app.request('/v1/yok')
     expect(r.status).toBe(404)
-    expect((await asJson(r)).code).toBe('LNG_9001')
+    expect((await asJson(r)).code).toBe('LUL_9001')
   })
 
   it('hata cevabi stack trace ICERMEZ', async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock, micros } from '@linger/protocol'
+import { fixedClock, micros } from '@lull/protocol'
 import { Verifier } from '../src/impressions/verify.js'
 import type { StoredImpression } from '../src/impressions/ingest.js'
 

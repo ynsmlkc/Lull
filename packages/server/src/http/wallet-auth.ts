@@ -18,8 +18,8 @@
  * kazanci ikiye bolunurdu.
  */
 
-import { Siwe, checkAddressFormat, normalizeAddress } from '@linger/payments'
-import type { Clock, IdGenerator, TokenScope } from '@linger/protocol'
+import { Siwe, checkAddressFormat, normalizeAddress } from '@lull/payments'
+import type { Clock, IdGenerator, TokenScope } from '@lull/protocol'
 
 export interface PendingChallenge {
   readonly address: string
@@ -120,7 +120,7 @@ export class WalletAuth {
     this.#pending.delete(address)
 
     // Ham token YALNIZCA burada, bir kez gorunur. Sunucu hash'ini saklar.
-    const raw = `lng_${this.deps.ids.randomHex(24)}`
+    const raw = `lul_${this.deps.ids.randomHex(24)}`
     const { tokenId } = this.deps.issueToken({
       publisherId: address,
       tokenHash: this.deps.hashToken(raw),

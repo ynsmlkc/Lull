@@ -10,7 +10,7 @@ import { homedir, tmpdir } from 'node:os'
 import type { TermShape } from './shim/term-shape.js'
 import { join } from 'node:path'
 
-export const LINGER_HOME = process.env['LINGER_HOME'] ?? join(homedir(), '.linger')
+export const LULL_HOME = process.env['LULL_HOME'] ?? join(homedir(), '.lull')
 
 /**
  * Unix soket yolunun uzunluk siniri (`sun_path`, NUL haric).
@@ -33,17 +33,17 @@ const SUN_PATH_MAX = process.platform === 'linux' ? 107 : 103
  * duseriz. Deterministik olmasi sart: shim ile daemon ayri sureclerdir ve
  * ayni yolu bagimsiz olarak hesaplamak zorundalar.
  */
-export function socketPathFor(lingerHome: string): string {
-  const normal = join(lingerHome, 'lingerd.sock')
+export function socketPathFor(lullHome: string): string {
+  const normal = join(lullHome, 'lulld.sock')
   if (Buffer.byteLength(normal) <= SUN_PATH_MAX) return normal
 
-  const kisa = join(tmpdir(), `linger-${shortHash(lingerHome)}.sock`)
+  const kisa = join(tmpdir(), `lull-${shortHash(lullHome)}.sock`)
   if (Buffer.byteLength(kisa) > SUN_PATH_MAX) {
     // tmpdir bile sigmiyorsa yapabilecegimiz bir sey yok. Sessizce yanlis
     // calismaktansa ne oldugunu soyleyerek durmak dogru.
     throw new Error(
       `soket yolu cok uzun (${Buffer.byteLength(kisa)} > ${SUN_PATH_MAX} byte): ${kisa}\n` +
-      'LINGER_SOCKET ile daha kisa bir yol ver',
+      'LULL_SOCKET ile daha kisa bir yol ver',
     )
   }
   return kisa
@@ -65,7 +65,7 @@ function shortHash(s: string): string {
   return h.toString(36).padStart(7, '0')
 }
 
-export const SOCKET_PATH = socketPathFor(LINGER_HOME)
+export const SOCKET_PATH = socketPathFor(LULL_HOME)
 
 /** Shim'in toplam butcesi. Asarsa bos doner — gec bir reklam, reklamdan kotudur. */
 export const SHIM_BUDGET_MS = 50
@@ -83,9 +83,9 @@ export type Request =
       readonly shape?: TermShape }
   /** Hook olayi bildir. */
   | { readonly t: 'hook'; readonly event: HookEvent; readonly session: string; readonly promptId?: string }
-  /** Saglik ve teshis — `linger doctor` / `linger status`. */
+  /** Saglik ve teshis — `lull doctor` / `lull status`. */
   | { readonly t: 'health' }
-  /** Reklami gecici durdur/devam ettir — `linger pause` / `linger resume`. */
+  /** Reklami gecici durdur/devam ettir — `lull pause` / `lull resume`. */
   | { readonly t: 'pause'; readonly on: boolean }
 
 export type HookEvent =

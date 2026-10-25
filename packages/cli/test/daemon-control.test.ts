@@ -15,17 +15,17 @@ let dir = ''
 let innocent: ChildProcess | null = null
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'linger-pid-'))
-  process.env['LINGER_HOME'] = join(dir, '.linger')
-  process.env['LINGER_SOCKET'] = join(dir, '.linger', 'lingerd.sock')
+  dir = mkdtempSync(join(tmpdir(), 'lull-pid-'))
+  process.env['LULL_HOME'] = join(dir, '.lull')
+  process.env['LULL_SOCKET'] = join(dir, '.lull', 'lulld.sock')
 })
 
 afterEach(() => {
   innocent?.kill('SIGKILL')
   innocent = null
   rmSync(dir, { recursive: true, force: true })
-  delete process.env['LINGER_HOME']
-  delete process.env['LINGER_SOCKET']
+  delete process.env['LULL_HOME']
+  delete process.env['LULL_SOCKET']
 })
 
 // Yollar cagri aninda hesaplandigi icin modulu bir kez import etmek yeterli.
@@ -37,7 +37,7 @@ describe('bayat pidfile — masum surec oldurulmez', () => {
     const dc = await fresh()
 
     // Gercek, yasayan bir surec baslat ve pid'ini pidfile'a yaz.
-    // Senaryo: onceki bir `linger init` daemon'i baslatamadi ama pidfile
+    // Senaryo: onceki bir `lull init` daemon'i baslatamadi ama pidfile
     // birakti; isletim sistemi o pid'i bu surece yeniden atadi.
     innocent = spawn(process.execPath, ['-e', 'setTimeout(()=>{}, 60000)'], { stdio: 'ignore' })
     await new Promise((r) => setTimeout(r, 200))
@@ -45,7 +45,7 @@ describe('bayat pidfile — masum surec oldurulmez', () => {
     expect(pid).toBeGreaterThan(0)
 
     const { mkdirSync } = await import('node:fs')
-    mkdirSync(join(dir, '.linger'), { recursive: true })
+    mkdirSync(join(dir, '.lull'), { recursive: true })
     writeFileSync(dc.pidPath(), String(pid))
 
     await dc.stop()
@@ -60,7 +60,7 @@ describe('bayat pidfile — masum surec oldurulmez', () => {
   it('bayat pidfile temizlenir', async () => {
     const dc = await fresh()
     const { mkdirSync } = await import('node:fs')
-    mkdirSync(join(dir, '.linger'), { recursive: true })
+    mkdirSync(join(dir, '.lull'), { recursive: true })
     writeFileSync(dc.pidPath(), '999999')
 
     await dc.stop()
@@ -104,7 +104,7 @@ describe('canlilik kontrolu', () => {
 
 describe('cozulmeyen promise — sessiz cikis', () => {
   it('sunucu cevap vermeden kapanirsa ask() null DONER, asilmaz', async () => {
-    // Gercek belirti: `linger uninstall` banner'i basip duruyordu, ayarlar
+    // Gercek belirti: `lull uninstall` banner'i basip duruyordu, ayarlar
     // silinmiyordu, cikis kodu 0'di. Ucte bir tekrarlanan bir yaristi.
     //
     // Sebep: daemon'a SIGTERM'den sonra baglanti kuruluyor ama daemon cevap
@@ -114,8 +114,8 @@ describe('cozulmeyen promise — sessiz cikis', () => {
     const dc = await fresh()
     const { createServer } = await import('node:net')
     const { mkdirSync } = await import('node:fs')
-    mkdirSync(join(dir, '.linger'), { recursive: true })
-    const sockPath = join(dir, '.linger', 'sessiz.sock')
+    mkdirSync(join(dir, '.lull'), { recursive: true })
+    const sockPath = join(dir, '.lull', 'sessiz.sock')
 
     // Baglantiyi kabul edip HICBIR SEY yazmadan kapatan sunucu.
     const srv = createServer((c) => c.destroy())

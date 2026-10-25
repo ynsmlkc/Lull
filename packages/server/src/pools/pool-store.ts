@@ -11,8 +11,8 @@
  * para kaydi, defterle ayrisabilecek ikinci bir gercek demek olurdu.
  */
 
-import { type Micros } from '@linger/protocol'
-import type { Clock } from '@linger/protocol'
+import { type Micros } from '@lull/protocol'
+import type { Clock } from '@lull/protocol'
 import type { Db } from '../store/db.js'
 import { MIN_BID_CPM } from '../ads/campaign-store.js'
 

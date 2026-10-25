@@ -1,5 +1,5 @@
 /**
- * @linger/payments — Arc'a dokunan her sey.
+ * @lull/payments — Arc'a dokunan her sey.
  *
  * `PaymentRail` arayuzunun arkasinda; birim testler mock rail ile kosar,
  * testnet yalnizca entegrasyon suite'inde (§11).

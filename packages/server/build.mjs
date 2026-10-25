@@ -11,7 +11,7 @@ await build({
   entryPoints: ['src/main.ts'],
   outfile: 'dist/server.mjs',
   bundle: true, platform: 'node', target: 'node20', format: 'esm',
-  // @linger/protocol bir workspace paketi ve KAYNAK TypeScript. Disarida
+  // @lull/protocol bir workspace paketi ve KAYNAK TypeScript. Disarida
   // birakilirsa calisma aninda .ts cozumleyemez; bundle'a katilmali.
 
   // ESM ciktisinda `require` YOKTUR. Bagimliliklarimizin bir kismi hala
@@ -24,13 +24,13 @@ await build({
   // yalnizca paketlenmis halde ortaya cikiyor.
   banner: {
     js: [
-      "import { createRequire as __lingerCreateRequire } from 'node:module'",
-      "import { fileURLToPath as __lingerFileURLToPath } from 'node:url'",
-      "import { dirname as __lingerDirname } from 'node:path'",
-      'const require = __lingerCreateRequire(import.meta.url)',
+      "import { createRequire as __lullCreateRequire } from 'node:module'",
+      "import { fileURLToPath as __lullFileURLToPath } from 'node:url'",
+      "import { dirname as __lullDirname } from 'node:path'",
+      'const require = __lullCreateRequire(import.meta.url)',
       // Bazi CJS paketleri bunlari da bekliyor.
-      'const __filename = __lingerFileURLToPath(import.meta.url)',
-      'const __dirname = __lingerDirname(__filename)',
+      'const __filename = __lullFileURLToPath(import.meta.url)',
+      'const __dirname = __lullDirname(__filename)',
     ].join('\n'),
   },
 })

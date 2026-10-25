@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock, fakeIdGenerator, micros, add, sum, ZERO } from '@linger/protocol'
+import { fixedClock, fakeIdGenerator, micros, add, sum, ZERO } from '@lull/protocol'
 import { Ledger, LedgerError } from '../src/ledger/ledger.js'
 import { MemoryLedgerStore } from '../src/ledger/memory-store.js'
 import { accountId, PLATFORM_REVENUE, EXTERNAL_CASH, EXTERNAL_SETTLEMENT } from '../src/ledger/accounts.js'

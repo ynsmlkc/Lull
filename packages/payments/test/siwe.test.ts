@@ -6,10 +6,10 @@
 
 import { describe, it, expect, beforeEach } from 'vitest'
 import { generatePrivateKey, privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
-import { fixedClock, fakeIdGenerator } from '@linger/protocol'
+import { fixedClock, fakeIdGenerator } from '@lull/protocol'
 import { Siwe } from '../src/siwe.js'
 
-const DOMAIN = 'linger.example'
+const DOMAIN = 'lull.example'
 
 let clock: ReturnType<typeof fixedClock>
 let siwe: Siwe

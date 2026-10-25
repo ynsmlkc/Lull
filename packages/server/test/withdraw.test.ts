@@ -11,8 +11,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { fixedClock, micros, type Micros } from '@linger/protocol'
-import type { PaymentRail, PayoutBatch, SubmissionReceipt, SettlementState } from '@linger/payments'
+import { fixedClock, micros, type Micros } from '@lull/protocol'
+import type { PaymentRail, PayoutBatch, SubmissionReceipt, SettlementState } from '@lull/payments'
 import { openDb, type Db } from '../src/store/db.js'
 import { SqliteLedgerStore, SqlitePayoutStore } from '../src/store/persistent.js'
 import { Ledger } from '../src/ledger/ledger.js'
@@ -78,7 +78,7 @@ function kur(spendable: bigint, bakiye = spendable, ek: Partial<ConstructorParam
 
 const bakiye = (l: Ledger) => l.balance(accountId('advertiser', ADV))
 
-beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'linger-w-')); db = openDb(join(dir, 'w.db')); n = 0 })
+beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'lull-w-')); db = openDb(join(dir, 'w.db')); n = 0 })
 afterEach(() => { db.close(); rmSync(dir, { recursive: true, force: true }) })
 
 describe('para cekme', () => {

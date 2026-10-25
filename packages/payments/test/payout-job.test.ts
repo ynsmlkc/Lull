@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock, micros, type Micros } from '@linger/protocol'
+import { fixedClock, micros, type Micros } from '@lull/protocol'
 import { PayoutJob, type PayoutCandidate } from '../src/payout-job.js'
 import { WalletStore } from '../src/wallet.js'
 import { MockRail } from './mock-rail.js'

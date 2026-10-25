@@ -3,7 +3,7 @@
 > **Kapsam.** Bu dosya PROJECT.md'nin yerine geçmez. Kararların otoritesi PROJECT.md
 > ve ADR'lerdir. Burada olan şey: **kickbacks.ai'ın canlı çalışan kurulumunun
 > sökülmesi** (gözlem: 2026-08-14, bu makinede kurulu haliyle) ve bundan çıkan,
-> Linger'de **henüz karşılığı olmayan** parçalar.
+> Lull'de **henüz karşılığı olmayan** parçalar.
 >
 > Kickbacks aynı yüzeyi (Claude Code `statusLine` + `spinnerVerbs`) satan,
 > üretimde çalışan bir rakip. Kodu okunabilir durumda olduğu için ücretsiz bir
@@ -52,7 +52,7 @@ noktaları yeterli" varsayımını bağımsız bir ekip de doğrulamış.
 
 **Bizden farklı olan tasarım tercihleri:**
 
-| Konu | Kickbacks | Linger |
+| Konu | Kickbacks | Lull |
 |---|---|---|
 | Tazelik | Script `ts`'e bakıp 10 dk penceresi uygular | Daemon karar verir, shim aptal |
 | Ağ | Script hiç ağa çıkmaz, JSON okur | Script hiç ağa çıkmaz, unix socket |
@@ -84,9 +84,9 @@ O ölçüm sırasında bu makinede **kickbacks de aynı alana yazıyordu.** Sır
 olmuş olabilir:
 
 ```
-t+0s    Linger yazar:      spinnerVerbs.verbs = ["✶ Resend"]
+t+0s    Lull yazar:      spinnerVerbs.verbs = ["✶ Resend"]
 t+~60s  Kickbacks yazar:  spinnerVerbs.verbs = ["✶ Neon — serverless Postgres"]
-        (Linger'in yazdığını ezer)
+        (Lull'in yazdığını ezer)
 ekran   ne "Resend" ne "Neon" → ölçüm "donmuş" diye yorumlanır
 ```
 
@@ -217,7 +217,7 @@ function compose(text: string, url: string, shape: Shape): string {
 
 ## 4. Referans iskelet — zincirleme (chain-capture)
 
-PROJECT.md §615 `linger init`'in sorumluluğu olarak "mevcut statusLine varsa ezme,
+PROJECT.md §615 `lull init`'in sorumluluğu olarak "mevcut statusLine varsa ezme,
 zincirleme seçeneği sun" diyor ama implementasyon henüz yok. Kickbacks'te
 çalışan hali var; **doğru yaptığı ve kolayca yanlış yapılan** kısımlar şunlar.
 
@@ -230,7 +230,7 @@ const prev = JSON.parse(readFileSync(PREV_PATH, 'utf8')).statusLine
 const cmd = prev?.type === 'command' ? prev.command : ''
 
 // Kendini çağırma guard'ı: elle düzenlenmiş/bayat bir yedek fork bombasına döner
-if (cmd && !cmd.includes('linger')) {
+if (cmd && !cmd.includes('lull')) {
   // CC session JSON'unu statusLine'ın stdin'ine pipe'lar; zincirlenen komut
   // (claude-hud vb.) onu render için ister. stdin fd'sini DOĞRUDAN devret —
   // burada readFileSync(0) yaparsan, kapatılmayan bir pipe'ta sonsuza dek blokesin.
@@ -301,7 +301,7 @@ sanitizasyon ondan **önce** çalışmalı. Aksi halde reklamverenin metnindeki 
 
 ---
 
-## 7. Bu makinenin mevcut durumu — Linger şu an kurulu DEĞİL
+## 7. Bu makinenin mevcut durumu — Lull şu an kurulu DEĞİL
 
 Yeniden test etmeden önce temizlenmesi gereken durum.
 
@@ -313,7 +313,7 @@ Yeniden test etmeden önce temizlenmesi gereken durum.
                 "command": "node \"/Users/yunusmalkoc/.kickbacks/vibe-ads-statusline.mjs\"" }
 ```
 
-Hiçbirinde `__linger` işareti yok ve Linger hook'ları dosyada yok.
+Hiçbirinde `__lull` işareti yok ve Lull hook'ları dosyada yok.
 
 **Sonuç: `SpinnerSync` sessizce devre dışı.** Guard tam olarak bunu yapıyor:
 
@@ -323,25 +323,25 @@ if (settings.spinnerVerbs && settings.spinnerVerbs[MARKER] !== true) return
 
 Alan var ama bizim değil → `return`. Bu **doğru davranış** (kullanıcının ayarını
 ezmeme kuralı), ama "spinner çalışmıyor" diye debug edilirse yanlış yere bakılır.
-`linger status` bu durumu açıkça raporlamalı: _"spinnerVerbs başka bir araca ait
+`lull status` bu durumu açıkça raporlamalı: _"spinnerVerbs başka bir araca ait
 (kickbacks), senkron kapalı."_ — açık madde.
 
 **Ayrıca: yedeklerde yazma yarışı izi var.**
 
-`~/.claude/linger-backups/` içinde 10 yedek, hepsi **1.3 saniye içinde**
+`~/.claude/lull-backups/` içinde 10 yedek, hepsi **1.3 saniye içinde**
 (13:24:06.656Z → 13:24:07.947Z), iki boyut arasında 5 kez gidip gelmiş:
 
 ```
 1374 bayt  ←→  2387 bayt        (5 tur)
 ```
 
-Diff'e göre fark tam olarak Linger'in kurulum bloğu: `UserPromptSubmit` /
+Diff'e göre fark tam olarak Lull'in kurulum bloğu: `UserPromptSubmit` /
 `SessionStart` / `Stop` hook'ları + `statusLine`. Yani **install → uninstall →
 install → uninstall** döngüsü. Muhtemel sebep: `packages/cli/test/e2e.test.ts`
 gerçek `~/.claude/settings.json`'a karşı koşuyor.
 
 > **Eğer öyleyse bu ciddi bir hata:** testler kullanıcının gerçek Claude Code
-> ayarını değiştiriyor demektir. Test suite'i `LINGER_HOME` / `SETTINGS_PATH`
+> ayarını değiştiriyor demektir. Test suite'i `LULL_HOME` / `SETTINGS_PATH`
 > enjeksiyonuyla geçici bir dizine izole edilmeli — `settings.ts` zaten
 > `readSettings(path = SETTINGS_PATH)` şeklinde parametre alıyor, altyapı hazır.
 > Doğrulanacak açık madde.
@@ -371,5 +371,5 @@ kapatmak lazım, yoksa test yine kirlenir — §2'deki confound'un tekrarı olur
 | 3 | Attribution URL kısaltıcı (`MAX_BARE_URL` 120) | §15.3 |
 | 4 | Zincirleme bütçesi: 50 ms içinde mi, opt-in mi | ADR-003 |
 | 5 | `writeSync(1, ...)` geçişi | — |
-| 6 | `linger status` — "alan başka araca ait" raporu | — |
+| 6 | `lull status` — "alan başka araca ait" raporu | — |
 | 7 | e2e testlerinin gerçek `settings.json`'a yazıp yazmadığı | **önce bu** |

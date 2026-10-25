@@ -1,5 +1,5 @@
 /**
- * `linger login` — yerel imzalama akisi.
+ * `lull login` — yerel imzalama akisi.
  *
  * Test edilen sey "tarayici acildi mi" degil; yerel sunucunun DISARIYA ne
  * verdigi. Bu surec kisa omurlu ama makinede bir port aciyor: ne servis
@@ -15,7 +15,7 @@ import { saveCredentials, loadCredentials, clearCredentials } from '../src/crede
 
 const dirs: string[] = []
 const tmp = (): string => {
-  const d = mkdtempSync(join(tmpdir(), 'linger-login-'))
+  const d = mkdtempSync(join(tmpdir(), 'lull-login-'))
   dirs.push(d)
   return d
 }
@@ -23,7 +23,7 @@ afterEach(() => { for (const d of dirs.splice(0)) rmSync(d, { recursive: true, f
 
 const GOOD = 'GoodWa11et1111111111111111111111111111111111'
 
-/** Linger sunucusunu taklit eder — cagrilari kaydeder. */
+/** Lull sunucusunu taklit eder — cagrilari kaydeder. */
 function fakeServer(over: { verify?: unknown; verifyStatus?: number } = {}) {
   const calls: { path: string; body: any }[] = []
   const impl = (async (url: any, init: any) => {
@@ -32,11 +32,11 @@ function fakeServer(over: { verify?: unknown; verifyStatus?: number } = {}) {
     calls.push({ path, body })
     if (path.endsWith('/v1/auth/challenge')) {
       return new Response(JSON.stringify({
-        message: 'linger.test bu Solana hesabiyla giris yapmani istiyor', expiresAt: 9e12,
+        message: 'lull.test bu Solana hesabiyla giris yapmani istiyor', expiresAt: 9e12,
       }), { status: 200, headers: { 'content-type': 'application/json' } })
     }
     return new Response(
-      JSON.stringify(over.verify ?? { token: 'lng_gizli_token', tokenId: 't1', publisherId: GOOD }),
+      JSON.stringify(over.verify ?? { token: 'lul_gizli_token', tokenId: 't1', publisherId: GOOD }),
       { status: over.verifyStatus ?? 200, headers: { 'content-type': 'application/json' } },
     )
   }) as unknown as typeof fetch
@@ -55,7 +55,7 @@ async function browse(url: string) {
   const post = (path: string, body: unknown, useNonce: string | null | undefined = nonce) =>
     fetch(url.replace(/\/$/, '') + path, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', ...(useNonce ? { 'x-linger-nonce': useNonce } : {}) },
+      headers: { 'content-type': 'application/json', ...(useNonce ? { 'x-lull-nonce': useNonce } : {}) },
       body: JSON.stringify(body),
     })
   return { html, nonce, post, status: page.status }
@@ -90,7 +90,7 @@ describe('runLoginServer', () => {
     expect(vr.status).toBe(200)
 
     const result = await done
-    expect(result.token).toBe('lng_gizli_token')
+    expect(result.token).toBe('lul_gizli_token')
     expect(result.publisherId).toBe(GOOD)
     expect(srv.calls.map((c) => c.path.split('/v1')[1])).toEqual(['/auth/challenge', '/auth/verify'])
   })
@@ -108,9 +108,9 @@ describe('runLoginServer', () => {
     const vr = await b.post('/verify', { address: GOOD, message: 'msg', signature: 'c2ln' })
     const body = await vr.text()
 
-    expect(body).not.toContain('lng_gizli_token')
+    expect(body).not.toContain('lul_gizli_token')
     expect(JSON.parse(body)).toEqual({ publisherId: GOOD })
-    expect((await done).token).toBe('lng_gizli_token')     // CLI biliyor
+    expect((await done).token).toBe('lul_gizli_token')     // CLI biliyor
   })
 
   it('nonce\'suz istek reddedilir', async () => {
@@ -120,7 +120,7 @@ describe('runLoginServer', () => {
 
     const r = await b.post('/verify', { address: GOOD, message: 'x', signature: 'x' }, null)
     expect(r.status).toBe(403)
-    expect(srv.calls).toHaveLength(0)          // Linger sunucusuna hic gidilmedi
+    expect(srv.calls).toHaveLength(0)          // Lull sunucusuna hic gidilmedi
   })
 
   it('yanlis nonce reddedilir', async () => {
@@ -142,7 +142,7 @@ describe('runLoginServer', () => {
   })
 
   it('sunucu dogrulamayi reddederse akis bitmez, hata sayfaya doner', async () => {
-    const srv = fakeServer({ verify: { code: 'LNG_2002', message: 'imza dogrulanamadi' }, verifyStatus: 401 })
+    const srv = fakeServer({ verify: { code: 'LUL_2002', message: 'imza dogrulanamadi' }, verifyStatus: 401 })
     const { url, done } = start(srv.impl)
     const b = await browse(await url)
 
@@ -187,10 +187,10 @@ describe('runLoginServer', () => {
 
 describe('parseLoginArgs', () => {
   it('--server bayragi ortam degiskenini ezer', () => {
-    process.env['LINGER_SERVER'] = 'https://ortam.test'
+    process.env['LULL_SERVER'] = 'https://ortam.test'
     expect(parseLoginArgs(['--server', 'https://bayrak.test']).serverUrl).toBe('https://bayrak.test')
     expect(parseLoginArgs([]).serverUrl).toBe('https://ortam.test')
-    delete process.env['LINGER_SERVER']
+    delete process.env['LULL_SERVER']
   })
 
   it('sondaki slash temizlenir — yoksa `//v1/...` olusur', () => {
@@ -205,9 +205,9 @@ describe('parseLoginArgs', () => {
 describe('credentials', () => {
   it('dosya yalnizca sahibi tarafindan okunabilir (0600)', () => {
     const p = join(tmp(), 'creds.json')
-    saveCredentials({ serverUrl: 'https://a.test', token: 'lng_x', publisherId: GOOD, tokenId: 't', loggedInAt: 1 }, p)
+    saveCredentials({ serverUrl: 'https://a.test', token: 'lul_x', publisherId: GOOD, tokenId: 't', loggedInAt: 1 }, p)
     expect(statSync(p).mode & 0o777).toBe(0o600)
-    expect(readFileSync(p, 'utf8')).toContain('lng_x')
+    expect(readFileSync(p, 'utf8')).toContain('lul_x')
   })
 
   it('eksik alanli dosya "giris yapilmamis" sayilir', () => {
@@ -231,7 +231,7 @@ describe('credentials', () => {
 
   it('gidis donus bozulmaz', () => {
     const p = join(tmp(), 'creds.json')
-    const c = { serverUrl: 'https://a.test', token: 'lng_x', publisherId: GOOD, tokenId: 't1', loggedInAt: 42 }
+    const c = { serverUrl: 'https://a.test', token: 'lul_x', publisherId: GOOD, tokenId: 't1', loggedInAt: 42 }
     saveCredentials(c, p)
     expect(loadCredentials(p)).toEqual(c)
     expect(clearCredentials(p)).toBe(true)
@@ -272,7 +272,7 @@ describe('giris sayfasi', () => {
  * kimlikle calistigi icin kazanc ESKI cuzdana yaziliyordu. Kimlik dosyadan
  * yalnizca acilista okunuyor.
  *
- * Onceden burada "daemon calisiyorsa `linger restart` yap" diye bir dipnot
+ * Onceden burada "daemon calisiyorsa `lull restart` yap" diye bir dipnot
  * vardi. Dipnot, sessizce yanlis hesaba para yazan bir durumu cozmez.
  */
 describe('giristen sonra daemon kimligi', () => {
@@ -309,7 +309,7 @@ describe('giristen sonra daemon kimligi', () => {
     c.bitir()
     const cikti = c.satirlar.join('')
     expect(cikti).toContain('port mesgul')
-    expect(cikti).toContain('linger restart')
+    expect(cikti).toContain('lull restart')
     expect(cikti).toContain('OLD')          // sonucunu acikca yazar
   })
 
@@ -339,7 +339,7 @@ describe('siralama adimi', () => {
       const reply = (o: unknown, status = 200) =>
         new Response(JSON.stringify(o), { status, headers: { 'content-type': 'application/json' } })
       if (path.endsWith('/v1/auth/challenge')) return reply({ transaction: 'AAAAfake', network_passphrase: 'Test SDF Network ; September 2015', expiresAt: 9e12 })
-      if (path.endsWith('/v1/auth/verify')) return reply({ token: 'lng_gizli_token', tokenId: 't1', publisherId: GOOD })
+      if (path.endsWith('/v1/auth/verify')) return reply({ token: 'lul_gizli_token', tokenId: 't1', publisherId: GOOD })
       if (path.endsWith('/v1/me/profile') && method === 'GET') return reply({ profile, suggestedCountry: 'TR' })
       if (path.endsWith('/v1/me/profile') && method === 'PUT') return reply({ profile: body })
       return reply({ message: 'not found' }, 404)
@@ -373,9 +373,9 @@ describe('siralama adimi', () => {
     const r = await b.post('/profile/get', {})
     const text = await r.text()
     expect(JSON.parse(text)).toEqual({ profile: { nickname: 'ada', country: null, listed: false }, suggestedCountry: 'TR' })
-    expect(text).not.toContain('lng_gizli_token')
+    expect(text).not.toContain('lul_gizli_token')
     const call = srv.calls.find((c) => c.path.endsWith('/v1/me/profile'))!
-    expect(call).toMatchObject({ method: 'GET', auth: 'Bearer lng_gizli_token' })
+    expect(call).toMatchObject({ method: 'GET', auth: 'Bearer lul_gizli_token' })
   })
 
   it('kaydetme PUT gonderir ve sunucuyu kapatir', async () => {
@@ -388,7 +388,7 @@ describe('siralama adimi', () => {
     await expect(b.post('/profile/get', {})).rejects.toThrow()
   })
 
-  it('atlamak sunucuyu kapatir ve Linger sunucusuna profil yazmaz', async () => {
+  it('atlamak sunucuyu kapatir ve Lull sunucusuna profil yazmaz', async () => {
     const srv = profileServer()
     const { b } = await loggedIn(srv)
     expect((await b.post('/profile/skip', {})).status).toBe(200)

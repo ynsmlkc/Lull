@@ -26,7 +26,7 @@
  *
  * Yazma kurallari:
  *   • Yalnizca marka DEGISTIGINDE yazilir — saniyede bir dosya yazmayiz
- *   • Yalnizca alan BIZIMSE yazilir (`__linger` izi); kullanicinin veya
+ *   • Yalnizca alan BIZIMSE yazilir (`__lull` izi); kullanicinin veya
  *     baska bir aracin ayarina dokunulmaz
  *   • Gecici dosya + rename ile atomik: yarim yazilmis bir `settings.json`
  *     kullanicinin Claude Code'unu bozar
@@ -35,7 +35,7 @@
 
 import { readFileSync, existsSync } from 'node:fs'
 import { SETTINGS_PATH, MARKER, type ClaudeSettings, writeSettingsFile } from '../settings.js'
-import { DISCLOSURE_GLYPH } from '@linger/protocol'
+import { DISCLOSURE_GLYPH } from '@lull/protocol'
 
 export interface SpinnerSyncOptions {
   readonly path?: string
@@ -95,7 +95,7 @@ export class SpinnerSync {
   /**
    * Kaldirma sirasinda listeyi bosaltir.
    *
-   * Yalnizca `linger uninstall` cagirir. Normal calismada liste ASLA
+   * Yalnizca `lull uninstall` cagirir. Normal calismada liste ASLA
    * bosaltilmaz — bkz. `sync`.
    */
   clear(): void {

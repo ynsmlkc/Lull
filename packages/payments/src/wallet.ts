@@ -17,7 +17,7 @@
  *     engeller.
  */
 
-import type { Clock } from '@linger/protocol'
+import type { Clock } from '@lull/protocol'
 
 export type Network = 'testnet' | 'mainnet'
 
@@ -46,7 +46,7 @@ export interface WalletStoreDeps {
    * Kalicilik. Verilmezse baglamalar yalnizca bellekte kalir.
    *
    * Kalici olmasi sart: cuzdan baglantisi kaybolursa kullanicinin parasi
-   * odenemez hale gelir ve `linger balance` sebep olarak "cuzdan bagli degil"
+   * odenemez hale gelir ve `lull balance` sebep olarak "cuzdan bagli degil"
    * der — kullanici bagladigini bildigi halde.
    */
   readonly persist?: {

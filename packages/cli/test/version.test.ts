@@ -2,9 +2,9 @@
  * Surum bildirimi.
  *
  * Gercekte yasandi: `VERSION` elle yazilmis `'0.0.0'` sabitiydi ve
- * `package.json` ile bagi yoktu. Gorunen zarari `linger status`in yanlis
+ * `package.json` ile bagi yoktu. Gorunen zarari `lull status`in yanlis
  * surum yazmasiydi; asil zarari sessizdi — ayni deger sunucuya
- * `x-linger-client-version` olarak gidiyordu, yani sunucudaki
+ * `x-lull-client-version` olarak gidiyordu, yani sunucudaki
  * `minClientVersion` kapisi ISLEVSIZDI. Esik bir gun yukseltilse en guncel
  * istemci de "0.0.0" bildirdigi icin herkes kesilirdi.
  *
@@ -31,7 +31,7 @@ describe('surum', () => {
   })
 
   it('derleme surumu package.json`dan gomuyor', () => {
-    expect(build).toContain('__LINGER_VERSION__')
+    expect(build).toContain('__LULL_VERSION__')
     expect(build).toMatch(/package\.json/)
   })
 

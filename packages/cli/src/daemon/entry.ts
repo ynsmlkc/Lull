@@ -7,8 +7,8 @@
  */
 
 import { startDaemon } from './index.js'
-import { FALLBACK_CONFIG } from '@linger/protocol'
-import type { AdPayload } from '@linger/protocol'
+import { FALLBACK_CONFIG } from '@lull/protocol'
+import type { AdPayload } from '@lull/protocol'
 import { loadCredentials, shortAddress } from '../credentials.js'
 
 /**
@@ -23,27 +23,27 @@ import { loadCredentials, shortAddress } from '../credentials.js'
  *
  * Ikinci fayda: demo artik gercekten ayirt ediliyor. Kullanici satiri
  * okudugu anda kazanmadigini ve ne yapmasi gerektigini biliyor — daha once
- * `linger init` ciktisindaki uyariyi kacirdiysa burada yakaliyor.
+ * `lull init` ciktisindaki uyariyi kacirdiysa burada yakaliyor.
  */
 const DEV_ADS: AdPayload[] = [
   { campaignId: 'sample-1', nonce: '0'.repeat(32), nonceExpiresAt: 9e12,
-    creative: { brand: 'Linger', text: 'sample line — you are not earning yet', cta: 'linger login' } },
+    creative: { brand: 'Lull', text: 'sample line — you are not earning yet', cta: 'lull login' } },
   { campaignId: 'sample-2', nonce: '1'.repeat(32), nonceExpiresAt: 9e12,
-    creative: { brand: 'Linger', text: 'connect a wallet to show real ads', cta: 'linger login' } },
+    creative: { brand: 'Lull', text: 'connect a wallet to show real ads', cta: 'lull login' } },
   { campaignId: 'sample-3', nonce: '2'.repeat(32), nonceExpiresAt: 9e12,
-    creative: { brand: 'Linger', text: 'no server connected — nothing is recorded', cta: 'linger login' } },
+    creative: { brand: 'Lull', text: 'no server connected — nothing is recorded', cta: 'lull login' } },
 ]
 
 const log = (m: string): void => {
   process.stdout.write(`${new Date().toISOString()} ${m}\n`)
 }
 
-// Once ortam degiskeni (gelistirme, CI), sonra `linger login`'in yazdigi dosya.
+// Once ortam degiskeni (gelistirme, CI), sonra `lull login`'in yazdigi dosya.
 // Ortamin oncelikli olmasi bilincli: bir seyi test ederken kayitli kimligi
 // gecici olarak devre disi birakabilmek gerekiyor.
 const creds = loadCredentials()
-const SERVER = process.env['LINGER_SERVER'] ?? creds?.serverUrl ?? ''
-const TOKEN = process.env['LINGER_TOKEN'] ?? creds?.token ?? ''
+const SERVER = process.env['LULL_SERVER'] ?? creds?.serverUrl ?? ''
+const TOKEN = process.env['LULL_TOKEN'] ?? creds?.token ?? ''
 
 const daemon = await startDaemon({
   // Sunucu adresi verilmisse oradan, yoksa yerel listeden (gelistirme).
@@ -67,9 +67,9 @@ const daemon = await startDaemon({
 
 log(
   SERVER
-    ? `lingerd basladi — sunucu: ${SERVER}` +
+    ? `lulld basladi — sunucu: ${SERVER}` +
       (creds ? ` · cuzdan: ${shortAddress(creds.publisherId)}` : ' · token: ortamdan')
-    : 'lingerd basladi — yerel reklamlar (sunucu yok, `linger login` ile bagla)',
+    : 'lulld basladi — yerel reklamlar (sunucu yok, `lull login` ile bagla)',
 )
 
 // Temiz kapanis: soket dosyasi geride kalmasin, yoksa bir sonraki baslatma

@@ -32,8 +32,8 @@
  *      para zincirde giderdi ama defterde durmaya devam ederdi.
  */
 
-import { micros, type Micros, type Clock } from '@linger/protocol'
-import type { PaymentRail } from '@linger/payments'
+import { micros, type Micros, type Clock } from '@lull/protocol'
+import type { PaymentRail } from '@lull/payments'
 import type { Ledger } from '../ledger/ledger.js'
 import { accountId, PLATFORM_REVENUE } from '../ledger/accounts.js'
 import type { PayoutStore } from './store.js'

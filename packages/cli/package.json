@@ -1,5 +1,5 @@
 {
-  "name": "lingersh-arc",
+  "name": "lullsh",
   "version": "0.1.16",
   "description": "AI kodlama araclarinin bekleme anlarini kazanca cevirir. Terminal reklamlari, Arc uzerinden USDC odemesi.",
   "keywords": [
@@ -15,15 +15,15 @@
   "author": "ynsmlkc",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ynsmlkc/linger-arc.git"
+    "url": "git+https://github.com/ynsmlkc/lull-arc.git"
   },
-  "homepage": "https://github.com/ynsmlkc/linger-arc#readme",
+  "homepage": "https://github.com/ynsmlkc/lull-arc#readme",
   "bugs": {
-    "url": "https://github.com/ynsmlkc/linger-arc/issues"
+    "url": "https://github.com/ynsmlkc/lull-arc/issues"
   },
   "type": "module",
   "bin": {
-    "linger": "dist/linger.mjs"
+    "lull": "dist/lull.mjs"
   },
   "files": [
     "dist",
@@ -40,7 +40,7 @@
     "prepack": "node build.mjs"
   },
   "devDependencies": {
-    "@linger/protocol": "workspace:*",
+    "@lull/protocol": "workspace:*",
     "@types/node": "^26.2.0",
     "esbuild": "^0.28.2"
   }

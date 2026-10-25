@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * `linger` — kullanicinin gordugu tek yuzey.
+ * `lull` — kullanicinin gordugu tek yuzey.
  *
  * Komutlar ince: butun mantik test edilmis modullerde. Buradaki is
  * dogrulama, sıralama ve ANLASILIR CIKTI.
@@ -10,7 +10,7 @@ import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { existsSync, realpathSync } from 'node:fs'
 import { install, uninstall, diagnose, readSettings, detectConflicts, SETTINGS_PATH } from '../settings.js'
-import { LINGER_HOME, SOCKET_PATH } from '../ipc.js'
+import { LULL_HOME, SOCKET_PATH } from '../ipc.js'
 import * as daemon from './daemon-control.js'
 import { out, ok, warn, info, fail, rows, dim, bold, green, yellow, red, orange, banner, usdc } from './output.js'
 import { cmdLogin, cmdLogout, cmdWhoami } from './login.js'
@@ -55,7 +55,7 @@ const statusLineCommand = (): string => `${process.execPath} ${shimPath()}`
 /**
  * Paket GECICI bir konumdan mi calisiyor?
  *
- * `npx lingersh-arc init` paketi `~/.npm/_npx/<hash>/` altina indirir. Kurulum
+ * `npx lullsh init` paketi `~/.npm/_npx/<hash>/` altina indirir. Kurulum
  * oraya MUTLAK YOL yazar — statusLine, uc hook ve daemon girisi hep o
  * klasoru gosterir.
  *
@@ -84,16 +84,16 @@ async function cmdInit(argv: string[]): Promise<void> {
   const gecici = geciciKonum()
   if (gecici && !argv.includes('--allow-temp')) {
     fail(
-      'LNG-1004',
-      `Linger is running from a ${gecici} — cannot install from here`,
-      'Install it permanently:  npm i -g lingersh-arc && linger init',
+      'LUL-1004',
+      `Lull is running from a ${gecici} — cannot install from here`,
+      'Install it permanently:  npm i -g lullsh && lull init',
     )
   }
 
   // 1. Cakisma var mi? ONCE sor, sonra yaz.
   let settings
   try { settings = readSettings() } catch (e) {
-    fail('LNG-1003', 'Could not read the Claude Code settings file',
+    fail('LUL-1003', 'Could not read the Claude Code settings file',
       `${SETTINGS_PATH} may contain broken JSON. Fix it and try again — we didn't touch the file.`)
   }
   const conflicts = detectConflicts(settings).filter((c) => !c.ours)
@@ -103,9 +103,9 @@ async function cmdInit(argv: string[]): Promise<void> {
     out()
     for (const c of conflicts) info(`${bold(c.field)}  ${dim(c.current)}`)
     out()
-    info(`To install anyway: ${bold('linger init --force')}`)
-    info(dim('(your current setting is backed up, `linger uninstall` won\'t restore it —'))
-    info(dim(' the backup lives under ~/.claude/linger-backups/)'))
+    info(`To install anyway: ${bold('lull init --force')}`)
+    info(dim('(your current setting is backed up, `lull uninstall` won\'t restore it —'))
+    info(dim(' the backup lives under ~/.claude/lull-backups/)'))
     out()
   }
 
@@ -114,7 +114,7 @@ async function cmdInit(argv: string[]): Promise<void> {
     statusLineCommand: statusLineCommand(),
     hookCommand: `${process.execPath} ${hookPath()}`,
     refreshIntervalSec: 1,
-    ...(withSpinner ? { spinnerVerbs: ['✶ Linger'] } : {}),
+    ...(withSpinner ? { spinnerVerbs: ['✶ Lull'] } : {}),
     force,
   })
 
@@ -126,7 +126,7 @@ async function cmdInit(argv: string[]): Promise<void> {
   const started = await daemon.start({ entry: daemonEntry() })
   if ('error' in started) {
     if (started.error.includes('already')) ok('daemon already running')
-    else fail('LNG-1001', 'Could not start the daemon', started.error)
+    else fail('LUL-1001', 'Could not start the daemon', started.error)
   } else {
     ok(`daemon running (pid ${started.pid})`)
   }
@@ -141,7 +141,7 @@ async function cmdInit(argv: string[]): Promise<void> {
     out()
     warn(`${bold('demo mode')} — no wallet connected, ${bold('no earnings')}`)
     info(dim('the ads you see are samples; nothing is being recorded'))
-    info(`to actually earn: ${bold('linger login')}`)
+    info(`to actually earn: ${bold('lull login')}`)
   }
 
   // 5. Ne degistigini SOYLE — kullanicidan bir sey aldik.
@@ -150,7 +150,7 @@ async function cmdInit(argv: string[]): Promise<void> {
   info('• Claude Code no longer shows some keyboard hints on the bottom line')
   info(`  (like ${dim('esc to interrupt')}) — happens whenever a custom statusLine is set`)
   if (withSpinner) info('• Spinner words changed')
-  info(`• To undo: ${bold('linger uninstall')} — we remove our own footprint, we don't touch your settings`)
+  info(`• To undo: ${bold('lull uninstall')} — we remove our own footprint, we don't touch your settings`)
   out()
   info(`Open a new Claude Code session. ${dim('It will show up on the bottom line while you wait.')}`)
   out()
@@ -165,7 +165,7 @@ async function cmdDoctor(): Promise<void> {
 
   const checks: [string, boolean, string][] = [
     ['settings.json', d.installed, d.detail],
-    ['daemon', alive, alive ? `pid ${daemon.readPid() ?? '?'}` : 'not running — `linger init`'],
+    ['daemon', alive, alive ? `pid ${daemon.readPid() ?? '?'}` : 'not running — `lull init`'],
     ['socket', existsSync(SOCKET_PATH), SOCKET_PATH],
     ['shim', existsSync(shimPath()), shimPath().endsWith('.ts')
       ? 'TypeScript source — the compiled version is faster' : 'compiled'],
@@ -182,7 +182,7 @@ async function cmdDoctor(): Promise<void> {
     info('We don\'t touch it, per the rule of never overwriting a user\'s own')
     info('setting. Another plugin using the same surface may be installed;')
     info('some of these write their value back within seconds, so even')
-    info('`--force` wouldn\'t stick. Remove that tool first, then run `linger init --spinner`.')
+    info('`--force` wouldn\'t stick. Remove that tool first, then run `lull init --spinner`.')
   }
 
   if (d.hijacked) {
@@ -190,7 +190,7 @@ async function cmdDoctor(): Promise<void> {
     warn('Your statusLine setting has been changed by ANOTHER TOOL.')
     info('Another plugin using the same line may be installed; some of these')
     info('periodically restore their own setting.')
-    info(`To reinstall: ${bold('linger init --force')}`)
+    info(`To reinstall: ${bold('lull init --force')}`)
   }
 
   if (health?.t === 'health') {
@@ -201,7 +201,7 @@ async function cmdDoctor(): Promise<void> {
       ['queued', `${i.queuedImpressions} impression(s)`],
       ['ads', `${i.adsCached} cached`],
       ['render', i.renderEnabled ? 'on' : 'off'],
-      ...(i.paused ? [['paused', 'yes — `linger resume`'] as const] : []),
+      ...(i.paused ? [['paused', 'yes — `lull resume`'] as const] : []),
       ...(i.lastError ? [['last error', i.lastError] as const] : []),
     ])
   }
@@ -238,7 +238,7 @@ async function cmdUninstall(): Promise<void> {
 
   out()
   info('Your other settings were untouched.')
-  info(`Your earnings are still there — ${bold('linger init')} brings you back.`)
+  info(`Your earnings are still there — ${bold('lull init')} brings you back.`)
   out()
 }
 
@@ -246,7 +246,7 @@ async function cmdStatus(): Promise<void> {
   banner()
   const health = await daemon.ask({ t: 'health' })
   if (health === null || health.t !== 'health') {
-    fail('LNG-1001', 'Daemon is not running', '`linger init` to start it')
+    fail('LUL-1001', 'Daemon is not running', '`lull init` to start it')
   }
   const i = health.info
   rows([
@@ -261,7 +261,7 @@ async function cmdStatus(): Promise<void> {
 
 async function cmdPause(paused: boolean): Promise<void> {
   const alive = await daemon.isAlive()
-  if (!alive) fail('LNG-1001', 'Daemon is not running', '`linger init` to start it')
+  if (!alive) fail('LUL-1001', 'Daemon is not running', '`lull init` to start it')
 
   // Once GERCEKTEN durdur, sonra soyle.
   //
@@ -270,19 +270,19 @@ async function cmdPause(paused: boolean): Promise<void> {
   // kotu sey, olmayan bir seyi olmus gibi gostermek.
   const res = await daemon.ask({ t: 'pause', on: paused })
   if (!res || res.t !== 'ok') {
-    fail('LNG-1001', paused ? 'Could not pause' : 'Could not resume', 'daemon did not respond')
+    fail('LUL-1001', paused ? 'Could not pause' : 'Could not resume', 'daemon did not respond')
   }
 
   out(paused ? `${yellow('⏸')} paused — ads won't be shown` : `${green('▶')} resumed`)
-  if (paused) info(dim('persists: stays paused even if you restart · `linger resume`'))
+  if (paused) info(dim('persists: stays paused even if you restart · `lull resume`'))
 }
 
 /**
  * Daemon'i durdurup yeniden baslatir.
  *
- * `linger login` sonrasi gerekiyor: daemon token'i YALNIZCA acilista okuyor.
+ * `lull login` sonrasi gerekiyor: daemon token'i YALNIZCA acilista okuyor.
  * Bu komut olmadan kullanicinin "kapat ac" demesi gerekirdi ve `login`
- * ciktisi zaten `linger restart` diyordu — olmayan bir komutu tarif eden
+ * ciktisi zaten `lull restart` diyordu — olmayan bir komutu tarif eden
  * bir mesaj, hic mesaj olmamasindan kotu.
  */
 async function cmdRestart(): Promise<void> {
@@ -291,12 +291,12 @@ async function cmdRestart(): Promise<void> {
   if (durdu) ok('daemon stopped')
 
   const started = await daemon.start({ entry: daemonEntry() })
-  if ('error' in started) fail('LNG-1001', 'Could not start the daemon', started.error)
+  if ('error' in started) fail('LUL-1001', 'Could not start the daemon', started.error)
   ok(`daemon running (pid ${started.pid})`)
 
   const creds = loadCredentials()
   if (creds) info(dim(`wallet ${shortAddress(creds.publisherId)}`))
-  else info(dim('no wallet connected — `linger login`'))
+  else info(dim('no wallet connected — `lull login`'))
   out()
 }
 
@@ -305,19 +305,19 @@ function cmdHelp(): void {
   out(`  ${dim('Turns your AI coding tool\'s wait time into earnings.')}`)
   out()
   rows([
-    ['linger init', 'install and start'],
-    ['linger login', 'connect your wallet — earnings go here'],
-    ['linger balance', 'show your earnings'],
-    ['linger profile', 'leaderboard nickname, country, listed or not'],
-    ['linger whoami', 'show the connected wallet'],
-    ['linger logout', 'disconnect the wallet'],
-    ['linger doctor', 'diagnose the setup'],
-    ['linger status', 'daemon status'],
-    ['linger restart', 'restart the daemon'],
-    ['linger pause', 'pause ads temporarily'],
-    ['linger resume', 'resume'],
-    ['linger uninstall', 'remove — we clean up our own footprint'],
-    ['linger version', 'print the version'],
+    ['lull init', 'install and start'],
+    ['lull login', 'connect your wallet — earnings go here'],
+    ['lull balance', 'show your earnings'],
+    ['lull profile', 'leaderboard nickname, country, listed or not'],
+    ['lull whoami', 'show the connected wallet'],
+    ['lull logout', 'disconnect the wallet'],
+    ['lull doctor', 'diagnose the setup'],
+    ['lull status', 'daemon status'],
+    ['lull restart', 'restart the daemon'],
+    ['lull pause', 'pause ads temporarily'],
+    ['lull resume', 'resume'],
+    ['lull uninstall', 'remove — we clean up our own footprint'],
+    ['lull version', 'print the version'],
   ])
   out()
   rows([
@@ -355,7 +355,7 @@ export async function main(argv: readonly string[]): Promise<void> {
     case 'help': case '--help': case '-h': return cmdHelp()
     /**
      * Surum. Daemon'a SORMAZ — herkesin ilk denedigi komut bu ve daemon
-     * calismiyorken de cevap vermeli. `linger status` daemon'dan okuyor,
+     * calismiyorken de cevap vermeli. `lull status` daemon'dan okuyor,
      * o ayri bir sey.
      *
      * Cikti suslenmemis tek satir: hata bildiren biri bunu kopyalayip
@@ -365,7 +365,7 @@ export async function main(argv: readonly string[]): Promise<void> {
       out(VERSION)
       return
     default:
-      fail('LNG-9001', `unknown command: ${cmd}`, '`linger help` to see the commands')
+      fail('LUL-9001', `unknown command: ${cmd}`, '`lull help` to see the commands')
   }
 }
 
@@ -377,14 +377,14 @@ export async function main(argv: readonly string[]): Promise<void> {
  *     import.meta.url.endsWith(process.argv[1].split('/').pop())
  *
  * Ve bu, paketin npm'den kurulan halini TAMAMEN ISLEVSIZ birakiyordu.
- * `bin` girdisi `linger` adinda bir sembolik bag uretiyor — uzantisiz. O
- * zaman karsilastirma `".../linger.mjs".endsWith("linger")` oluyor, yani
+ * `bin` girdisi `lull` adinda bir sembolik bag uretiyor — uzantisiz. O
+ * zaman karsilastirma `".../lull.mjs".endsWith("lull")` oluyor, yani
  * false; `main()` hic cagrilmiyor. Program cikis kodu 0 ile, TEK BIR
  * KARAKTER BASMADAN sonlaniyordu.
  *
- * Belirtisi yoktu: hata yok, uyari yok, cikis kodu basarili. `npx lingersh-arc
+ * Belirtisi yoktu: hata yok, uyari yok, cikis kodu basarili. `npx lullsh
  * init` yazan biri hicbir sey olmadigini goruyordu. Gelistirmede hic
- * gorunmedi cunku orada `node dist/linger.mjs` ile, yani dosya adiyla
+ * gorunmedi cunku orada `node dist/lull.mjs` ile, yani dosya adiyla
  * cagriliyor.
  *
  * Simdi iki yolun da SEMBOLIK BAGLARI COZULMUS hali karsilastiriliyor.
@@ -404,6 +404,6 @@ function dogrudanCalistirildi(): boolean {
 if (dogrudanCalistirildi()) {
   main(process.argv.slice(2)).catch((e: unknown) => {
     // Stack trace ASLA kullaniciya gitmez.
-    fail('LNG-9001', 'Unexpected error', e instanceof Error ? e.message : String(e))
+    fail('LUL-9001', 'Unexpected error', e instanceof Error ? e.message : String(e))
   })
 }

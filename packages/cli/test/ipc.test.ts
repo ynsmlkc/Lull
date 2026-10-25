@@ -28,11 +28,11 @@ describe('socketPathFor', () => {
   const LIMIT = process.platform === 'linux' ? 107 : 103
 
   it('normal ev dizininde alisildik yolu kullanir', () => {
-    expect(socketPathFor('/Users/ali/.linger')).toBe('/Users/ali/.linger/lingerd.sock')
+    expect(socketPathFor('/Users/ali/.lull')).toBe('/Users/ali/.lull/lulld.sock')
   })
 
   it('uzun yolda tmpdir altina duser ve SINIRIN ALTINDA kalir', () => {
-    const uzun = `/Users/${'x'.repeat(140)}/.linger`
+    const uzun = `/Users/${'x'.repeat(140)}/.lull`
     const p = socketPathFor(uzun)
 
     expect(p).not.toContain('x'.repeat(140))
@@ -45,19 +45,19 @@ describe('socketPathFor', () => {
    * hesaplar; ayrisirlarsa shim bos doner ve hicbir reklam gorunmez.
    */
   it('ayni girdi HER ZAMAN ayni yolu verir', () => {
-    const uzun = `/home/${'k'.repeat(140)}/.linger`
+    const uzun = `/home/${'k'.repeat(140)}/.lull`
     expect(socketPathFor(uzun)).toBe(socketPathFor(uzun))
   })
 
   it('farkli ev dizinleri CAKISMAZ', () => {
-    const a = socketPathFor(`/home/${'a'.repeat(140)}/.linger`)
-    const b = socketPathFor(`/home/${'b'.repeat(140)}/.linger`)
+    const a = socketPathFor(`/home/${'a'.repeat(140)}/.lull`)
+    const b = socketPathFor(`/home/${'b'.repeat(140)}/.lull`)
     expect(a).not.toBe(b)
   })
 
   /** Sinir BYTE cinsinden: Turkce karakterler iki byte. */
   it('sinir karakter degil BYTE olarak olculur', () => {
-    const turkce = `/Users/${'ş'.repeat(60)}/.linger`      // 60 karakter, 120 byte
+    const turkce = `/Users/${'ş'.repeat(60)}/.lull`      // 60 karakter, 120 byte
     expect(turkce.length).toBeLessThan(LIMIT)
     expect(Buffer.byteLength(socketPathFor(turkce))).toBeLessThanOrEqual(LIMIT)
   })

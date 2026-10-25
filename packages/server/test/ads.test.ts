@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock, fakeIdGenerator, cryptoIdGenerator, micros, type Micros } from '@linger/protocol'
+import { fixedClock, fakeIdGenerator, cryptoIdGenerator, micros, type Micros } from '@lull/protocol'
 import { AdSelector, type Campaign } from '../src/ads/selector.js'
 
 const camp = (id: string, cpmUsdc: number, over: Partial<Campaign> = {}): Campaign => ({

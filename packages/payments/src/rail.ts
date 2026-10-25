@@ -6,7 +6,7 @@
  * bir entegrasyon suite'inde kullanilir (§11).
  */
 
-import type { Micros } from '@linger/protocol'
+import type { Micros } from '@lull/protocol'
 
 /**
  * Hedef adresin zincirdeki durumu.

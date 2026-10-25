@@ -1,5 +1,5 @@
 /**
- * Kimlik bilgisi saklama — `~/.linger/credentials.json`.
+ * Kimlik bilgisi saklama — `~/.lull/credentials.json`.
  *
  * Icinde ne VAR: sunucu adresi, cihaz token'i, cuzdan adresi.
  * Icinde ne YOK: ozel anahtar. Hicbir zaman gormeyiz, hicbir zaman istemeyiz
@@ -24,13 +24,13 @@ export interface Credentials {
 }
 
 export const credentialsPath = (): string =>
-  process.env['LINGER_CREDENTIALS'] ?? join(homedir(), '.linger', 'credentials.json')
+  process.env['LULL_CREDENTIALS'] ?? join(homedir(), '.lull', 'credentials.json')
 
 export function loadCredentials(path = credentialsPath()): Credentials | null {
   try {
     const raw = JSON.parse(readFileSync(path, 'utf8')) as Partial<Credentials>
     // Eksik alanli dosya YOK sayilir. Yarim bir kimlikle calismaktansa
-    // "giris yapilmamis" demek dogru — kullanici `linger login` calistirir.
+    // "giris yapilmamis" demek dogru — kullanici `lull login` calistirir.
     if (!raw.token || !raw.serverUrl || !raw.publisherId) return null
     return raw as Credentials
   } catch {

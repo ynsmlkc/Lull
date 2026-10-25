@@ -4,7 +4,7 @@
  *
  * Gunde ~13.700 kez calisiyor (olcum: §12.2). Bu yuzden:
  *
- *   • `@linger/protocol` IMPORT EDILMEZ — zod'u her tikta yuklemek israf.
+ *   • `@lull/protocol` IMPORT EDILMEZ — zod'u her tikta yuklemek israf.
  *     Yalnizca `node:net`. Butun is daemon'da.
  *   • Toplam butce 50ms. Asarsa BOS doner.
  *   • Daemon yoksa, socket yoksa, cevap gecikirse: **hicbir sey basmaz.**
@@ -19,9 +19,9 @@ import { connect } from 'node:net'
 import { writeSync } from 'node:fs'
 import { termShape } from './term-shape.js'
 
-const SOCKET = process.env['LINGER_SOCKET']
-  ?? socketPathFor(process.env['LINGER_HOME'] ?? `${process.env['HOME']}/.linger`)
-const BUDGET_MS = Number(process.env['LINGER_BUDGET_MS'] ?? 50) || 50
+const SOCKET = process.env['LULL_SOCKET']
+  ?? socketPathFor(process.env['LULL_HOME'] ?? `${process.env['HOME']}/.lull`)
+const BUDGET_MS = Number(process.env['LULL_BUDGET_MS'] ?? 50) || 50
 
 /** Ne olursa olsun sessizce cik. */
 function silent(): never {

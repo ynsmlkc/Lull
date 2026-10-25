@@ -7,11 +7,11 @@ import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.so
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import {LingerVault} from "../src/LingerVault.sol";
-import {MockERC20, MockBlockableERC20} from "./mocks/LingerMocks.sol";
+import {LullVault} from "../src/LullVault.sol";
+import {MockERC20, MockBlockableERC20} from "./mocks/LullMocks.sol";
 
-contract LingerVaultTest is Test {
-    LingerVault internal vault;
+contract LullVaultTest is Test {
+    LullVault internal vault;
     MockBlockableERC20 internal usdc;
 
     address internal owner = makeAddr("owner");
@@ -27,7 +27,7 @@ contract LingerVaultTest is Test {
 
     function setUp() public {
         usdc = new MockBlockableERC20();
-        vault = new LingerVault(IERC20(address(usdc)), owner, operator);
+        vault = new LullVault(IERC20(address(usdc)), owner, operator);
         usdc.mint(advertiser, FUNDS);
         vm.prank(advertiser);
         usdc.approve(address(vault), type(uint256).max);
@@ -83,29 +83,29 @@ contract LingerVaultTest is Test {
 
     function test_Constructor_EmitsOperatorChanged() public {
         vm.expectEmit(true, true, false, false);
-        emit LingerVault.OperatorChanged(address(0), operator);
-        new LingerVault(IERC20(address(usdc)), owner, operator);
+        emit LullVault.OperatorChanged(address(0), operator);
+        new LullVault(IERC20(address(usdc)), owner, operator);
     }
 
     function test_Constructor_ZeroUsdcReverts() public {
-        vm.expectRevert(LingerVault.ZeroAddress.selector);
-        new LingerVault(IERC20(address(0)), owner, operator);
+        vm.expectRevert(LullVault.ZeroAddress.selector);
+        new LullVault(IERC20(address(0)), owner, operator);
     }
 
     function test_Constructor_ZeroOperatorReverts() public {
-        vm.expectRevert(LingerVault.ZeroAddress.selector);
-        new LingerVault(IERC20(address(usdc)), owner, address(0));
+        vm.expectRevert(LullVault.ZeroAddress.selector);
+        new LullVault(IERC20(address(usdc)), owner, address(0));
     }
 
     function test_Constructor_ZeroOwnerReverts() public {
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
-        new LingerVault(IERC20(address(usdc)), address(0), operator);
+        new LullVault(IERC20(address(usdc)), address(0), operator);
     }
 
     // ---------- deposit / balance ----------
     function test_Deposit_PullsFromSenderAndEmits() public {
         vm.expectEmit(true, false, false, true, address(vault));
-        emit LingerVault.Deposited(advertiser, 500e6);
+        emit LullVault.Deposited(advertiser, 500e6);
         vm.prank(advertiser);
         vault.deposit(500e6);
         assertEq(vault.balance(), 500e6);
@@ -115,7 +115,7 @@ contract LingerVaultTest is Test {
 
     function test_Deposit_ZeroReverts() public {
         vm.prank(advertiser);
-        vm.expectRevert(LingerVault.ZeroAmount.selector);
+        vm.expectRevert(LullVault.ZeroAmount.selector);
         vault.deposit(0);
     }
 
@@ -141,13 +141,13 @@ contract LingerVaultTest is Test {
         (address[] memory r, uint256[] memory m) = _arrs3();
 
         vm.expectEmit(true, true, false, true, address(vault));
-        emit LingerVault.Paid(BATCH, alice, 10e6);
+        emit LullVault.Paid(BATCH, alice, 10e6);
         vm.expectEmit(true, true, false, true, address(vault));
-        emit LingerVault.Paid(BATCH, bob, 20e6);
+        emit LullVault.Paid(BATCH, bob, 20e6);
         vm.expectEmit(true, true, false, true, address(vault));
-        emit LingerVault.Paid(BATCH, carol, 30e6);
+        emit LullVault.Paid(BATCH, carol, 30e6);
         vm.expectEmit(true, false, false, true, address(vault));
-        emit LingerVault.BatchPaid(BATCH, 3, 60e6);
+        emit LullVault.BatchPaid(BATCH, 3, 60e6);
 
         vm.prank(operator);
         vault.payout(BATCH, r, m);
@@ -165,7 +165,7 @@ contract LingerVaultTest is Test {
         vm.prank(operator);
         vault.payout(BATCH, r, m);
         vm.prank(operator);
-        vm.expectRevert(LingerVault.BatchAlreadyPaid.selector);
+        vm.expectRevert(LullVault.BatchAlreadyPaid.selector);
         vault.payout(BATCH, r, m);
         assertEq(usdc.balanceOf(alice), 10e6);
     }
@@ -174,7 +174,7 @@ contract LingerVaultTest is Test {
         _fund(1_000e6);
         (address[] memory r, uint256[] memory m) = _arrs3();
         vm.prank(stranger);
-        vm.expectRevert(LingerVault.NotOperator.selector);
+        vm.expectRevert(LullVault.NotOperator.selector);
         vault.payout(BATCH, r, m);
     }
 
@@ -182,7 +182,7 @@ contract LingerVaultTest is Test {
         _fund(1_000e6);
         (address[] memory r, uint256[] memory m) = _arrs3();
         vm.prank(owner);
-        vm.expectRevert(LingerVault.NotOperator.selector);
+        vm.expectRevert(LullVault.NotOperator.selector);
         vault.payout(BATCH, r, m);
     }
 
@@ -230,13 +230,13 @@ contract LingerVaultTest is Test {
         r[1] = bob;
         m[0] = 1e6;
         vm.prank(operator);
-        vm.expectRevert(LingerVault.LengthMismatch.selector);
+        vm.expectRevert(LullVault.LengthMismatch.selector);
         vault.payout(BATCH, r, m);
     }
 
     function test_Payout_EmptyReverts() public {
         vm.prank(operator);
-        vm.expectRevert(LingerVault.EmptyBatch.selector);
+        vm.expectRevert(LullVault.EmptyBatch.selector);
         vault.payout(BATCH, new address[](0), new uint256[](0));
     }
 
@@ -253,7 +253,7 @@ contract LingerVaultTest is Test {
         _fund(1_000e6);
         (address[] memory r, uint256[] memory m) = _sized(65, 1e6);
         vm.prank(operator);
-        vm.expectRevert(LingerVault.BatchTooLarge.selector);
+        vm.expectRevert(LullVault.BatchTooLarge.selector);
         vault.payout(BATCH, r, m);
     }
 
@@ -261,7 +261,7 @@ contract LingerVaultTest is Test {
         _fund(1_000e6);
         (address[] memory r, uint256[] memory m) = _arrs2(alice, 1e6, address(0), 1e6);
         vm.prank(operator);
-        vm.expectRevert(LingerVault.ZeroAddress.selector);
+        vm.expectRevert(LullVault.ZeroAddress.selector);
         vault.payout(BATCH, r, m);
     }
 
@@ -269,7 +269,7 @@ contract LingerVaultTest is Test {
         _fund(1_000e6);
         (address[] memory r, uint256[] memory m) = _arrs2(alice, 1e6, bob, 0);
         vm.prank(operator);
-        vm.expectRevert(LingerVault.ZeroAmount.selector);
+        vm.expectRevert(LullVault.ZeroAmount.selector);
         vault.payout(BATCH, r, m);
     }
 
@@ -277,7 +277,7 @@ contract LingerVaultTest is Test {
         _fund(1_000e6);
         (address[] memory r, uint256[] memory m) = _arrs2(alice, 1e6, address(vault), 1e6);
         vm.prank(operator);
-        vm.expectRevert(LingerVault.InvalidRecipient.selector);
+        vm.expectRevert(LullVault.InvalidRecipient.selector);
         vault.payout(BATCH, r, m);
     }
 
@@ -325,7 +325,7 @@ contract LingerVaultTest is Test {
     function test_Rescue_OwnerWithdrawsAndEmits() public {
         _fund(100e6);
         vm.expectEmit(true, false, false, true, address(vault));
-        emit LingerVault.Rescued(stranger, 40e6);
+        emit LullVault.Rescued(stranger, 40e6);
         vm.prank(owner);
         vault.rescue(stranger, 40e6);
         assertEq(usdc.balanceOf(stranger), 40e6);
@@ -355,7 +355,7 @@ contract LingerVaultTest is Test {
     function test_Rescue_ZeroAddressReverts() public {
         _fund(100e6);
         vm.prank(owner);
-        vm.expectRevert(LingerVault.ZeroAddress.selector);
+        vm.expectRevert(LullVault.ZeroAddress.selector);
         vault.rescue(address(0), 1e6);
     }
 
@@ -372,7 +372,7 @@ contract LingerVaultTest is Test {
     function test_SetOperator_OwnerChangesAndEmits() public {
         address newOp = makeAddr("newOp");
         vm.expectEmit(true, true, false, false, address(vault));
-        emit LingerVault.OperatorChanged(operator, newOp);
+        emit LullVault.OperatorChanged(operator, newOp);
         vm.prank(owner);
         vault.setOperator(newOp);
         assertEq(vault.operator(), newOp);
@@ -386,7 +386,7 @@ contract LingerVaultTest is Test {
         (address[] memory r, uint256[] memory m) = _arrs3();
 
         vm.prank(operator);
-        vm.expectRevert(LingerVault.NotOperator.selector);
+        vm.expectRevert(LullVault.NotOperator.selector);
         vault.payout(BATCH, r, m);
 
         vm.prank(newOp);
@@ -402,7 +402,7 @@ contract LingerVaultTest is Test {
 
     function test_SetOperator_ZeroReverts() public {
         vm.prank(owner);
-        vm.expectRevert(LingerVault.ZeroAddress.selector);
+        vm.expectRevert(LullVault.ZeroAddress.selector);
         vault.setOperator(address(0));
     }
 
@@ -430,7 +430,7 @@ contract LingerVaultTest is Test {
 
     function test_RenounceOwnership_Reverts() public {
         vm.prank(owner);
-        vm.expectRevert(LingerVault.RenounceDisabled.selector);
+        vm.expectRevert(LullVault.RenounceDisabled.selector);
         vault.renounceOwnership();
         assertEq(vault.owner(), owner);
     }
@@ -473,7 +473,7 @@ contract LingerVaultTest is Test {
         bytes32 id = keccak256(abi.encode(seed));
 
         vm.expectEmit(true, false, false, true, address(vault));
-        emit LingerVault.BatchPaid(id, n, total);
+        emit LullVault.BatchPaid(id, n, total);
         vm.prank(operator);
         vault.payout(id, r, m);
 

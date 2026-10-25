@@ -16,15 +16,15 @@ import { encode, type Request, type Response } from '../ipc.js'
  * Yollar CAGRI ANINDA hesaplanir, modul yuklenirken degil.
  *
  * Modul seviyesinde sabitlemek env degiskenlerini import aninda dondurur;
- * hem test edilemez hale gelir hem de `LINGER_HOME`'u sonradan degistiren
+ * hem test edilemez hale gelir hem de `LULL_HOME`'u sonradan degistiren
  * her cagiran sessizce yanlis dizine yazar.
  */
 const home = (): string =>
-  process.env['LINGER_HOME'] ?? join(process.env['HOME'] ?? '', '.linger')
+  process.env['LULL_HOME'] ?? join(process.env['HOME'] ?? '', '.lull')
 
 export const pidPath = (): string => join(home(), 'daemon.pid')
 export const logPath = (): string => join(home(), 'daemon.log')
-const defaultSocket = (): string => process.env['LINGER_SOCKET'] ?? socketPathFor(home())
+const defaultSocket = (): string => process.env['LULL_SOCKET'] ?? socketPathFor(home())
 
 /**
  * Daemon ayakta mi?
@@ -58,7 +58,7 @@ export function ask(req: Request, socketPath = defaultSocket(), timeoutMs = 2_00
     // soket de kapali oldugu icin event loop'u tutan bir sey kalmaz ve Node
     // ISINI BITIRMEDEN, kod 0 ile sessizce cikar.
     //
-    // Belirtisi: `linger uninstall` banner'i basip duruyordu, ayarlar
+    // Belirtisi: `lull uninstall` banner'i basip duruyordu, ayarlar
     // silinmiyordu, cikis kodu 0'di. Ucte bir tekrarlanan bir yaristi.
     sock.on('close', () => done(null))
     sock.on('end', () => done(null))
@@ -85,7 +85,7 @@ export async function start(opts: StartOptions): Promise<{ pid: number } | { err
   if (await isAlive()) return { error: 'daemon already running' }
 
   mkdirSync(home(), { recursive: true, mode: 0o700 })
-  // Log dosyasina yaz: detached surecin ciktisi kaybolmasin, `linger doctor`
+  // Log dosyasina yaz: detached surecin ciktisi kaybolmasin, `lull doctor`
   // sorun cikinca buraya baksin.
   const logFd = openSync(logPath(), 'a', 0o600)
 
@@ -106,7 +106,7 @@ export async function start(opts: StartOptions): Promise<{ pid: number } | { err
       //
       // Once yazmak TEHLIKELI: baslatma basarisiz olursa dosyada olu bir pid
       // kalir, isletim sistemi o pid'i baska bir surece yeniden atar ve
-      // `linger uninstall` masum bir sureci oldurur.
+      // `lull uninstall` masum bir sureci oldurur.
       writeFileSync(pidPath(), String(child.pid), { mode: 0o600 })
       return { pid: child.pid }
     }

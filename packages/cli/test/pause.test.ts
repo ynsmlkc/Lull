@@ -1,5 +1,5 @@
 /**
- * `linger pause` — gercekten duraklatiyor mu.
+ * `lull pause` — gercekten duraklatiyor mu.
  *
  * Denetimde bulundu: komut "duraklatildi" yaziyordu ama hicbir sey
  * yapmiyordu. Kullanici durdurdugunu sanip reklamlar donmeye devam
@@ -13,8 +13,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { startDaemon } from '../src/daemon/index.js'
 import { ask } from '../src/cli/daemon-control.js'
-import { FALLBACK_CONFIG } from '@linger/protocol'
-import type { AdPayload } from '@linger/protocol'
+import { FALLBACK_CONFIG } from '@lull/protocol'
+import type { AdPayload } from '@lull/protocol'
 
 const ADS: AdPayload[] = [{
   campaignId: 'c1', nonce: '0'.repeat(32), nonceExpiresAt: 9e12,
@@ -25,7 +25,7 @@ const dirs: string[] = []
 afterEach(() => { for (const d of dirs.splice(0)) rmSync(d, { recursive: true, force: true }) })
 
 async function kur() {
-  const dir = mkdtempSync(join(tmpdir(), 'linger-pause-'))
+  const dir = mkdtempSync(join(tmpdir(), 'lull-pause-'))
   dirs.push(dir)
   const socketPath = join(dir, 's.sock')
   const daemon = await startDaemon({
@@ -67,7 +67,7 @@ describe('duraklatma', () => {
   })
 
   /**
-   * En onemlisi. Yalnizca bellekte tutsaydik `linger restart` sessizce
+   * En onemlisi. Yalnizca bellekte tutsaydik `lull restart` sessizce
    * devam ettirirdi — kullanici durdurdugunu bilir, reklamlar doner.
    */
   it('duraklatma YENIDEN BASLATMADAN sonra da surer', async () => {

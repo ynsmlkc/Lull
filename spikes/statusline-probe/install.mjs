@@ -4,7 +4,7 @@
  *
  * ~/.claude/settings.json'a olcum probe'larini ekler.
  *
- * GUVENLIK KURALLARI (gercek `linger init` de bunlara uyacak — §6.1):
+ * GUVENLIK KURALLARI (gercek `lull init` de bunlara uyacak — §6.1):
  *   - Once ZAMAN DAMGALI YEDEK alinir.
  *   - Mevcut hook'lar KORUNUR; dizilere eklenir, uzerine yazilmaz.
  *   - Mevcut statusLine / spinnerVerbs varsa DOKUNULMAZ, uyari verilir.

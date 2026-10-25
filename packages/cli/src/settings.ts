@@ -2,7 +2,7 @@
  * Claude Code `settings.json` yonetimi — §6.1.
  *
  * Bu dosya kullanicinin kendi konfigurasyonu. Sessizce ezmek affedilmez;
- * `linger uninstall` her seyi ILK HALINE dondurebilmek zorunda.
+ * `lull uninstall` her seyi ILK HALINE dondurebilmek zorunda.
  *
  * Tasarim kurallari:
  *   • Yalnizca KENDI alanlarimiza dokunuruz, dosyanin geri kalanina asla
@@ -23,7 +23,7 @@ export const CLAUDE_DIR = process.env['CLAUDE_CONFIG_DIR'] ?? join(homedir(), '.
 export const SETTINGS_PATH = join(CLAUDE_DIR, 'settings.json')
 
 /** Bizim yazdigimiz her seye bu iz konur — kaldirirken bunu arariz. */
-export const MARKER = '__linger'
+export const MARKER = '__lull'
 
 export interface StatusLineSetting {
   type: 'command'
@@ -63,7 +63,7 @@ export function readSettings(path = SETTINGS_PATH): ClaudeSettings {
   }
 }
 
-/** Cakisma var mi? `linger init` bunu ONCE sorar. */
+/** Cakisma var mi? `lull init` bunu ONCE sorar. */
 export function detectConflicts(s: ClaudeSettings): Conflict[] {
   const out: Conflict[] = []
   if (s.statusLine) {
@@ -143,7 +143,7 @@ export function install(opts: InstallOptions, path = SETTINGS_PATH): InstallResu
   // hook'lar — kullanicininkileri KORUYARAK, bizimkileri TAZELEYEREK.
   //
   // "Zaten var, atla" YETMEZ: surum yukseltmesinde ikili yolu degisir ve
-  // eski komut oldugu yerde kalir. Kullanici `linger init` calistirir,
+  // eski komut oldugu yerde kalir. Kullanici `lull init` calistirir,
   // "kuruldu" gorur, ama hook'lar olu bir dosyayi cagirmaya devam eder.
   settings.hooks ??= {}
   for (const event of TURN_HOOKS) {
@@ -196,11 +196,11 @@ export function uninstall(path = SETTINGS_PATH, now: NowFn = Date.now): { remove
 }
 
 /**
- * Kurulum saglam mi? `linger doctor` bunu sorar.
+ * Kurulum saglam mi? `lull doctor` bunu sorar.
  *
  * Ozellikle aradigi sey: ayarlarimizin BASKA BIR ARAC tarafindan
  * degistirilmis olmasi. Ayni yuzey icin yarisan baska bir eklenti,
- * periyodik olarak kendi ayarini geri koyabiliyor — kullanici "Linger
+ * periyodik olarak kendi ayarini geri koyabiliyor — kullanici "Lull
  * calismiyor" der ve sebebini bilemez.
  */
 export interface Diagnosis {
@@ -242,7 +242,7 @@ export function diagnose(expectedCommand: string, path = SETTINGS_PATH): Diagnos
     return { installed: true, hijacked: false, detail: 'setup is sound', ...spinner }
   }
   if (sl[MARKER] && sl.command !== expectedCommand) {
-    return { installed: false, hijacked: false, detail: 'leftover install from an old version — run `linger init` again', ...spinner }
+    return { installed: false, hijacked: false, detail: 'leftover install from an old version — run `lull init` again', ...spinner }
   }
   return {
     installed: false, hijacked: true,
@@ -263,7 +263,7 @@ function writeSettings(s: ClaudeSettings, path: string): void {
  *
  * 1. **Atomik.** Yerinde yazmak (`writeFileSync(path)`) yarida kesilirse ya
  *    da Claude Code ayni anda yazarsa yarim bir JSON birakir; `readSettings`
- *    bozuk dosyaya dokunmayi reddettigi icin `linger uninstall` bile calismaz
+ *    bozuk dosyaya dokunmayi reddettigi icin `lull uninstall` bile calismaz
  *    hale gelir. Gecici dosyaya yazip `rename` etmek ya eski ya yeni dosyayi
  *    birakir, arasini asla.
  *
@@ -278,7 +278,7 @@ function writeSettings(s: ClaudeSettings, path: string): void {
 export function writeSettingsFile(path: string, s: ClaudeSettings): void {
   const target = existsSync(path) ? realpathSync(path) : path
   const mode = existsSync(target) ? statSync(target).mode & 0o777 : 0o600
-  const tmp = `${target}.linger-tmp-${process.pid}`
+  const tmp = `${target}.lull-tmp-${process.pid}`
   try {
     writeFileSync(tmp, JSON.stringify(s, null, 2) + '\n', { mode })
     renameSync(tmp, target)
@@ -289,7 +289,7 @@ export function writeSettingsFile(path: string, s: ClaudeSettings): void {
 }
 
 function backup(path: string, now: NowFn): string {
-  const dir = join(dirname(path), 'linger-backups')
+  const dir = join(dirname(path), 'lull-backups')
   mkdirSync(dir, { recursive: true, mode: 0o700 })
   const stamp = new Date(now()).toISOString().replace(/[:.]/g, '-')
   let target = join(dir, `settings.${stamp}.json`)

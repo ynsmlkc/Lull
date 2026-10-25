@@ -140,7 +140,7 @@ export function checkAddressOnChain(input: OnChainCheckInput): AddressCheck {
     // Ayni adresin N hesaba baglanabilmesi ADR-010'un sybil savunmasinda delik:
     // 500 GitHub hesabi tek cuzdana odeme yapabilirdi.
     return fail('baska_hesaba_bagli',
-      'Bu adres baska bir Linger hesabina bagli.',
+      'Bu adres baska bir Lull hesabina bagli.',
       'Her adres yalnizca bir hesaba baglanabilir.')
   }
 

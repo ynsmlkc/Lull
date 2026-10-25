@@ -9,9 +9,9 @@
  * (PROBLEMS.md #8). Detay asagida, algoritmanin kendisinde.
  */
 
-import { type Micros, micros, rateFromCpm, add } from '@linger/protocol'
+import { type Micros, micros, rateFromCpm, add } from '@lull/protocol'
 import { MIN_BID_CPM } from './campaign-store.js'
-import type { Creative, IdGenerator, Clock } from '@linger/protocol'
+import type { Creative, IdGenerator, Clock } from '@lull/protocol'
 
 /** Bir blok kac gosterim. Fiyat (`bidCpm`) da 1.000 gosterim icin. */
 export const IMPRESSIONS_PER_BLOCK = 1_000

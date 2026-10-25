@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock } from '@linger/protocol'
+import { fixedClock } from '@lull/protocol'
 import { WalletStore, DEFAULT_HOLD_MS, type WalletChangeNotice } from '../src/wallet.js'
 
 const PUB = 'pub-1'

@@ -15,8 +15,8 @@ import {
   impressionBatchSchema, remoteConfigSchema, PROTOCOL_HEADER, PROTOCOL_VERSION,
   ERROR_CODES, type ErrorCode, type RemoteConfig, type TokenScope,
   micros, type Micros,
-} from '@linger/protocol'
-import type { Clock, IdGenerator } from '@linger/protocol'
+} from '@lull/protocol'
+import type { Clock, IdGenerator } from '@lull/protocol'
 import type { Pipeline } from '../pipeline.js'
 import type { Ledger } from '../ledger/ledger.js'
 import { accountId, PLATFORM_REVENUE } from '../ledger/accounts.js'
@@ -49,7 +49,7 @@ export interface AppDeps {
   readonly payouts?: PayoutStore
   /** Reklamveren tarafi. Verilmezse `/v1/advertiser/*` uclari acilmaz. */
   readonly campaigns?: CampaignStore
-  /** Kasa (LingerVault) adresi — reklamveren parayi buraya gonderir. */
+  /** Kasa (LullVault) adresi — reklamveren parayi buraya gonderir. */
   readonly depositAddress?: string
   /** Hangi Arc agi: `testnet` veya `mainnet`. */
   readonly network?: 'testnet' | 'mainnet'
@@ -128,20 +128,20 @@ export function createApp(deps: AppDeps) {
   const requireScope = (...needed: TokenScope[]) =>
     async (c: any, next: any) => {
       const raw = bearerToken(c.req.header('authorization'))
-      if (!raw) return c.json(err('LNG_2001', '`linger login` calistir'), 401)
+      if (!raw) return c.json(err('LUL_2001', '`lull login` calistir'), 401)
 
       const rec = deps.tokens.find(raw)
       if (!rec || rec.revokedAt !== null) {
-        return c.json(err('LNG_2002', 'Token iptal edilmis veya gecersiz'), 401)
+        return c.json(err('LUL_2002', 'Token iptal edilmis veya gecersiz'), 401)
       }
 
       // Kapsam kontrolu. Daemon token'i cuzdan degistiremez.
       const missing = needed.filter((s) => !rec.scopes.includes(s))
       if (missing.length > 0) {
-        return c.json(err('LNG_2003', `gerekli kapsam: ${missing.join(', ')}`), 403)
+        return c.json(err('LUL_2003', `gerekli kapsam: ${missing.join(', ')}`), 403)
       }
 
-      const version = c.req.header('x-linger-client-version') ?? null
+      const version = c.req.header('x-lull-client-version') ?? null
       deps.tokens.touch(rec.id, deps.clock.now(), version)
       c.set('auth', { publisherId: rec.publisherId, tokenId: rec.id, scopes: rec.scopes })
       await next()
@@ -155,10 +155,10 @@ export function createApp(deps: AppDeps) {
    * birakabilmek gerekir.
    */
   const requireVersion = async (c: any, next: any) => {
-    const v = c.req.header('x-linger-client-version')
+    const v = c.req.header('x-lull-client-version')
     const min = deps.config().minClientVersion
     if (v && compareVersions(v, min) < 0) {
-      return c.json(err('LNG_1005', `en az ${min} gerekli, guncelle: npm i -g linger`), 426)
+      return c.json(err('LUL_1005', `en az ${min} gerekli, guncelle: npm i -g lull`), 426)
     }
     await next()
   }
@@ -205,7 +205,7 @@ export function createApp(deps: AppDeps) {
       const address = typeof body?.address === 'string' ? body.address.trim() : ''
 
       const r = wa.challenge(address)
-      if (!r.ok) return c.json(err('LNG_4001', r.reason), 400)
+      if (!r.ok) return c.json(err('LUL_4001', r.reason), 400)
 
       // `message`: cuzdana imzalatilacak OKUNABILIR metin (SIWE mantigi, `personal_sign`).
       return c.json({ message: r.message, expiresAt: r.expiresAt })
@@ -217,7 +217,7 @@ export function createApp(deps: AppDeps) {
       const message = typeof body?.message === 'string' ? body.message : ''
       const signature = typeof body?.signature === 'string' ? body.signature : ''
       if (!address || !message || !signature) {
-        return c.json(err('LNG_9001', '`address`, `message` ve `signature` (hex) gerekli'), 400)
+        return c.json(err('LUL_9001', '`address`, `message` ve `signature` (hex) gerekli'), 400)
       }
 
       // Rol token'in kapsamini belirliyor. Bilinmeyen deger yayinci sayilir
@@ -225,7 +225,7 @@ export function createApp(deps: AppDeps) {
       const role = body?.role === 'advertiser' ? 'advertiser' : 'publisher'
       const r = await wa.verify(address, message, signature, role)
       // 401: imza gecerli degil. Bu bir sunucu hatasi degil, kimlik reddi.
-      if (!r.ok) return c.json(err('LNG_2002', r.detail ? `${r.reason}: ${r.detail}` : r.reason), 401)
+      if (!r.ok) return c.json(err('LUL_2002', r.detail ? `${r.reason}: ${r.detail}` : r.reason), 401)
 
       // Ham token YALNIZCA burada gorunur. Tekrar okunamaz — kaybedilirse
       // yeniden giris yapilir. Sunucuda yalnizca hash'i var.
@@ -237,7 +237,7 @@ export function createApp(deps: AppDeps) {
     const { publisherId } = c.get('auth')
 
     if (!deps.config().renderEnabled) {
-      return c.json(err('LNG_3005'), 503)
+      return c.json(err('LUL_3005'), 503)
     }
 
     // Nonce hizi = gosterim hizi (bkz. rate-limit.ts). Siniri asan istemci
@@ -245,7 +245,7 @@ export function createApp(deps: AppDeps) {
     const bekle = adLimit.take(publisherId)
     if (bekle > 0) {
       c.header('retry-after', String(Math.ceil(bekle / 1000)))
-      return c.json(err('LNG_9001', 'reklam isteme hizi siniri'), 429)
+      return c.json(err('LUL_9001', 'reklam isteme hizi siniri'), 429)
     }
 
     const sel = deps.pipeline.serveAd(publisherId)
@@ -270,7 +270,7 @@ export function createApp(deps: AppDeps) {
     const body = await c.req.json().catch(() => null)
     const parsed = impressionBatchSchema.safeParse(body)
     if (!parsed.success) {
-      return c.json(err('LNG_9001', parsed.error.issues[0]?.message ?? 'gecersiz govde'), 400)
+      return c.json(err('LUL_9001', parsed.error.issues[0]?.message ?? 'gecersiz govde'), 400)
     }
 
     const ipHash = hashIp(
@@ -345,19 +345,19 @@ export function createApp(deps: AppDeps) {
    * parametresi yok, para her zaman token sahibinin kendi adresine gider.
    */
   app.post('/v1/publisher/withdraw', requireScope('withdraw:balance'), async (c) => {
-    if (!deps.publisherWithdraw) return c.json(err('LNG_9001', 'cekim kapali'), 404)
+    if (!deps.publisherWithdraw) return c.json(err('LUL_9001', 'cekim kapali'), 404)
     const { publisherId } = c.get('auth')
 
     const body = await c.req.json().catch(() => null)
     const raw = typeof body?.amountMicros === 'string' ? body.amountMicros : null
     if (raw === null || !/^\d+$/.test(raw)) {
-      return c.json(err('LNG_9001', '`amountMicros` tam sayi metni olmali'), 400)
+      return c.json(err('LUL_9001', '`amountMicros` tam sayi metni olmali'), 400)
     }
 
     const r = await deps.publisherWithdraw.withdraw(publisherId, micros(BigInt(raw)))
     if (!r.ok) {
       // 409 = "su an olmaz, sonra olabilir". 400 = "boyle olmaz".
-      return c.json(err('LNG_9001', r.reason), r.retryable ? 409 : 400)
+      return c.json(err('LUL_9001', r.reason), r.retryable ? 409 : 400)
     }
     return c.json({ txHash: r.txHash, amountMicros: r.amount.toString() })
   })
@@ -426,12 +426,12 @@ export function createApp(deps: AppDeps) {
 
       const bid = typeof body?.bidCpmMicros === 'string' ? body.bidCpmMicros : null
       if (bid === null || !/^\d+$/.test(bid)) {
-        return c.json(err('LNG_9001', '`bidCpmMicros` tam sayi metni olmali'), 400)
+        return c.json(err('LUL_9001', '`bidCpmMicros` tam sayi metni olmali'), 400)
       }
 
       const daily = body?.dailyBudgetMicros
       if (daily != null && (typeof daily !== 'string' || !/^\d+$/.test(daily))) {
-        return c.json({ ...err('LNG_9001', '`dailyBudgetMicros` tam sayi metni olmali'), field: 'dailyBudget' }, 400)
+        return c.json({ ...err('LUL_9001', '`dailyBudgetMicros` tam sayi metni olmali'), field: 'dailyBudget' }, 400)
       }
 
       const r = store.create({
@@ -445,7 +445,7 @@ export function createApp(deps: AppDeps) {
       })
       // Red sebebi ALANIYLA birlikte donuyor: form hangi kutuyu
       // kirmizi yapacagini bilsin.
-      if (!r.ok) return c.json({ ...err('LNG_9001', r.reason), field: r.field }, 400)
+      if (!r.ok) return c.json({ ...err('LUL_9001', r.reason), field: r.field }, 400)
 
       return c.json(toCampaignJson(r.campaign), 201)
     })
@@ -458,19 +458,19 @@ export function createApp(deps: AppDeps) {
      * dogrulamasini anlamsiz kilardi.
      */
     app.post('/v1/advertiser/withdraw', requireScope('manage:campaigns'), async (c) => {
-      if (!deps.withdraw) return c.json(err('LNG_9001', 'cekim kapali'), 404)
+      if (!deps.withdraw) return c.json(err('LUL_9001', 'cekim kapali'), 404)
       const { publisherId: advertiserId } = c.get('auth')
 
       const body = await c.req.json().catch(() => null)
       const raw = typeof body?.amountMicros === 'string' ? body.amountMicros : null
       if (raw === null || !/^\d+$/.test(raw)) {
-        return c.json(err('LNG_9001', '`amountMicros` tam sayi metni olmali'), 400)
+        return c.json(err('LUL_9001', '`amountMicros` tam sayi metni olmali'), 400)
       }
 
       const r = await deps.withdraw.withdraw(advertiserId, micros(BigInt(raw)))
       if (!r.ok) {
         // 409 = "su an olmaz, sonra olabilir". 400 = "boyle olmaz".
-        return c.json(err('LNG_9001', r.reason), r.retryable ? 409 : 400)
+        return c.json(err('LUL_9001', r.reason), r.retryable ? 409 : 400)
       }
       return c.json({ txHash: r.txHash, amountMicros: r.amount.toString() })
     })
@@ -481,7 +481,7 @@ export function createApp(deps: AppDeps) {
       const durum = body?.status
 
       if (durum !== 'active' && durum !== 'paused') {
-        return c.json(err('LNG_9001', '`status` yalnizca active veya paused olabilir'), 400)
+        return c.json(err('LUL_9001', '`status` yalnizca active veya paused olabilir'), 400)
       }
 
       // Yayina almadan once para kontrolu. Bos butceyle "aktif" gorunen bir
@@ -489,12 +489,12 @@ export function createApp(deps: AppDeps) {
       if (durum === 'active') {
         const spendable = deps.pipeline.spendable(advertiserId)
         if (spendable <= 0n) {
-          return c.json(err('LNG_3004', 'bakiye yok — once para yatir'), 402)
+          return c.json(err('LUL_3004', 'bakiye yok — once para yatir'), 402)
         }
       }
 
       const r = store.setStatus(c.req.param('id'), advertiserId, durum)
-      if (!r.ok) return c.json(err('LNG_9001', r.reason), 404)
+      if (!r.ok) return c.json(err('LUL_9001', r.reason), 404)
       return c.json(toCampaignJson(r.campaign))
     })
   }
@@ -527,10 +527,10 @@ export function createApp(deps: AppDeps) {
 
     app.put('/v1/me/profile', requireScope('read:balance'), async (c) => {
       const v = validateProfile(await c.req.json().catch(() => null))
-      if (!v.ok) return c.json(err('LNG_9001', v.reason), 400)
+      if (!v.ok) return c.json(err('LUL_9001', v.reason), 400)
       const r = profiles.set(c.get('auth').publisherId, v.value, deps.clock.now())
       // 409: takma ad baskasinda — istek gecerli ama su an olmaz.
-      if (!r.ok) return c.json(err('LNG_9001', r.reason), 409)
+      if (!r.ok) return c.json(err('LUL_9001', r.reason), 409)
       return c.json({ profile: toProfileJson(r.profile) })
     })
 
@@ -561,7 +561,7 @@ export function createApp(deps: AppDeps) {
 
     app.get('/v1/leaderboard/profile/:nickname', (c) => {
       const d = board.profile(c.req.param('nickname'), period(c.req.query('period')))
-      if (!d) return c.json(err('LNG_9001', 'no such listed profile'), 404)
+      if (!d) return c.json(err('LUL_9001', 'no such listed profile'), 404)
       c.header('cache-control', 'public, max-age=30')
       return c.json(d)
     })
@@ -593,7 +593,7 @@ export function createApp(deps: AppDeps) {
       const bid = intText(body?.bidCpmMicros)
       const budget = intText(body?.budgetMicros)
       if (bid === null || budget === null) {
-        return c.json(err('LNG_9001', '`bidCpmMicros` ve `budgetMicros` tam sayi metni olmali'), 400)
+        return c.json(err('LUL_9001', '`bidCpmMicros` ve `budgetMicros` tam sayi metni olmali'), 400)
       }
       const r = pools.create({
         sponsorId: c.get('auth').publisherId,
@@ -602,7 +602,7 @@ export function createApp(deps: AppDeps) {
         budget: micros(budget),
         ...(body?.dailyCapPerMember !== undefined ? { dailyCapPerMember: Number(body.dailyCapPerMember) } : {}),
       })
-      if (!r.ok) return c.json(err('LNG_9001', r.reason), 400)
+      if (!r.ok) return c.json(err('LUL_9001', r.reason), 400)
       return c.json(poolJson(r.pool), 201)
     })
 
@@ -623,15 +623,15 @@ export function createApp(deps: AppDeps) {
 
     app.post('/v1/advertiser/pools/:id/budget', requireScope('manage:campaigns'), async (c) => {
       const budget = intText((await c.req.json().catch(() => null))?.budgetMicros)
-      if (budget === null) return c.json(err('LNG_9001', '`budgetMicros` tam sayi metni olmali'), 400)
+      if (budget === null) return c.json(err('LUL_9001', '`budgetMicros` tam sayi metni olmali'), 400)
       const r = pools.setBudget(c.req.param('id'), c.get('auth').publisherId, micros(budget))
-      if (!r.ok) return c.json(err('LNG_9001', r.reason), r.reason === 'pool not found' ? 404 : 409)
+      if (!r.ok) return c.json(err('LUL_9001', r.reason), r.reason === 'pool not found' ? 404 : 409)
       return c.json(poolJson(r.pool))
     })
 
     app.post('/v1/advertiser/pools/:id/close', requireScope('manage:campaigns'), (c) => {
       const r = pools.close(c.req.param('id'), c.get('auth').publisherId)
-      if (!r.ok) return c.json(err('LNG_9001', r.reason), 404)
+      if (!r.ok) return c.json(err('LUL_9001', r.reason), 404)
       return c.json(poolJson(r.pool))
     })
 
@@ -651,7 +651,7 @@ export function createApp(deps: AppDeps) {
     app.post('/v1/me/pool/join', requireScope('read:balance'), async (c) => {
       const body = await c.req.json().catch(() => null)
       const r = pools.join(typeof body?.code === 'string' ? body.code : '', c.get('auth').publisherId)
-      if (!r.ok) return c.json(err('LNG_9001', r.reason), 404)
+      if (!r.ok) return c.json(err('LUL_9001', r.reason), 404)
       return c.json({ name: r.pool.name, code: r.pool.code })
     })
 
@@ -663,10 +663,10 @@ export function createApp(deps: AppDeps) {
     app.post('/v1/me/pool/project', requireScope('read:balance'), async (c) => {
       const me = c.get('auth').publisherId
       const p = pools.membership(me)
-      if (!p || p.status !== 'open') return c.json(err('LNG_9001', 'join an open pool first'), 409)
+      if (!p || p.status !== 'open') return c.json(err('LUL_9001', 'join an open pool first'), 409)
       // Takim basina tek proje: kapali grupta satir sayisini sisirip
       // dongudeki payini buyutmek bedava olmasin.
-      if (myProject(me, p.id)) return c.json(err('LNG_9001', 'you already submitted a project to this pool'), 409)
+      if (myProject(me, p.id)) return c.json(err('LUL_9001', 'you already submitted a project to this pool'), 409)
 
       const body = await c.req.json().catch(() => null)
       const r = store.createPoolProject({
@@ -675,14 +675,14 @@ export function createApp(deps: AppDeps) {
         text: typeof body?.text === 'string' ? body.text : '',
         cta: typeof body?.cta === 'string' ? body.cta : '',
       })
-      if (!r.ok) return c.json(err('LNG_9001', r.reason), 400)
+      if (!r.ok) return c.json(err('LUL_9001', r.reason), 400)
       return c.json(toCampaignJson(r.campaign), 201)
     })
 
     /** Genel ozet — hackathon sayfasinda paylasilabilsin. Para ve adres yok. */
     app.get('/v1/pools/:code', (c) => {
       const p = pools.byCode(c.req.param('code'))
-      if (!p) return c.json(err('LNG_9001', 'no such pool'), 404)
+      if (!p) return c.json(err('LUL_9001', 'no such pool'), 404)
       const projects = store.forPool(p.id).filter((x) => x.status === 'active')
       return c.json({
         name: p.name, status: p.status, members: pools.memberCount(p.id),
@@ -696,7 +696,7 @@ export function createApp(deps: AppDeps) {
   /**
    * Cuzdan tabanli giris akisina girmiyor — ortada "admin cuzdani" diye
    * bir kimlik kavrami yok. Paylasilan bir sirla korunuyor, tipki
-   * `LINGER_HOT_SECRET` gibi. `adminSecret` verilmezse uc hic acilmaz.
+   * `LULL_HOT_SECRET` gibi. `adminSecret` verilmezse uc hic acilmaz.
    */
   if (deps.adminSecret) {
     const requireAdmin = async (c: any, next: any) => {
@@ -705,7 +705,7 @@ export function createApp(deps: AppDeps) {
       // sir zaten yalnizca bir kisi (platform operatoru) tarafindan
       // kullaniliyor, kamuya acik bir giris denemesi yuzeyi degil.
       if (!raw || raw !== deps.adminSecret) {
-        return c.json(err('LNG_2002', 'gecersiz admin sirri'), 401)
+        return c.json(err('LUL_2002', 'gecersiz admin sirri'), 401)
       }
       await next()
     }
@@ -740,29 +740,29 @@ export function createApp(deps: AppDeps) {
     })
 
     app.post('/v1/admin/withdraw', requireAdmin, async (c) => {
-      if (!deps.platformWithdraw) return c.json(err('LNG_9001', 'cekim kapali'), 404)
+      if (!deps.platformWithdraw) return c.json(err('LUL_9001', 'cekim kapali'), 404)
       const body = await c.req.json().catch(() => null)
       const raw = typeof body?.amountMicros === 'string' ? body.amountMicros : null
       const to = typeof body?.destination === 'string' ? body.destination : null
       if (raw === null || !/^\d+$/.test(raw)) {
-        return c.json(err('LNG_9001', '`amountMicros` tam sayi metni olmali'), 400)
+        return c.json(err('LUL_9001', '`amountMicros` tam sayi metni olmali'), 400)
       }
       if (!to) {
-        return c.json(err('LNG_9001', '`destination` (platformun kendi cuzdan adresi) sart'), 400)
+        return c.json(err('LUL_9001', '`destination` (platformun kendi cuzdan adresi) sart'), 400)
       }
 
       const r = await deps.platformWithdraw.withdraw(to, micros(BigInt(raw)))
-      if (!r.ok) return c.json(err('LNG_9001', r.reason), r.retryable ? 409 : 400)
+      if (!r.ok) return c.json(err('LUL_9001', r.reason), r.retryable ? 409 : 400)
       return c.json({ txHash: r.txHash, amountMicros: r.amount.toString() })
     })
   }
 
-  app.notFound((c) => c.json(err('LNG_9001', 'bilinmeyen uc'), 404))
+  app.notFound((c) => c.json(err('LUL_9001', 'bilinmeyen uc'), 404))
 
   app.onError((e, c) => {
     // Stack trace ASLA disari cikmaz — istemciye kod ve tek cumle gider.
-    console.error('[linger]', e)
-    return c.json(err('LNG_9001'), 500)
+    console.error('[lull]', e)
+    return c.json(err('LUL_9001'), 500)
   })
 
   return app

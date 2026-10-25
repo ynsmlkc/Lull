@@ -10,8 +10,8 @@
  *   • Reklamverenin harcanabilir bakiyesi ledger'dan gelir (ADR-021)
  */
 
-import { type Micros, micros, add, sub, ZERO } from '@linger/protocol'
-import type { Clock, IdGenerator } from '@linger/protocol'
+import { type Micros, micros, add, sub, ZERO } from '@lull/protocol'
+import type { Clock, IdGenerator } from '@lull/protocol'
 import { AdSelector, type Campaign, type AdSelection } from './ads/selector.js'
 import { ImpressionIngest, type DeliveredAd, type StoredImpression } from './impressions/ingest.js'
 import { Verifier } from './impressions/verify.js'

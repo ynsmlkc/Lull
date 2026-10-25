@@ -1,8 +1,8 @@
-# LingerVault
+# LullVault
 
 Holds advertiser USDC on Arc and pays developers in atomic, replay-protected batches.
 
-Written, security-reviewed and tested in [Arc Studio](https://studio.arc.io). The prompt is in [`ARC-STUDIO-PROMPT.md`](ARC-STUDIO-PROMPT.md), and the Studio app and its testnet deployment are recorded in [`arc-studio-session.json`](arc-studio-session.json).
+Written, security-reviewed and tested in [Arc Studio](https://studio.arc.io). The prompt is in [`ARC-STUDIO-PROMPT.md`](ARC-STUDIO-PROMPT.md), and the Studio app and its testnet deployment are recorded in [`arc-studio-session.json`](arc-studio-session.json). The project was called Linger during that session, so the Studio records name the contract `LingerVault`; the code is unchanged apart from the name.
 
 | Function | Who | What |
 |---|---|---|
@@ -28,8 +28,8 @@ USDC defaults to Arc's ERC-20 interface, `0x360000000000000000000000000000000000
 
 ```bash
 VAULT_OWNER=0x…      # cold wallet: pause, rescue, replace operator
-VAULT_OPERATOR=0x…   # server hot wallet (LINGER_OPERATOR_KEY)
-forge script script/DeployLingerVault.s.sol --rpc-url arc_mainnet --broadcast --private-key $DEPLOYER_KEY
+VAULT_OPERATOR=0x…   # server hot wallet (LULL_OPERATOR_KEY)
+forge script script/DeployLullVault.s.sol --rpc-url arc_mainnet --broadcast --private-key $DEPLOYER_KEY
 ```
 
-Then set `LINGER_VAULT` and `LINGER_VAULT_FROM_BLOCK` on the server.
+Then set `LULL_VAULT` and `LULL_VAULT_FROM_BLOCK` on the server.

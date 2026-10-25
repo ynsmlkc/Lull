@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { micros } from '@linger/protocol'
+import { micros } from '@lull/protocol'
 import { advertiserStats } from '../src/advertisers/stats.js'
 import type { StoredImpression, ImpressionState } from '../src/impressions/ingest.js'
 

@@ -11,8 +11,8 @@
  *   • `(ref_type, ref_id)` uzerinde index
  */
 
-import { type Micros, micros, add, ZERO } from '@linger/protocol'
-import type { Clock } from '@linger/protocol'
+import { type Micros, micros, add, ZERO } from '@lull/protocol'
+import type { Clock } from '@lull/protocol'
 import type { LedgerStore, Entry, NewEntry, RefType, Asset } from './ledger.js'
 import type { AccountId } from './accounts.js'
 

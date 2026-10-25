@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { FALLBACK_CONFIG, type RemoteConfig, type AdPayload } from '@linger/protocol'
+import { FALLBACK_CONFIG, type RemoteConfig, type AdPayload } from '@lull/protocol'
 import { ServerSync } from '../src/daemon/sync.js'
 import type { ImpressionQueue } from '../src/daemon/queue.js'
 

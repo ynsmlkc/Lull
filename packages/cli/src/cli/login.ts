@@ -1,14 +1,14 @@
 /**
- * `linger login` / `logout` / `whoami` — ADR-010 (revize), ADR-014.
+ * `lull login` / `logout` / `whoami` — ADR-010 (revize), ADR-014.
  *
  * Kimlik cuzdandir. GitHub yok, e-posta yok, sifre yok. `publisherId` dogrudan
  * Arc (EVM) adresinin kendisi: kazanci alacak adres ile kimlik ayni sey, ikisini
  * ayirmak gereksiz bir eslesme katmani olurdu.
  *
  * Akis:
- *   linger login  → 127.0.0.1'de gecici sunucu + tarayici
+ *   lull login  → 127.0.0.1'de gecici sunucu + tarayici
  *   tarayici     → MetaMask/Rabby/Coinbase Wallet ile mesaj imzasi
- *   yerel sunucu → Linger sunucusuna proxy, token'i diske yazar
+ *   yerel sunucu → Lull sunucusuna proxy, token'i diske yazar
  *
  * Ozel anahtar HICBIR ZAMAN bu surece girmez. Terminale secret key sordurmak
  * en kolay yoldu ve kabul edilemezdi: kullanicidan cuzdanini teslim etmesini
@@ -37,13 +37,13 @@ export const PROFILE_WINDOW_MS = 3 * 60_000
  * Sunucu adresi.
  *
  * Kendi alan adimiz yok; barindiran platformun verdigi adres bu. Yayina
- * cikmadan once `api.linger.dev` yaziyordu ve o adres HIC VAR OLMADI —
- * paket boyle yayinlansaydi `linger login` herkeste "sunucuya ulasilamadi"
+ * cikmadan once `api.lull.dev` yaziyordu ve o adres HIC VAR OLMADI —
+ * paket boyle yayinlansaydi `lull login` herkeste "sunucuya ulasilamadi"
  * derdi ve kimse sebebini bulamazdi.
  *
  * Alan adi alindiginda burasi degisir; `--server` ile de ezilebiliyor.
  */
-const DEFAULT_SERVER = 'https://lingerserver-production.up.railway.app'
+const DEFAULT_SERVER = 'https://lullserver-production.up.railway.app'
 
 export interface LoginOptions {
   readonly serverUrl: string
@@ -59,7 +59,7 @@ export function parseLoginArgs(argv: readonly string[]): LoginOptions {
     return i >= 0 ? argv[i + 1] : undefined
   }
   return {
-    serverUrl: (flag('server') ?? process.env['LINGER_SERVER'] ?? DEFAULT_SERVER)
+    serverUrl: (flag('server') ?? process.env['LULL_SERVER'] ?? DEFAULT_SERVER)
       .replace(/\/+$/, ''),
     noBrowser: argv.includes('--no-browser'),
   }
@@ -83,7 +83,7 @@ export async function cmdLogin(
   const existing = loadCredentials()
   if (existing && !argv.includes('--force')) {
     warn(`already logged in: ${bold(shortAddress(existing.publisherId))}`)
-    info(`to switch to a different wallet: ${dim('linger login --force')}`)
+    info(`to switch to a different wallet: ${dim('lull login --force')}`)
     return
   }
 
@@ -100,15 +100,15 @@ export async function cmdLogin(
   ok(`logged in — ${bold(result.publisherId)}`)
   info(dim(`token stored in ${credentialsPath()} (only you can read it)`))
   out()
-  info(`earnings will go to this address. Track them with ${dim('linger balance')}.`)
-  info(`optional: join the public leaderboard in the browser — or later with ${dim('linger profile')}.`)
+  info(`earnings will go to this address. Track them with ${dim('lull balance')}.`)
+  info(`optional: join the public leaderboard in the browser — or later with ${dim('lull profile')}.`)
   info(dim('the page stays open for a few minutes; Ctrl-C to finish now'))
 
   /**
    * Daemon'i BIZ yeniden baslatiyoruz.
    *
    * Kimlik dosyadan yalnizca ACILISTA okunuyor. Onceden burada "daemon
-   * calisiyorsa `linger restart` yap" diye bir dipnot vardi ve bu YETMIYOR:
+   * calisiyorsa `lull restart` yap" diye bir dipnot vardi ve bu YETMIYOR:
    * kullanici cuzdanini degistirip yeniden giris yapiyor, ekranda "giris
    * yapildi" goruyor, reklam donmeye devam ediyor — ama kazanc ESKI
    * cuzdana yaziliyor. Fark etmesinin bir yolu yok.
@@ -135,7 +135,7 @@ export async function kimligiTazele(daemonYeniden: DaemonYeniden): Promise<void>
     out()
     warn('could not restart the daemon with the new identity')
     info(dim(r.error))
-    info(`manually: ${bold('linger restart')} — until you do, earnings go to the OLD wallet`)
+    info(`manually: ${bold('lull restart')} — until you do, earnings go to the OLD wallet`)
     return
   }
   ok(`daemon running with the new identity (pid ${r.pid})`)
@@ -166,7 +166,7 @@ export function runLoginServer(opts: LoginOptions): Promise<LoginResult> {
     let settled = false
     /**
      * Giristen sonra elde tutulan token — yalnizca siralama adimindaki
-     * istekleri Linger sunucusuna iletmek icin. Tarayiciya ASLA gitmez.
+     * istekleri Lull sunucusuna iletmek icin. Tarayiciya ASLA gitmez.
      */
     let token: string | null = null
     let closing = false
@@ -223,7 +223,7 @@ export function runLoginServer(opts: LoginOptions): Promise<LoginResult> {
       }
 
       if (req.method !== 'POST') { json(res, 404, { message: 'not found' }); return }
-      if (req.headers['x-linger-nonce'] !== nonce) { json(res, 403, { message: 'invalid session' }); return }
+      if (req.headers['x-lull-nonce'] !== nonce) { json(res, 403, { message: 'invalid session' }); return }
 
       const body = await readJson(req)
 
@@ -263,7 +263,7 @@ export function runLoginServer(opts: LoginOptions): Promise<LoginResult> {
       /**
        * Istege bagli siralama adimi — giristen SONRA, ayni sayfada.
        *
-       * Sayfa Linger sunucusuna dogrudan gitmiyor (CSP `connect-src 'self'`);
+       * Sayfa Lull sunucusuna dogrudan gitmiyor (CSP `connect-src 'self'`);
        * istekler buradan, elde tutulan token'la iletiliyor. Ulke tahmini de
        * bu yuzden dogru calisiyor: istek kullanicinin kendi makinesinden
        * cikiyor.
@@ -352,12 +352,12 @@ export function cmdLogout(): void {
   // Token sunucuda HALA GECERLI. Iptal ucu yazilinca burada cagrilacak;
   // simdilik durumu gizlemek yerine soyluyoruz.
   info(dim('note: the device token is still valid on the server — revocation isn\'t built yet'))
-  info(dim('if the daemon is running, stop it with `linger restart`'))
+  info(dim('if the daemon is running, stop it with `lull restart`'))
 }
 
 export function cmdWhoami(): void {
   const c = loadCredentials()
-  if (!c) fail('LNG-2001', 'Not logged in', '`linger login` to connect your wallet')
+  if (!c) fail('LUL-2001', 'Not logged in', '`lull login` to connect your wallet')
   out()
   out(`  ${bold(c.publisherId)}`)
   info(dim(`server ${c.serverUrl}`))

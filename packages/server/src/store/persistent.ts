@@ -8,13 +8,13 @@
  * Yukleme sirasi onemli degil cunku her depo bagimsiz.
  */
 
-import { micros, add, ZERO, type Micros, type Clock, type TokenScope } from '@linger/protocol'
+import { micros, add, ZERO, type Micros, type Clock, type TokenScope } from '@lull/protocol'
 import type { LedgerStore, Entry, NewEntry, RefType, Asset } from '../ledger/ledger.js'
 import type { AccountId } from '../ledger/accounts.js'
 import { hashToken, type DeviceTokenRecord } from '../http/auth.js'
 import type { PayoutStore, PayoutItemRecord, PayoutItemState } from '../payouts/store.js'
 import type { StoredImpression, DeliveredAd } from '../impressions/ingest.js'
-import type { SubmissionReceipt, WalletBinding } from '@linger/payments'
+import type { SubmissionReceipt, WalletBinding } from '@lull/payments'
 import type { Profile } from '../leaderboard/profiles.js'
 import { type Db, numOrNull, strOrNull, toInt, toBool } from './db.js'
 

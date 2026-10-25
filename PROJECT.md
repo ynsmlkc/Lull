@@ -1,14 +1,14 @@
-> **Note (Arc port, 2026-10-25):** this design document predates the move to Arc. The product, ledger, fraud and ad-surface sections still apply. The payment-rail sections describe the previous chain; the current rail is `ArcRail` with `LingerVault` (see README.md).
+> **Note (Arc port, 2026-10-25):** this design document predates the move to Arc. The product, ledger, fraud and ad-surface sections still apply. The payment-rail sections describe the previous chain; the current rail is `ArcRail` with `LullVault` (see README.md).
 
-# Linger
+# Lull
 
 > AI kodlama araçlarının bekleme anlarını, Solana üzerinden otomatik ödenen bir reklam yüzeyine çeviren terminal-native pazaryeri.
 
 **Durum:** Omurga kodlandı ve birim testlerden geçiyor; Solana devnet üzerinde gerçek ödeme henüz doğrulanmadı (bkz. NEXT.md).
 **Son güncelleme:** 2026-09-21
-**Öncelik:** Omurga. `npx linger init` → satır görünür → gösterim sayılır → sunucuya gider → ödeme job'ı çalışır → USDC cüzdana düşer. Bu zincir uçtan uca çalışana kadar tier, tavan, fraud kuralları ve reklamveren arayüzü **beklemede** (bkz. §12.0).
+**Öncelik:** Omurga. `npx lull init` → satır görünür → gösterim sayılır → sunucuya gider → ödeme job'ı çalışır → USDC cüzdana düşer. Bu zincir uçtan uca çalışana kadar tier, tavan, fraud kuralları ve reklamveren arayüzü **beklemede** (bkz. §12.0).
 
-> **Not:** Ürün adı `OrbitAds`'ten `Linger`'e alındı (Instawards SOW ile hizalı). CLI komutu `linger`, daemon `lingerd`, yerel dizin `~/.linger/`, npm paketi `linger`.
+> **Not:** Ürün adı `OrbitAds`'ten `Lull`'e alındı (Instawards SOW ile hizalı). CLI komutu `lull`, daemon `lulld`, yerel dizin `~/.lull/`, npm paketi `lull`.
 
 ---
 
@@ -16,7 +16,7 @@
 
 Geliştirici terminalinde, AI kodlama aracı (öncelik: Claude Code) bir işlem beklerken kısa bir sponsorlu satır gösterilir; doğrulanan her gösterim geliştiricinin bakiyesine yazılır ve Solana ağı üzerinden USDC olarak toplu şekilde otomatik ödenir.
 
-**Farklılaştırıcı:** Referans alınan modeller (ör. kickbacks.ai) ödemeleri haftalar süren manuel banka batch'leriyle yapıyor. Linger, ödemeyi zincir üstüne alarak banka hesabı gerektirmeyen, küresel, 24-48 saat içinde tamamlanan otomatik bir akışa çeviriyor.
+**Farklılaştırıcı:** Referans alınan modeller (ör. kickbacks.ai) ödemeleri haftalar süren manuel banka batch'leriyle yapıyor. Lull, ödemeyi zincir üstüne alarak banka hesabı gerektirmeyen, küresel, 24-48 saat içinde tamamlanan otomatik bir akışa çeviriyor.
 
 ---
 
@@ -34,7 +34,7 @@ Geliştirici terminalinde, AI kodlama aracı (öncelik: Claude Code) bir işlem 
 | **Accrual** | Doğrulanmış gösterimin publisher ledger'ına yazılan alacak kaydı |
 | **Payable** | 24 saatlik pending süresini ve doğrulamayı geçmiş, ödemeye hazır bakiye |
 | **Batch** | Tek Solana transaction'ında birkaç publisher'a (varsayılan 6) yapılan toplu ödeme |
-| **Daemon** | Kullanıcı makinesinde çalışan uzun ömürlü yerel süreç (`lingerd`) |
+| **Daemon** | Kullanıcı makinesinde çalışan uzun ömürlü yerel süreç (`lulld`) |
 | **Shim** | Claude Code'un çağırdığı, daemon'a bağlanan kısa ömürlü script |
 | **Device token** | Cihaz başına üretilen, iptal edilebilir API kimlik bilgisi |
 | **Trust tier** | Hesabın güven segmenti; tavanı ve pending süresini belirler |
@@ -44,7 +44,7 @@ Geliştirici terminalinde, AI kodlama aracı (öncelik: Claude Code) bir işlem 
 ## 3. Kapsam
 
 ### MVP'de VAR
-- Claude Code entegrasyonu: `npx linger init` → `~/.claude/settings.json`'a hooks + `statusLine` yazılır; o makinedeki tüm oturumlarda reklam döner
+- Claude Code entegrasyonu: `npx lull init` → `~/.claude/settings.json`'a hooks + `statusLine` yazılır; o makinedeki tüm oturumlarda reklam döner
 - Sponsorlu satır render + ≥10sn gösterim ölçümü + görsel ifşa (`✶`)
 - Spinner katmanı (`spinnerVerbs`) — görünürlük eklentisi; ölçüm ve faturalama buna dayanmaz (ADR-001)
 - GitHub OAuth ile hesap + cihaz başına iptal edilebilir token
@@ -53,7 +53,7 @@ Geliştirici terminalinde, AI kodlama aracı (öncelik: Claude Code) bir işlem 
 - Çift kayıtlı ledger + %50/50 gelir paylaşımı + rate snapshot
 - Solana devnet üzerinde batch ödeme (tek transaction, çoklu SPL transfer)
 - İmzayla doğrulanmış cüzdan bağlama
-- `linger` CLI: `init`, `login`, `wallet`, `balance`, `status`, `doctor`, `pause`, `privacy`, `uninstall`
+- `lull` CLI: `init`, `login`, `wallet`, `balance`, `status`, `doctor`, `pause`, `privacy`, `uninstall`
 
 ### MVP'de YOK (bilinçli olarak ertelendi)
 - Gerçek açık artırma motoru → `priority` + bid sıralaması yeterli
@@ -107,7 +107,7 @@ Bu bölüm dokümanın çekirdeğidir. Her karar bir alternatifi reddediyor; ger
 >
 > **Bunun bir sonucu:** `UserPromptSubmit` hook'u zorunlu hâle geldi. Kıvılcım 1'de kurulu değildi, bu yüzden turun başındaki ilk düşünme süresi ölçülemedi — yukarıdaki tur rakamları **alt sınırdır**, gerçek turlar daha uzun.
 
-**Karar:** Reklam, Claude Code'un **resmî ayar noktaları** üzerinden gösterilir. Kurulum `npx linger init` ile `~/.claude/settings.json`'a yazar; o andan itibaren o makinedeki her Claude Code oturumunda reklam döner. Ham çıktıya, ekran çizimine veya uygulamanın koduna **hiçbir şekilde dokunulmaz.**
+**Karar:** Reklam, Claude Code'un **resmî ayar noktaları** üzerinden gösterilir. Kurulum `npx lull init` ile `~/.claude/settings.json`'a yazar; o andan itibaren o makinedeki her Claude Code oturumunda reklam döner. Ham çıktıya, ekran çizimine veya uygulamanın koduna **hiçbir şekilde dokunulmaz.**
 
 Üç resmî yüzey vardır ve **rolleri farklıdır** — biri diğerinin yerine geçmez:
 
@@ -164,7 +164,7 @@ Liste **asla boşaltılmaz**: boş liste Claude Code'u kendi varsayılan kelimel
 
 | Alternatif | Neden reddedildi |
 |---|---|
-| PTY wrapper (`linger run claude`), stdout'a satır enjeksiyonu | Claude Code full-screen bir TUI; ekranı cursor adresleme ve bölgesel redraw ile çiziyor. Ham byte akışına satır enjekte etmek uygulamanın ekran modeliyle gerçek terminali ayrıştırır → görsel bozulma. Doğru yapmak için headless terminal emülatörü (`@xterm/headless`) + kompozitleme + SIGWINCH/alternate screen/bracketed paste proxy'lemesi gerekir; pratikte mini bir tmux yazmak demek. Ayrıca her Claude Code sürümünde kırılır. |
+| PTY wrapper (`lull run claude`), stdout'a satır enjeksiyonu | Claude Code full-screen bir TUI; ekranı cursor adresleme ve bölgesel redraw ile çiziyor. Ham byte akışına satır enjekte etmek uygulamanın ekran modeliyle gerçek terminali ayrıştırır → görsel bozulma. Doğru yapmak için headless terminal emülatörü (`@xterm/headless`) + kompozitleme + SIGWINCH/alternate screen/bracketed paste proxy'lemesi gerekir; pratikte mini bir tmux yazmak demek. Ayrıca her Claude Code sürümünde kırılır. |
 | tmux `status-right` + `capture-pane` polling | Bozulma riski yok ama kullanıcıya tmux şartı koşuyor, kitleyi daraltıyor. Sonraki bir adapter olabilir. |
 | Terminal emulator eklentisi (iTerm2, WezTerm) | Platform başına ayrı iş, dağıtım maliyeti yüksek. |
 | Yalnızca `spinnerVerbs` kullanmak (statusLine olmadan) | En görünür yüzey, ama **ölçüm imkânsız** ve tur içinde rotasyon yok: gösterildiğine dair sinyal gelmez, süre bilinmez, reklam dinamik değişemez. Faturalanabilir bir envanter kurulamaz. Görünürlük katmanı olarak kalır, omurga olamaz. |
@@ -180,7 +180,7 @@ Liste **asla boşaltılmaz**: boş liste Claude Code'u kendi varsayılan kelimel
 | Konu | Gerçek | Bizim için anlamı |
 |---|---|---|
 | **Nereye basılıyor** | Footer rozetlerinin **üstünde kendi satırına**; footer'ın yerini almıyor | Kullanıcıdan bir satır yer alıyoruz, mevcut bilgisini silmiyoruz |
-| **Yan etki** | Custom statusLine tanımlıyken Claude Code footer klavye ipuçlarının çoğunu gizliyor (`esc to interrupt`, `? for shortcuts`) | Kullanıcıdan bir şey **alıyoruz**. `linger uninstall` bunu geri getirmek zorunda; `linger init` kurulumda bu etkiyi açıkça söylemeli |
+| **Yan etki** | Custom statusLine tanımlıyken Claude Code footer klavye ipuçlarının çoğunu gizliyor (`esc to interrupt`, `? for shortcuts`) | Kullanıcıdan bir şey **alıyoruz**. `lull uninstall` bunu geri getirmek zorunda; `lull init` kurulumda bu etkiyi açıkça söylemeli |
 | **Ne zaman çalışıyor** | Oturum başında; yeni asistan mesajı geldiğinde; `/compact` bitince; izin modu değişince; vim modu değişince | **Bekleme sırasında tetiklenmiyor** — satır donuk kalırdı |
 | **`refreshInterval`** | Komutu N saniyede bir yeniden çalıştırır, **minimum 1** | ⭐ Açık soru #1'in cevabı. Bunu ayarlayarak satır bekleme sırasında da canlı kalır ve **süre ölçümü mümkün olur** |
 | **Debounce** | 300 ms; script çalışırken yeni tetik gelirse çalışan script iptal edilir | Shim'in <50 ms bütçesi (ADR-003) bu yüzden kritik |
@@ -231,7 +231,7 @@ Gelecek: `SpinnerTipSurface`, `TmuxStatusSurface`, `CodexSource`.
 
 ### ADR-003 — Yerel daemon zorunlu; render asla network'e bloklanmaz
 
-**Karar:** Kullanıcı makinesinde unix domain socket dinleyen uzun ömürlü bir `lingerd` süreci çalışır. `statusLine` shim'i her render'da bu socket'e bağlanır ve **önceden cache'lenmiş** reklamı alır.
+**Karar:** Kullanıcı makinesinde unix domain socket dinleyen uzun ömürlü bir `lulld` süreci çalışır. `statusLine` shim'i her render'da bu socket'e bağlanır ve **önceden cache'lenmiş** reklamı alır.
 
 **Gerekçe:** `statusLine` komutu her ekran güncellemesinde çalışır ve milisaniyelerde dönmek zorundadır. İçine network isteği koymak kullanıcının Claude Code deneyimini yavaşlatır — bu, tek seferde uninstall edilme sebebidir.
 
@@ -257,7 +257,7 @@ Bunun ~15 ms'i Node'un kendi başlangıcı; socket gidiş-dönüşü yalnızca ~
 
 Günlük maliyet: 13.733 çağrı × 22 ms ≈ **5 dakika CPU/gün**. Kabul edilebilir ama ihmal edilebilir değil — ileride sıkışırsak derlenmiş binary (~2-5 ms) seçeneği duruyor.
 
-Shim `@linger/protocol` **import etmez**; zod'u her tıkta yüklemek israf olur. Yalnızca `node:net`. Bütün iş daemon'da.
+Shim `@lull/protocol` **import etmez**; zod'u her tıkta yüklemek israf olur. Yalnızca `node:net`. Bütün iş daemon'da.
 
 **Reddedilen alternatif — dosyadan okumak.** Shim, daemon'a bağlanmak yerine önceden yazılmış bir dosyayı okuyabilirdi (referans üründe gözlenen yaklaşım: `~/.vibe-ads/cli-ad.json`). Reddedildi:
 
@@ -401,7 +401,7 @@ Bir kreatifte ESC bulunması "biraz dağınık girdi" değil, saldırı denemesi
 
 ### ADR-010 — Kimlik: hesap açmanın bir maliyeti olmalı
 
-**Karar:** Publisher hesabı **GitHub OAuth** ile açılır. Her cihaz için ayrı, iptal edilebilir bir **device token** üretilir; `~/.linger/credentials.json` içinde `0600` izinle saklanır. Tüm API çağrıları bu token ile authenticate olur.
+**Karar:** Publisher hesabı **GitHub OAuth** ile açılır. Her cihaz için ayrı, iptal edilebilir bir **device token** üretilir; `~/.lull/credentials.json` içinde `0600` izinle saklanır. Tüm API çağrıları bu token ile authenticate olur.
 
 **Gerekçe:** Fraud modelinin tamamı "hesap" birimi üzerine kurulu — günlük tavan hesap başına, anomali kuralları hesap başına. Hesap açmak bedava ve anlıksa günlük tavan hiçbir işe yaramaz; botçu 500 hesap açar ve tavanı 500'le çarpar. **Sybil'e karşı birinci savunma hattı, hesap açmanın maliyetidir.**
 
@@ -410,7 +410,7 @@ GitHub seçilmesinin sebebi: hedef kitle zaten sahip (ek sürtünme yok), ama he
 **Kurallar:**
 - Bir GitHub hesabı = bir publisher hesabı (tekil kısıt)
 - **Trust tier:** hesap yaşı < 30 gün veya public aktivite yok → `low` segment: düşük günlük tavan, uzun pending süresi. Zamanla `standard`'a yükselir.
-- Device token cihaz başına üretilir, `linger status` aktif cihazları listeler, tek tek iptal edilebilir
+- Device token cihaz başına üretilir, `lull status` aktif cihazları listeler, tek tek iptal edilebilir
 - Token dosyası asla repo'ya, env dosyasına veya log'a yazılmaz
 
 **Reddedilen alternatifler:**
@@ -424,7 +424,7 @@ GitHub seçilmesinin sebebi: hedef kitle zaten sahip (ek sürtünme yok), ama he
 
 > ## ⟳ Bu karar değişti — 2026-08-15
 >
-> **Yeni karar: kimlik cüzdandır.** `linger login` cüzdanı, cüzdanın imzaladığı okunabilir bir mesajla (SIWS biçimi) doğrular; `publisherId` adresin kendisidir. GitHub kaldırıldı.
+> **Yeni karar: kimlik cüzdandır.** `lull login` cüzdanı, cüzdanın imzaladığı okunabilir bir mesajla (SIWS biçimi) doğrular; `publisherId` adresin kendisidir. GitHub kaldırıldı.
 >
 > Yukarıdaki gerekçe silinmedi çünkü bir kısmı hâlâ doğru; ama iki noktada eskidi.
 >
@@ -478,7 +478,7 @@ toplam      0                            ← ADR-005 invariant'ı
 >
 > - `Ledger.payoutSubmit`'in `kind` alanı `'platform_revenue'`'yu da kabul ediyor artık (`accounts.ts`'teki `PLATFORM_REVENUE` sahipsiz, tekil hesabına yazıyor — `accountId(kind, owner)` deseni burada uygulanmıyor).
 > - `WithdrawService` (ADR-006 revizyonundaki aynı sınıf) `kind: 'platform_revenue'` ile de çalışıyor — `spendable` PLATFORM_REVENUE bakiyesini okuyacak şekilde enjekte ediliyor, `id` parametresi artık ledger hesabını değil yalnızca **hedef adresi** belirliyor.
-> - `POST /v1/admin/withdraw` + `GET /v1/admin/overview` — cüzdan tabanlı imza akışına girmiyor (ortada "admin cüzdanı" diye bir kimlik yok), `LINGER_ADMIN_SECRET` paylaşılan sırrıyla korunuyor, tıpkı `LINGER_HOT_SECRET` gibi.
+> - `POST /v1/admin/withdraw` + `GET /v1/admin/overview` — cüzdan tabanlı imza akışına girmiyor (ortada "admin cüzdanı" diye bir kimlik yok), `LULL_ADMIN_SECRET` paylaşılan sırrıyla korunuyor, tıpkı `LULL_HOT_SECRET` gibi.
 > - `packages/server/public/admin/` — platform operatörünün ilk kez göreceği panel: platform payı + çekme kutusu, tüm ağdaki kampanyalar (yalnızca kendi kampanyasını gören reklamveren panelinin aksine), doğrulanmış/bekleyen/reddedilen gösterim özeti.
 
 ### ADR-012 — Makine başına aynı anda tek aktif gösterim
@@ -505,7 +505,7 @@ toplam      0                            ← ADR-005 invariant'ı
 
 ### ADR-014 — Cüzdan bağlama tarayıcıda yapılır; CLI hiçbir zaman secret key görmez
 
-**Karar:** `linger login` bir tarayıcı sayfası açar (127.0.0.1, tek kullanımlık port). Kullanıcı **Phantom, Solflare veya Backpack** ile bağlanır, imzalaması gereken metni cüzdanında okuyup onaylar, CLI sonucu bekler. **CLI hiçbir koşulda secret key istemez, kabul etmez, görmez.**
+**Karar:** `lull login` bir tarayıcı sayfası açar (127.0.0.1, tek kullanımlık port). Kullanıcı **Phantom, Solflare veya Backpack** ile bağlanır, imzalaması gereken metni cüzdanında okuyup onaylar, CLI sonucu bekler. **CLI hiçbir koşulda secret key istemez, kabul etmez, görmez.**
 
 Adres **değişikliğinden** sonra 72 saat boyunca ödeme yapılmaz; bildirim hem e-postaya hem **daemon üzerinden terminale** gider.
 
@@ -580,7 +580,7 @@ kullanıcı bekliyor              kullanıcı boşta
 | 2 | Geçerli, süresi dolmamış bir reklam var (demo/placeholder değil) |
 | 3 | Kullanıcı giriş yapmış ve token geçerli |
 | 4 | Remote config render'a izin veriyor (kill switch + yüzey bayrağı) |
-| 5 | Kullanıcı yerel olarak duraklatmamış (`linger pause`) |
+| 5 | Kullanıcı yerel olarak duraklatmamış (`lull pause`) |
 | 6 | Yüzey **başarıyla** uygulandı — satır gerçekten basıldı |
 
 Altısından biri eksikse gösterim **sayılmaz.** Şüphede olan gösterim sayılmaz; fail closed.
@@ -656,9 +656,9 @@ toplam           0          ← ADR-005 invariant'ı
 
 ### ADR-025 — Reklamveren emanet kasası (Anchor vault)
 
-**Karar:** ADR-021'deki "reklamveren cüzdanından yatırır" akışının hedefi ileride platformun sıcak cüzdanı değil, `contracts/vault/` altındaki bir **Anchor programı** (`linger_vault`) olabilir. Program reklamveren bazında bir bakiye tutar (`balance` PDA'sı: `["balance", advertiser]`); herkes bu hesabı zincirde okuyabilir, Linger'in veritabanına güvenmeden.
+**Karar:** ADR-021'deki "reklamveren cüzdanından yatırır" akışının hedefi ileride platformun sıcak cüzdanı değil, `contracts/vault/` altındaki bir **Anchor programı** (`lull_vault`) olabilir. Program reklamveren bazında bir bakiye tutar (`balance` PDA'sı: `["balance", advertiser]`); herkes bu hesabı zincirde okuyabilir, Lull'in veritabanına güvenmeden.
 
-**Gerekçe — §15.4/§15.10'un düzeltmesi:** ADR-021 parayı ledger'a doğru şekilde yazıyor ama paranın **kendisi** hâlâ tek bir opak sıcak cüzdanda (`LINGER_HOT_SECRET`) toplu duruyor — "zincirdeki USDC ≥ borcum" hiçbir yerde hesaplanmıyor (§15.10). Vault bunu tersine çevirir: programın USDC kasası ile tüm `balance` kayıtlarının toplamı arasındaki eşitlik zincirde doğrudan sorgulanabilir bir invariant'tır (programın testlerinde korunuyor — ADR-005'teki ledger invariant felsefesinin zincir karşılığı).
+**Gerekçe — §15.4/§15.10'un düzeltmesi:** ADR-021 parayı ledger'a doğru şekilde yazıyor ama paranın **kendisi** hâlâ tek bir opak sıcak cüzdanda (`LULL_HOT_SECRET`) toplu duruyor — "zincirdeki USDC ≥ borcum" hiçbir yerde hesaplanmıyor (§15.10). Vault bunu tersine çevirir: programın USDC kasası ile tüm `balance` kayıtlarının toplamı arasındaki eşitlik zincirde doğrudan sorgulanabilir bir invariant'tır (programın testlerinde korunuyor — ADR-005'teki ledger invariant felsefesinin zincir karşılığı).
 
 **Talimatlar:** `initialize` (bir kez; `publisher_bps` sonradan değiştirilemez), `deposit(amount)` (reklamverenin kendi imzası), `release(amount)` (yalnızca `admin` — doğrulanmış gösterim batch'i sonrası), `withdraw(amount)` (reklamverenin kendi imzası, **platformun onayına gerek yok**). PDA'lar: `config` (`["config"]`), `vault` (`["vault"]`, sahibi `config`), `balance`.
 
@@ -698,7 +698,7 @@ flowchart TB
         CC["Claude Code<br/>(N oturum)"]
         HOOK["hook shim<br/>(PreToolUse/PostToolUse)"]
         SL["statusLine shim"]
-        D["lingerd (daemon)<br/>unix socket<br/>session state + gösterim mutex"]
+        D["lulld (daemon)<br/>unix socket<br/>session state + gösterim mutex"]
         Q[("disk kuyruk<br/>+ ad cache<br/>+ device token")]
         CC -->|hook event JSON| HOOK
         CC -->|her render| SL
@@ -707,7 +707,7 @@ flowchart TB
         D <--> Q
     end
 
-    subgraph srv["Linger Backend"]
+    subgraph srv["Lull Backend"]
         AUTH["Auth<br/>GitHub OAuth · device token"]
         API["API<br/>/ads/next · /impressions · /config"]
         SEL["AdSelector<br/>(bid sıralı)"]
@@ -730,35 +730,35 @@ flowchart TB
 
 ## 6. Bileşenler
 
-### 6.1 CLI (`linger`)
+### 6.1 CLI (`lull`)
 
 | Komut | İş |
 |---|---|
-| `linger init` | Uçtan uca kurulum: `login` + settings.json kaydı + daemon kurulumu |
-| `linger login` | GitHub OAuth (device flow), device token alır ve `0600` ile kaydeder |
-| `linger wallet set <adres>` | Mesajı cüzdanla imzalatarak adres bağlar; ADR-020 kontrollerini (PDA, token hesabı, mint, dondurulmuş ATA) yapar |
-| `linger balance` | Pending / payable / lifetime kazanç, son ödemeler |
-| `linger status` | Daemon sağlığı, son gösterim, aktif kampanya, kayıtlı cihazlar |
-| `linger pause` / `resume` | Render'ı yerel olarak durdur |
-| `linger privacy` | Sunucuya giden alanların tam listesini terminalde gösterir |
-| `linger doctor` | Kurulum teşhisi: settings.json, daemon, socket, sunucu erişimi, token geçerliliği |
-| `linger uninstall` | settings.json kaydını temiz şekilde geri al, token'ı iptal et |
+| `lull init` | Uçtan uca kurulum: `login` + settings.json kaydı + daemon kurulumu |
+| `lull login` | GitHub OAuth (device flow), device token alır ve `0600` ile kaydeder |
+| `lull wallet set <adres>` | Mesajı cüzdanla imzalatarak adres bağlar; ADR-020 kontrollerini (PDA, token hesabı, mint, dondurulmuş ATA) yapar |
+| `lull balance` | Pending / payable / lifetime kazanç, son ödemeler |
+| `lull status` | Daemon sağlığı, son gösterim, aktif kampanya, kayıtlı cihazlar |
+| `lull pause` / `resume` | Render'ı yerel olarak durdur |
+| `lull privacy` | Sunucuya giden alanların tam listesini terminalde gösterir |
+| `lull doctor` | Kurulum teşhisi: settings.json, daemon, socket, sunucu erişimi, token geçerliliği |
+| `lull uninstall` | settings.json kaydını temiz şekilde geri al, token'ı iptal et |
 
-**`linger init`'in kritik sorumluluğu:** Claude Code'un `settings.json`'ını değiştiriyor. Mevcut `statusLine`, `spinnerVerbs`, `spinnerTipsOverride` veya hook ayarı varsa **üzerine yazmaz** — kullanıcıyı uyarır ve zincirleme (chaining) seçeneği sunar. Kullanıcının konfigürasyonunu sessizce ezmek affedilmez.
+**`lull init`'in kritik sorumluluğu:** Claude Code'un `settings.json`'ını değiştiriyor. Mevcut `statusLine`, `spinnerVerbs`, `spinnerTipsOverride` veya hook ayarı varsa **üzerine yazmaz** — kullanıcıyı uyarır ve zincirleme (chaining) seçeneği sunar. Kullanıcının konfigürasyonunu sessizce ezmek affedilmez.
 
 Ayrıca kurulumda **açıkça söylemesi gereken iki şey** var, çünkü ikisi de kullanıcıdan bir şey alıyor:
 
 1. Custom statusLine tanımlandığında Claude Code footer'daki klavye ipuçlarının çoğunu gizler (`esc to interrupt`, `? for shortcuts`).
 2. `spinnerVerbs` etkinleştirilirse Claude Code'un varsayılan spinner kelimeleri değişir veya tamamen değiştirilir.
 
-`linger uninstall` her ikisini de **ilk haline** döndürmek zorundadır; bu, uninstall testinin bitti kriteridir.
+`lull uninstall` her ikisini de **ilk haline** döndürmek zorundadır; bu, uninstall testinin bitti kriteridir.
 
-**`linger wallet set` akışı:** `challenge iste → yerelde imzala → sunucuya imzayı gönder → doğrulanınca kaydet`. Değişiklikse 72 saatlik ödeme beklemesi başlar (ADR-014).
+**`lull wallet set` akışı:** `challenge iste → yerelde imzala → sunucuya imzayı gönder → doğrulanınca kaydet`. Değişiklikse 72 saatlik ödeme beklemesi başlar (ADR-014).
 
-### 6.2 Daemon (`lingerd`)
+### 6.2 Daemon (`lulld`)
 
 Sorumluluklar:
-- Unix socket dinler (`~/.linger/lingerd.sock`), shim isteklerine cache'ten yanıt verir
+- Unix socket dinler (`~/.lull/lulld.sock`), shim isteklerine cache'ten yanıt verir
 - Reklam prefetch: aktif reklamı ve bir sonrakini önceden çeker
 - **Session-scoped** bekleme state'i + **makine-scoped** gösterim mutex'i (ADR-012)
 - Gösterim olaylarını diske kuyruklar, batch halinde gönderir, başarısızlıkta exponential backoff
@@ -839,7 +839,7 @@ Web yüzeyi tek bir uygulamadır; sayfalar **sırayla açılır**. Omurgada yaln
 | `/app` | Geliştirici akışı: GitHub girişi → cüzdan bağla → kurulum komutu. Üçü de tamamlanınca bakiye görünümüne döner | Omurga |
 | `/app` içinde cüzdan adımı | Phantom / Solflare / Backpack bağlantısı ve mesaj imzası, ADR-020 kontrolleri. USDC hesabı ilk ödemede otomatik açıldığı için ayrı bir "aktifleştir" adımı yoktur | Omurga |
 | `/advertise` | Reklamveren kampanya formu + önizleme + cüzdandan USDC yatırma (ADR-021) | Omurgadan sonra |
-| `/app` dashboard | Gösterim sayacı, bekleyen/ödenebilir/ödenmiş, ödeme geçmişi + Solana Explorer linkleri, duraklat, cihaz yönetimi | Omurgadan sonra — omurgada bunun yerine `linger balance` |
+| `/app` dashboard | Gösterim sayacı, bekleyen/ödenebilir/ödenmiş, ödeme geçmişi + Solana Explorer linkleri, duraklat, cihaz yönetimi | Omurgadan sonra — omurgada bunun yerine `lull balance` |
 
 **Landing'in iddiası hız değil, erişimdir.** Referans aldığımız model (kickbacks.ai) lansmanda ödeme yapamıyordu; Stripe Connect entegrasyonu bitmemişti ve kullanıcılar kazançlarını görüyor ama çekemiyordu. Bizim farkımız burada: banka hesabı yok, ülke kısıtı yok, minimum tutar yok. Türkiye'den de, Nijerya'dan da aynı şekilde çalışır. Bu, SOW'daki asıl argümanla ("developers in Turkey, Latin America, South Asia and Africa generating value they cannot collect") birebir aynıdır.
 
@@ -855,9 +855,9 @@ Web yüzeyi tek bir uygulamadır; sayfalar **sırayla açılır**. Omurgada yaln
 | Bütçe | toplam USDC | ADR-021 ile yatırılır |
 | Önizleme | canlı render | formun en önemli parçası — satır terminalde nasıl görünecek |
 
-**Ödeme şeffaflığı zorunludur.** Zincir üstü ödemenin tüm satış argümanı doğrulanabilirliktir; dolayısıyla hem dashboard hem `linger balance` her ödemeyi `imza · tutar · Solana Explorer linki` olarak gösterir, ve ödeme bloke ise sebebini yazar (dondurulmuş USDC hesabı / doğrulama bekliyor / eşik altı / 72 saat beklemesi).
+**Ödeme şeffaflığı zorunludur.** Zincir üstü ödemenin tüm satış argümanı doğrulanabilirliktir; dolayısıyla hem dashboard hem `lull balance` her ödemeyi `imza · tutar · Solana Explorer linki` olarak gösterir, ve ödeme bloke ise sebebini yazar (dondurulmuş USDC hesabı / doğrulama bekliyor / eşik altı / 72 saat beklemesi).
 
-**Zincir şeffaflığı uyarısı.** §10 titiz bir gizlilik listesi kuruyor, ama Solana adresleri kalıcı ve halka açıktır: Solana Explorer bir publisher'ın tüm ödeme geçmişini ve toplam kazancını gösterir. Hem `/app` cüzdan adımında hem `linger privacy` çıktısında şu satır bulunur: *"Ödeme adresin ve tüm kazancın herkese açıktır. Günlük kullandığın cüzdanı bağlama."*
+**Zincir şeffaflığı uyarısı.** §10 titiz bir gizlilik listesi kuruyor, ama Solana adresleri kalıcı ve halka açıktır: Solana Explorer bir publisher'ın tüm ödeme geçmişini ve toplam kazancını gösterir. Hem `/app` cüzdan adımında hem `lull privacy` çıktısında şu satır bulunur: *"Ödeme adresin ve tüm kazancın herkese açıktır. Günlük kullandığın cüzdanı bağlama."*
 
 ---
 
@@ -940,7 +940,7 @@ Transaction yapısı: `SetComputeUnitLimit` + `SetComputeUnitPrice`, sonra her a
 ### Bilinen tuzaklar — bunlar teoride değil, pratikte batırır
 
 1. **Hedef doğrulaması batch kurulmadan HEMEN önce.** Dondurulmuş bir USDC hesabına transfer patlar ve **tek bir talimatın patlaması tüm transaction'ı düşürür.** Adres türü (PDA/token hesabı/mint) ve ATA durumu tek `getMultipleAccountsInfo` turunda okunur; geçersizler batch'ten düşürülür. TOCTOU penceresi (kontrol ile gönderim arası) kapatılamaz, daraltılır — ve kapatmaya gerek yoktur: patlayan batch'te kimse ödenmez, yanlış ödemedense hiç ödeme yapmamak doğrudur. RPC **hatası** "hesap yok" değildir: `null` yanıt hesabın olmadığı demektir, hata ise yukarı atılır.
-2. **Yanlış mint.** Aynı adı taşıyan başka mint'ler farklı varlıktır; yanlış mint'e yapılan ödeme kullanıcının cüzdanında "USDC" görünür ama değersizdir. Mint adresi ağ yapılandırmasından gelir (devnet `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`, mainnet `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`); kendi token'imizi çıkarmayız. Mint'i yanlış yazmak sunucuda başlatma hatasıdır, sessiz düşme değil (`LINGER_NETWORK` yalnızca `devnet`/`mainnet`).
+2. **Yanlış mint.** Aynı adı taşıyan başka mint'ler farklı varlıktır; yanlış mint'e yapılan ödeme kullanıcının cüzdanında "USDC" görünür ama değersizdir. Mint adresi ağ yapılandırmasından gelir (devnet `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`, mainnet `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`); kendi token'imizi çıkarmayız. Mint'i yanlış yazmak sunucuda başlatma hatasıdır, sessiz düşme değil (`LULL_NETWORK` yalnızca `devnet`/`mainnet`).
 3. **Atomik batch.** Transaction ya tamamen uygulanır ya hiç. Küçük batch (varsayılan 6) patlama yarıçapını sınırlar. Başarısız transaction'da yalnızca **ilk** başarısız talimat bildirilir (`InstructionError[indeks, kod]`); bu indeks, ait olduğu alıcının ilk talimatına eşlenir (ATA açma talimatı patlarsa da aynı alıcı suçlu sayılır). Bu yüzden `opIndex` eşlemesi gönderimden önce kaydedilir ve `payout_items.op_index` zorunludur.
 4. **SOL ayrı bir arıza modudur.** Ücreti de, alıcılar için açılan ATA kiralarını da (~0,00204 SOL/hesap) SOL öder. **USDC'si dolu ama SOL'u biten payout hesabı sessizce durur ve USDC alarmı susar.** Pre-flight'ta `availableLamports = bakiye − kira muafiyeti asgarisi` hesaplanır; 0,05 SOL'un altındaysa hiçbir batch başlatılmaz ve alarm üretilir. USDC ve SOL **ayrı eşiklerle** izlenir.
 5. **Transaction boyutu.** Paket sınırı 1232 bayttır. Yeni ATA açılan her alıcı yer kaplar; kod serileştirilmiş boyutu denetler ve aşarsa batch'i göndermeden reddeder ("batchSize düşür"). Sessizce kırpmak yoktur.
@@ -974,7 +974,7 @@ Amaç fraud'u sıfırlamak değil — **maliyetini kazancın üstüne çıkarmak
 
 ## 10. Gizlilik, Veri ve İfşa Politikası
 
-Bu bölüm bağlayıcıdır ve `linger privacy` komutunun çıktısıyla birebir aynı olmalıdır.
+Bu bölüm bağlayıcıdır ve `lull privacy` komutunun çıktısıyla birebir aynı olmalıdır.
 
 ### Sunucuya giden alanların tam listesi
 
@@ -1005,12 +1005,12 @@ Bu bölüm bağlayıcıdır ve `linger privacy` komutunun çıktısıyla birebir
 - Sponsorlu satır her zaman `✶` glifiyle ve marka adıyla başlar
 - **Bu kural spinner verb'ü için de geçerlidir.** Spinner yüzeyi (ADR-001) reklamı Claude Code'un kendi çıktısı gibi gösterme riski taşır — kullanıcı `Firecrawl…` görüp aracın kelimesi sanabilir. Bu yüzden spinner verb'ü de `✶ Firecrawl…` biçiminde basılır. Görsel olarak daha çirkin durması bu kuralı esnetmek için gerekçe değildir.
 - Reklam hiçbir koşulda organik araç çıktısı gibi biçimlendirilmez
-- `linger privacy` bu listeyi terminalde gösterir; `linger pause` render'ı anında durdurur
+- `lull privacy` bu listeyi terminalde gösterir; `lull pause` render'ı anında durdurur
 
 ### Yerelde kalanlar
 
-- HMAC tuzu (`~/.linger/salt`) — cihazdan çıkmaz
-- Device token (`~/.linger/credentials.json`, `0600`)
+- HMAC tuzu (`~/.lull/salt`) — cihazdan çıkmaz
+- Device token (`~/.lull/credentials.json`, `0600`)
 - Gösterim kuyruğu (gönderilene kadar)
 
 ---
@@ -1018,14 +1018,14 @@ Bu bölüm bağlayıcıdır ve `linger privacy` komutunun çıktısıyla birebir
 ## 11. Repo Yapısı & Stack
 
 ```
-linger/
+lull/
 ├── PROJECT.md                  ← bu dosya (canlı tasarım dokümanı)
 ├── pnpm-workspace.yaml
 ├── package.json
 ├── packages/
 │   ├── protocol/                zod şemaları — iki taraf paylaşır
 │   │   └── src/{ad,impression,config,auth}.ts
-│   ├── cli/                     linger + lingerd
+│   ├── cli/                     lull + lulld
 │   │   └── src/{commands,daemon,adapters,shims}/
 │   ├── server/                  API + auth + fraud + ledger + job runner
 │   │   └── src/{routes,auth,fraud,ledger,jobs}/
@@ -1054,7 +1054,7 @@ linger/
 | Validation | Zod | `protocol` paketinin temeli |
 
 **Test stratejisi:**
-- `payments` her zaman mock `PaymentRail` ile birim test edilir; devnet yalnızca ayrı bir entegrasyon suite'inde (`LINGER_DEVNET=1` ile açılır; kendi geçici SPL mint'ini üretir, Circle musluğu gerekmez)
+- `payments` her zaman mock `PaymentRail` ile birim test edilir; devnet yalnızca ayrı bir entegrasyon suite'inde (`LULL_DEVNET=1` ile açılır; kendi geçici SPL mint'ini üretir, Circle musluğu gerekmez)
 - Ledger invariant testi zorunlu: her `ref_id` için entry toplamı = 0 (ADR-005)
 - Sanitizer için escape enjeksiyon corpus'u (ADR-007)
 
@@ -1068,7 +1068,7 @@ Her milestone'un **bitti kriteri** var. Sıradaki başlamadan öncekinin kriteri
 
 Tek hedef cümlesi:
 
-> `npx linger init` → Claude Code beklerken satır görünür → 10 saniye sayılır → sunucuya gider → ödeme job'ı çalışır → USDC cüzdana düşer → Solana Explorer linki.
+> `npx lull init` → Claude Code beklerken satır görünür → 10 saniye sayılır → sunucuya gider → ödeme job'ı çalışır → USDC cüzdana düşer → Solana Explorer linki.
 
 Bu zincir uçtan uca çalıştığı gün ürün vardır. Aşağıdakiler bilinçli olarak **omurgadan sonraya** bırakılmıştır ve rakamları henüz farazidir:
 
@@ -1077,12 +1077,12 @@ Bu zincir uçtan uca çalıştığı gün ürün vardır. Aşağıdakiler bilin�
 - Ödeme döngüsü / çekim tavanı politikası (World-tarzı, temiz döngü başına büyüyen limit — §13 açık soru #3)
 - Fraud kuralları (katman 0-2 dışındakiler)
 - Reklamveren self-servis arayüzü ve kampanya tablosu — omurgada **tek reklam sabit yazılır**
-- Geliştirici web dashboard'u — omurgada bakiye `linger balance` komutundan görülür
+- Geliştirici web dashboard'u — omurgada bakiye `lull balance` komutundan görülür
 
 **Omurga sırası:**
 
 ```
-0. npx linger init       settings.json'a yazar, temiz kaldırır
+0. npx lull init       settings.json'a yazar, temiz kaldırır
 1. Daemon + shim        satır artık sabit değil, daemon'dan geliyor
 2. 10 saniye + kuyruk   gösterim sayılıyor, diske yazılıyor
 3. Sunucu               /ads/next + /impressions + basit defter
@@ -1090,7 +1090,7 @@ Bu zincir uçtan uca çalıştığı gün ürün vardır. Aşağıdakiler bilin�
 5. Ödeme job'ı          defterden gerçek ödeme, devnet
 ```
 
-Adım 0 küçük görünüyor ama ürünün ilk izlenimi bu: kullanıcı tek komut çalıştırır, ayarı bozulmaz, ve `linger uninstall` her şeyi geri alır. Kurulumu güvenle geri alınamayan bir araç, hedef kitlede ikinci bir şans bulamaz.
+Adım 0 küçük görünüyor ama ürünün ilk izlenimi bu: kullanıcı tek komut çalıştırır, ayarı bozulmaz, ve `lull uninstall` her şeyi geri alır. Kurulumu güvenle geri alınamayan bir araç, hedef kitlede ikinci bir şans bulamaz.
 
 **Spinner katmanı omurgada değil.** Ölçüm `statusLine`'dan geldiği için omurga onsuz tamamlanır; `spinnerVerbs` omurga çalıştıktan sonra görünürlük artırıcı olarak takılır (ADR-001).
 
@@ -1130,7 +1130,7 @@ Her iki kıvılcım da koşturuldu. Ham veri `spikes/statusline-probe/out/`, scr
 | Ateşlenen hook'lar | `PreToolUse`, `PostToolUse`, `Stop`, `SessionStart`, `Notification` — hepsi |
 | Payload alanları | `session_id`, `cwd`, `transcript_path`, `tool_name`, `tool_input`, `tool_response`, `duration_ms`, `permission_mode`, `prompt_id` |
 | `spinnerVerbs` çalışıyor mu | ✅ Görsel olarak doğrulandı |
-| Footer ipuçları kayboluyor mu | ✅ `esc to interrupt` gitti — `linger uninstall` geri getirmeli |
+| Footer ipuçları kayboluyor mu | ✅ `esc to interrupt` gitti — `lull uninstall` geri getirmeli |
 | Tamamlanma satırı (`Crunched for 7s`) | ❌ `spinnerVerbs` etkilemiyor — ayrı bir geçmiş zamanlı liste |
 
 **Bekleme histogramı (doğru tanımla):**
@@ -1176,12 +1176,12 @@ Tüm mimari ADR-001'e dayanıyor. Önce ölçülecek — **yöntem dahil**:
 - [ ] **statusLine kapasitesi.** ANSI ve OSC 8'in desteklendiği dokümante (ADR-001 tablosu); ölçülecek olan pratik sınır: `COLUMNS`'a göre kaç karakter gerçekten okunabilir duruyor, ve dar bir terminalde (80 sütun) reklam nasıl kırpılmalı?
 - [ ] **OSC 8 tıklama gerçekten çalışıyor mu?** iTerm2/Kitty/WezTerm'de dene. Çalışıyorsa §15.3'teki "attribution yok" zayıflığı kısmen kapanır ve reklamverene ölçüm satılabilir — ürünün ticari değerini doğrudan artırır.
 - [ ] **Hook başarısızlık semantiği.** `PreToolUse` hook'u yavaşsa, non-zero dönerse veya çökerse Claude Code ne yapıyor — blokluyor mu, uyarıyor mu, tool call'u iptal mi ediyor? **Shim kullanıcının tool call'unu bloklarsa bu anında uninstall'dır** ve ölçülmeden bilinemez.
-- [ ] **statusLine zincirleme prototipi.** Hedef kitlenin büyük kısmında zaten bir statusLine var (ccusage, powerline) ve Claude Code tek komut kabul ediyor. `linger init`'in zincirleme vaadi prototip olmadan sözden ibarettir.
+- [ ] **statusLine zincirleme prototipi.** Hedef kitlenin büyük kısmında zaten bir statusLine var (ccusage, powerline) ve Claude Code tek komut kabul ediyor. `lull init`'in zincirleme vaadi prototip olmadan sözden ibarettir.
 - [ ] **`session_id` kararlılığı.** `/clear`, resume ve compaction sonrası sabit kalıyor mu? ADR-012'nin mutex'i ve v2'nin tüm fraud modeli buna dayanıyor.
 - [ ] **`spinnerVerbs` davranışı.** Ayarın varlığı doğrulandı (ADR-001). Ölçülecek olan: `mode: "replace"` ile tek verb koyunca ekranda tam olarak ne görünüyor (`✶ Firecrawl… (12s · ↑2.1k)` biçimi doğru mu, kırpılıyor mu, uzun metin nasıl duruyor)? `mode: "append"` ile reklam ne sıklıkla çıkıyor? Verb rotasyonu ne zaman oluyor — her mesajda mı, her spinner'da mı?
 - [ ] **`settings.json` canlı yeniden okunuyor mu?** Daemon verb listesini güncellediğinde Claude Code bunu **oturum yeniden başlamadan** alıyor mu? Almıyorsa `spinnerVerbs` yalnızca oturum başında sabitlenen bir reklam olur ve rotasyon imkânsızlaşır — bu, spinner katmanının değerini belirleyen tek soru.
 - [ ] **`spinnerTipsOverride` davranışı.** Aynı testler ipucu satırı için. `spinnerTipsEnabled: false` olan kullanıcılarda ne oluyor (kullanıcı ipuçlarını kapatmışsa bu yüzey yok demektir — kaç kişide kapalı olduğu bilinmiyor).
-- [ ] **Footer ipuçlarının kaybı.** Custom statusLine tanımlıyken `esc to interrupt` gibi ipuçlarının gizlendiği dokümante. Gerçekte ne kayboluyor, ekran görüntüsüyle kaydet — `linger init`'in uyarı metni ve `linger uninstall`'ın geri alma testi buna dayanacak.
+- [ ] **Footer ipuçlarının kaybı.** Custom statusLine tanımlıyken `esc to interrupt` gibi ipuçlarının gizlendiği dokümante. Gerçekte ne kayboluyor, ekran görüntüsüyle kaydet — `lull init`'in uyarı metni ve `lull uninstall`'ın geri alma testi buna dayanacak.
 
 **Bitti kriteri:** Ölçümlerin sonucu bu dokümana bir tabloya yazıldı ve şu iki çıktı üretildi:
 
@@ -1199,16 +1199,16 @@ Tüm mimari ADR-001'e dayanıyor. Önce ölçülecek — **yöntem dahil**:
 **Bitti kriteri:** `pnpm test` yeşil; sanitizer OSC 52 dahil bilinen escape vektörlerini kesiyor.
 
 ### M2 — CLI: ekranda çalışan sponsorlu satır
-- [ ] `lingerd` daemon + unix socket + <50ms yanıt bütçesi
+- [ ] `lulld` daemon + unix socket + <50ms yanıt bütçesi
 - [ ] `statusLine` shim (**derlenmiş** — günde ~13.7k spawn, §12.2) + `ClaudeCodeHookSource` + hook shim
 - [ ] `UserPromptSubmit` → `Stop` tur takibi + `prompt_id` eşlemesi
 - [ ] Tur içi reklam rotasyonu (ADR-022)
 - [ ] Session-scoped state machine + makine-scoped gösterim mutex'i (ADR-012)
 - [ ] 10sn kuralı, disk kuyruğu, `✶` ifşa glifi (ADR-013)
 - [ ] Yerel HMAC tuzu üretimi + `project_key`
-- [ ] `linger init`, `doctor`, `pause`, `privacy`, `uninstall`
+- [ ] `lull init`, `doctor`, `pause`, `privacy`, `uninstall`
 
-**Bitti kriteri:** Sahte reklam verisiyle gerçek bir Claude Code oturumunda bekleme sırasında satır görünüyor; ≥10sn kalanlar kuyruğa yazılıyor; **iki oturum paralel beklerken yalnızca bir gösterim sayılıyor**; `linger pause` anında durduruyor; `uninstall` settings.json'ı ilk haline döndürüyor.
+**Bitti kriteri:** Sahte reklam verisiyle gerçek bir Claude Code oturumunda bekleme sırasında satır görünüyor; ≥10sn kalanlar kuyruğa yazılıyor; **iki oturum paralel beklerken yalnızca bir gösterim sayılıyor**; `lull pause` anında durduruyor; `uninstall` settings.json'ı ilk haline döndürüyor.
 
 ### M3 — Backend: kimlik + gösterim ingest + ledger
 - [ ] GitHub OAuth device flow + device token üretimi/iptali (ADR-010)
@@ -1220,7 +1220,7 @@ Tüm mimari ADR-001'e dayanıyor. Önce ölçülecek — **yöntem dahil**:
 - [ ] Oturum metadata'sını saklamaya başla (v2 girdisi — §14)
 - [ ] CLI'ı gerçek sunucuya bağla
 
-**Bitti kriteri:** Uçtan uca — `linger login` → terminalde gösterim → sunucuda pending → doğrulama job'ı → üç satırlık ledger kaydı (advertiser/publisher/platform, toplam sıfır) → `linger balance` doğru rakamı gösteriyor.
+**Bitti kriteri:** Uçtan uca — `lull login` → terminalde gösterim → sunucuda pending → doğrulama job'ı → üç satırlık ledger kaydı (advertiser/publisher/platform, toplam sıfır) → `lull balance` doğru rakamı gösteriyor.
 
 ### M4 — Solana batch ödeme (devnet)
 - [x] `payments` paketi + `PaymentRail` interface + mock rail
@@ -1320,6 +1320,6 @@ Bunlar çözülmemiş; dokümanda durmalarının sebebi unutulmamaları.
 5. **Adverse selection.** Ayda birkaç dolar için terminaline yazılım kuran profil ile fraud yapmaya çalışan profil örtüşüyor.
 6. **GitHub'a bağımlı kimlik.** Sybil savunmasının temeli GitHub hesap yaşı; yaşlı hesap satın alınabilen bir emtia. Sürtünme yaratır, çözmez.
 7. **Aktif oturum heuristiği kaba.** "En son event üreten oturum" gerçek terminal odağı değil; kullanıcı arka plandaki oturumu izliyorsa yanlış oturuma yazar. Doğruluk kaybı küçük, fraud etkisi yok.
-8. **USDC ihraççısı hesabı dondurabilir.** Circle, ihraççı olarak bir USDC hesabını dondurabilir. Dondurulmuş hesaba gönderilen transfer patlar (ADR-020 #6, §8 tuzak #10). "Aracısız, geri alınamaz ödeme" anlatısının istisnası budur ve Linger bunu engelleyemez. Mint'in yetkileri (dondurma yetkisi vb.) zincirden okunup §8'e yazılacak — **varsayılmayacak.**
-9. **Yerel socket kimlik doğrulaması zayıf.** `~/.linger/lingerd.sock`'a bağlanabilen her yerel süreç sahte hook event'i üretip gösterim uydurabilir, ve **fraud katmanlarının hiçbiri bunu görmez** — çünkü olay meşru bir hesaptan geliyor. Socket ve dizin `0700`/`0600` olacak, `SO_PEERCRED` ile uid kontrolü yapılacak, handshake token'ı argümanla değil dosyadan geçirilecek. Yine de paylaşımlı makinede aynı kullanıcıya karşı koruma yoktur.
-10. **Custodial pozisyonun sayısal karşılığı yok.** §15.4'teki custodial itiraf yerinde, ama hiçbir yerde *"zincirdeki USDC ≥ publisher'lara olan borcum"* hesaplanmıyor ve platform kendi gelirini publisher'ların parasıyla aynı bakiyeden çekiyor. Mainnet öncesi bir `solvency_check` job'ı (breach'te payout durur) ve bir `linger withdraw` yolu gerekir — kullanıcının parasını istediğinde alamaması custodial bir üründe hem güven hem hukuk problemidir.
+8. **USDC ihraççısı hesabı dondurabilir.** Circle, ihraççı olarak bir USDC hesabını dondurabilir. Dondurulmuş hesaba gönderilen transfer patlar (ADR-020 #6, §8 tuzak #10). "Aracısız, geri alınamaz ödeme" anlatısının istisnası budur ve Lull bunu engelleyemez. Mint'in yetkileri (dondurma yetkisi vb.) zincirden okunup §8'e yazılacak — **varsayılmayacak.**
+9. **Yerel socket kimlik doğrulaması zayıf.** `~/.lull/lulld.sock`'a bağlanabilen her yerel süreç sahte hook event'i üretip gösterim uydurabilir, ve **fraud katmanlarının hiçbiri bunu görmez** — çünkü olay meşru bir hesaptan geliyor. Socket ve dizin `0700`/`0600` olacak, `SO_PEERCRED` ile uid kontrolü yapılacak, handshake token'ı argümanla değil dosyadan geçirilecek. Yine de paylaşımlı makinede aynı kullanıcıya karşı koruma yoktur.
+10. **Custodial pozisyonun sayısal karşılığı yok.** §15.4'teki custodial itiraf yerinde, ama hiçbir yerde *"zincirdeki USDC ≥ publisher'lara olan borcum"* hesaplanmıyor ve platform kendi gelirini publisher'ların parasıyla aynı bakiyeden çekiyor. Mainnet öncesi bir `solvency_check` job'ı (breach'te payout durur) ve bir `lull withdraw` yolu gerekir — kullanıcının parasını istediğinde alamaması custodial bir üründe hem güven hem hukuk problemidir.

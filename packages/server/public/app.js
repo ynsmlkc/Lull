@@ -1,4 +1,4 @@
-/* Linger — tarayici tarafi ortak islevler.
+/* Lull — tarayici tarafi ortak islevler.
  *
  * Cerceve yok, derleme adimi yok. Bes sayfalik bir site icin React
  * getirmek, indirilecek 40 KB'i 200 KB yapardi ve tek kazanci bizim
@@ -38,9 +38,9 @@ export const short = (a) => (a && a.length > 12 ? a.slice(0, 6) + '…' + a.slic
 
 /* ─────────────────────────── sunucu ─────────────────────────── */
 
-const TOKEN_KEY = 'linger.token';
-const ROLE_KEY = 'linger.role';
-const ADDR_KEY = 'linger.address';
+const TOKEN_KEY = 'lull.token';
+const ROLE_KEY = 'lull.role';
+const ADDR_KEY = 'lull.address';
 
 export const session = {
   get token() { return localStorage.getItem(TOKEN_KEY); },
@@ -70,7 +70,7 @@ export class ApiError extends Error {
  * cerez/kimlik islerinin hepsi zorlasirdi.
  */
 export async function api(path, { method = 'GET', body, auth = true } = {}) {
-  const headers = { 'x-linger-client-version': '0.1.1' };
+  const headers = { 'x-lull-client-version': '0.1.1' };
   if (body) headers['content-type'] = 'application/json';
   if (auth && session.token) headers.authorization = `Bearer ${session.token}`;
 

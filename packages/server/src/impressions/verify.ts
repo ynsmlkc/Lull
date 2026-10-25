@@ -9,8 +9,8 @@
  * opsiyonel bir gecikme degil, mimarinin gereği.
  */
 
-import { type Micros, micros, add, ZERO } from '@linger/protocol'
-import type { Clock } from '@linger/protocol'
+import { type Micros, micros, add, ZERO } from '@lull/protocol'
+import type { Clock } from '@lull/protocol'
 import type { StoredImpression } from './ingest.js'
 
 export interface VerifyDeps {

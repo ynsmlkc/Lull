@@ -1,5 +1,5 @@
 /**
- * `linger profile` — siralama profilini terminalden yonetir.
+ * `lull profile` — siralama profilini terminalden yonetir.
  *
  * Korunan: ulke hicbir zaman sessizce doldurulmaz, verilmeyen alanlar
  * mevcut profilden gelir, bilinmeyen ulke kodu sunucuya gitmeden reddedilir.
@@ -16,18 +16,18 @@ let dir: string
 let yazilan: string[]
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'linger-prof-'))
-  process.env['LINGER_CREDENTIALS'] = join(dir, 'creds.json')
+  dir = mkdtempSync(join(tmpdir(), 'lull-prof-'))
+  process.env['LULL_CREDENTIALS'] = join(dir, 'creds.json')
   yazilan = []
   const yakala = (s: any): boolean => { yazilan.push(String(s)); return true }
   vi.spyOn(process.stdout, 'write').mockImplementation(yakala)
   vi.spyOn(process.stderr, 'write').mockImplementation(yakala)
-  saveCredentials({ serverUrl: 'https://api.test', token: 'lng_t', publisherId: 'GADDR', tokenId: 't1', loggedInAt: 1 })
+  saveCredentials({ serverUrl: 'https://api.test', token: 'lul_t', publisherId: 'GADDR', tokenId: 't1', loggedInAt: 1 })
 })
 
 afterEach(() => {
   vi.restoreAllMocks()
-  delete process.env['LINGER_CREDENTIALS']
+  delete process.env['LULL_CREDENTIALS']
   rmSync(dir, { recursive: true, force: true })
 })
 

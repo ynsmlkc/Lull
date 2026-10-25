@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { fixedClock, micros, FALLBACK_CONFIG } from '@linger/protocol'
+import { fixedClock, micros, FALLBACK_CONFIG } from '@lull/protocol'
 import { countryFromRequest, openCountryDb } from '../src/leaderboard/geo.js'
 import { createApp } from '../src/http/app.js'
 import { TokenStore, hashToken } from '../src/http/auth.js'
@@ -45,7 +45,7 @@ describe('countryFromRequest', () => {
 })
 
 describe('GET /v1/me/profile — suggestedCountry', () => {
-  const TOKEN = 'lng_geo_token_0123456789abcdefgh'
+  const TOKEN = 'lul_geo_token_0123456789abcdefgh'
   const setup = () => {
     const clock = fixedClock(1_700_000_000_000)
     let seq = 0

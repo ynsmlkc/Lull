@@ -10,8 +10,8 @@
  * sorusunu soruyoruz.
  */
 
-import { assertClean, rateFromCpm, type Micros, type Creative } from '@linger/protocol'
-import type { Clock } from '@linger/protocol'
+import { assertClean, rateFromCpm, type Micros, type Creative } from '@lull/protocol'
+import type { Clock } from '@lull/protocol'
 import type { Campaign, CampaignStatus } from './selector.js'
 import type { Db } from '../store/db.js'
 

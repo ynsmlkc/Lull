@@ -5,7 +5,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { startDaemon, type Daemon } from '../src/daemon/index.js'
-import type { AdPayload } from '@linger/protocol'
+import type { AdPayload } from '@lull/protocol'
 
 const run = promisify(execFile)
 const AD: AdPayload = { campaignId:'c1', nonce:'0'.repeat(32), nonceExpiresAt:9e12,
@@ -16,7 +16,7 @@ afterEach(async () => { await daemon?.stop(); daemon = null; if (dir) rmSync(dir
 
 describe('shim maliyeti', () => {
   it('ts-strip vs duz JS', async () => {
-    dir = mkdtempSync(join(tmpdir(),'linger-bench-'))
+    dir = mkdtempSync(join(tmpdir(),'lull-bench-'))
     const sock = join(dir,'d.sock')
     daemon = await startDaemon({ socketPath: sock, dataDir: dir, ads:[AD] })
     daemon.hook('UserPromptSubmit','s1')
@@ -28,7 +28,7 @@ describe('shim maliyeti', () => {
       const t: number[] = []; let empty = 0; let overBudget = 0
       for (let i=0;i<20;i++){
         const t0=performance.now()
-        const c = run(process.execPath, args, { env:{...process.env,LINGER_SOCKET:sock,COLUMNS:'120'}, encoding:'utf8' })
+        const c = run(process.execPath, args, { env:{...process.env,LULL_SOCKET:sock,COLUMNS:'120'}, encoding:'utf8' })
         c.child.stdin?.end(JSON.stringify({session_id:'s1'}))
         const { stdout } = await c
         const ms = performance.now() - t0

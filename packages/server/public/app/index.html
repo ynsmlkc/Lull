@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Your earnings — Linger</title>
+<title>Your earnings — Lull</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text x='16' y='16' font-size='28' text-anchor='middle' dominant-baseline='central' transform='rotate(90 16 16)' fill='%23f97335'>✶</text></svg>">
 <link rel="stylesheet" href="/style.css">
@@ -11,7 +11,7 @@
 <body>
 
 <header class="top">
-  <a class="brand" href="/"><span class="star">✶</span>linger</a>
+  <a class="brand" href="/"><span class="star">✶</span>lull</a>
   <nav class="nav">
     <a href="/">for developers</a>
     <a href="/advertisers">advertisers</a>
@@ -76,7 +76,7 @@
     <div id="v-empty" class="hidden" style="border: 1px solid var(--line); background: var(--bg-2); border-radius: 10px; padding: clamp(26px, 5vw, 46px)">
       <h2 style="font-size: clamp(22px, 2.6vw, 28px); margin-bottom: 12px">No impressions yet</h2>
       <p class="body" style="margin: 0 0 24px; max-width: 60ch">Install the CLI and start a Claude Code session. The first line can take a few minutes to show up here.</p>
-      <button class="btn btn-cmd" id="copy-install"><span style="color: var(--faint)">$</span>npm i -g lingersh-arc &amp;&amp; linger init --spinner<span class="tag">copy</span></button>
+      <button class="btn btn-cmd" id="copy-install"><span style="color: var(--faint)">$</span>npm i -g lullsh &amp;&amp; lull init --spinner<span class="tag">copy</span></button>
     </div>
 
     <!-- veri -->
@@ -123,7 +123,7 @@
           <button class="btn btn-sm btn-quiet" id="copy-addr"><span class="tag">copy</span></button>
           <a class="link-under" id="explorer-link" target="_blank" rel="noopener" style="font-size: 12.5px">View on Arc Explorer ↗</a>
         </div>
-        <p class="small" style="margin: 16px 0 0">To be paid into a different wallet, run <span style="color: var(--muted)">linger login --force</span> in your terminal. Changing it needs a signature, so it cannot be done from a web page.</p>
+        <p class="small" style="margin: 16px 0 0">To be paid into a different wallet, run <span style="color: var(--muted)">lull login --force</span> in your terminal. Changing it needs a signature, so it cannot be done from a web page.</p>
       </section>
 
       <section style="margin-top: clamp(34px, 5vw, 56px); padding-bottom: 0">
@@ -208,9 +208,9 @@
 
 <footer>
   <div class="wrap">
-    <span>✶ linger — <span data-net>arc</span></span>
+    <span>✶ lull — <span data-net>arc</span></span>
     <div style="display: flex; gap: 24px">
-      <a href="https://github.com/ynsmlkc/Linger" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/ynsmlkc/Lull" target="_blank" rel="noopener">GitHub</a>
       <a href="/privacy">Privacy</a>
     </div>
   </div>
@@ -230,7 +230,7 @@ import { flag, countryName, countryCodes } from '/globe.js';
 const views = ['v-connect', 'v-loading', 'v-neterr', 'v-expired', 'v-dash'];
 const view = (id) => views.forEach((v) => show($('#' + v), v === id));
 
-copyButton($('#copy-install'), () => 'npm i -g lingersh-arc && linger init --spinner');
+copyButton($('#copy-install'), () => 'npm i -g lullsh && lull init --spinner');
 copyButton($('#copy-addr'), () => session.address || '');
 
 /* ─────────── giris ─────────── */

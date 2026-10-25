@@ -13,8 +13,8 @@
  * Kimse "sunucu yok" diye hata gormez.
  */
 
-import { remoteConfigSchema, FALLBACK_CONFIG, PROTOCOL_HEADER, PROTOCOL_VERSION } from '@linger/protocol'
-import type { AdPayload, RemoteConfig } from '@linger/protocol'
+import { remoteConfigSchema, FALLBACK_CONFIG, PROTOCOL_HEADER, PROTOCOL_VERSION } from '@lull/protocol'
+import type { AdPayload, RemoteConfig } from '@lull/protocol'
 import type { CompletedImpression } from './turns.js'
 import type { ImpressionQueue } from './queue.js'
 
@@ -120,7 +120,7 @@ export class ServerSync {
         headers: {
           authorization: `Bearer ${this.opts.token}`,
           'content-type': 'application/json',
-          'x-linger-client-version': this.opts.clientVersion,
+          'x-lull-client-version': this.opts.clientVersion,
           ...(init.headers ?? {}),
         },
       })
@@ -129,7 +129,7 @@ export class ServerSync {
       // ADR-016 — sunucu bizi eski buluyorsa render'i durdur. Kullaniciya
       // sessizce yanlis calisan bir istemci birakmaktansa susmak dogru.
       if (res.status === 426) {
-        this.#lastError = 'client version is too old — update with `npm i -g linger`'
+        this.#lastError = 'client version is too old — update with `npm i -g lull`'
         this.opts.setConfig({ ...this.opts.config(), renderEnabled: false })
         this.opts.onLog(this.#lastError)
         return null
@@ -224,7 +224,7 @@ function toEvent(i: CompletedImpression): Record<string, unknown> {
     // §10 — ham `cwd` ASLA gonderilmez. Bu alan yerel tuzla turetilmis HMAC;
     // daemon dolduracak. Su an yer tutucu.
     projectKey: 'f'.repeat(64),
-    clientVersion: process.env['LINGER_VERSION'] ?? '0.0.0',
+    clientVersion: process.env['LULL_VERSION'] ?? '0.0.0',
     os: process.platform === 'win32' ? 'win32' : process.platform === 'linux' ? 'linux' : 'darwin',
     arch: process.arch,
   }

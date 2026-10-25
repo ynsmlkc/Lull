@@ -11,7 +11,7 @@
  */
 
 import { createHash, timingSafeEqual } from 'node:crypto'
-import type { TokenScope } from '@linger/protocol'
+import type { TokenScope } from '@lull/protocol'
 
 export interface DeviceTokenRecord {
   readonly id: string

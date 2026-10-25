@@ -1,5 +1,5 @@
 /**
- * `linger balance` — kullanicinin parasini gosterir.
+ * `lull balance` — kullanicinin parasini gosterir.
  *
  * Uc ayri sayi var ve UCU DE gosterilmek zorunda:
  *
@@ -34,16 +34,16 @@ export interface BalanceResponse {
   readonly blockedReason: string | null
 }
 
-// Varsayilan testnet; `LINGER_NETWORK=mainnet` ile ana agin linkleri uretilir.
+// Varsayilan testnet; `LULL_NETWORK=mainnet` ile ana agin linkleri uretilir.
 const explorerTx = (hash: string): string =>
-  `${process.env['LINGER_NETWORK'] === 'mainnet' ? 'https://explorer.arc.io' : 'https://explorer.testnet.arc.io'}/tx/${hash}`
+  `${process.env['LULL_NETWORK'] === 'mainnet' ? 'https://explorer.arc.io' : 'https://explorer.testnet.arc.io'}/tx/${hash}`
 
 export async function cmdBalance(
   argv: readonly string[] = [],
   fetchImpl: typeof fetch = fetch,
 ): Promise<void> {
   const creds = loadCredentials()
-  if (!creds) fail('LNG-2001', 'Not logged in', '`linger login` to connect your wallet')
+  if (!creds) fail('LUL-2001', 'Not logged in', '`lull login` to connect your wallet')
 
   let res: Response
   try {
@@ -53,13 +53,13 @@ export async function cmdBalance(
     })
   } catch (e) {
     // Ag hatasi bir SORU degil, bir DURUM. Kullaniciya ne yapacagini soyle.
-    fail('LNG-3001', 'Could not reach the server', e instanceof Error ? e.message : String(e))
+    fail('LUL-3001', 'Could not reach the server', e instanceof Error ? e.message : String(e))
   }
 
   if (res.status === 401) {
-    fail('LNG-2002', 'Token is invalid', '`linger login --force` to reconnect')
+    fail('LUL-2002', 'Token is invalid', '`lull login --force` to reconnect')
   }
-  if (!res.ok) fail('LNG-3001', `Server error (HTTP ${res.status})`)
+  if (!res.ok) fail('LUL-3001', `Server error (HTTP ${res.status})`)
 
   const b = (await res.json()) as BalanceResponse
   render(b, creds.publisherId, argv.includes('--json') ? JSON.stringify(b) : null)

@@ -2,7 +2,7 @@
  * CLI ciktisi.
  *
  * Kural (ADR-016 / hata taksonomisi): kullaniciya ASLA stack trace basilmaz.
- * Hata = `LNG-xxxx` kodu + tek cumle + ne yapmasi gerektigi.
+ * Hata = `LUL-xxxx` kodu + tek cumle + ne yapmasi gerektigi.
  */
 
 const isTty = process.stdout.isTTY === true
@@ -49,6 +49,6 @@ export function usdc(micros: bigint | string): string {
 
 export const banner = (): void => {
   out()
-  out(`  ${orange('✶')} ${bold('Linger')}`)
+  out(`  ${orange('✶')} ${bold('Lull')}`)
   out()
 }

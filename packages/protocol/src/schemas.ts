@@ -60,7 +60,7 @@ export const isMeasurable = (s: Surface): boolean => MEASURABLE_SURFACES.include
 
 /**
  * Gosterim raporu. Alanlar §10'daki listeyle **birebir** ayni olmak zorunda;
- * buraya alan eklemek `linger privacy` ciktisini da degistirmeyi gerektirir.
+ * buraya alan eklemek `lull privacy` ciktisini da degistirmeyi gerektirir.
  */
 export const impressionEventSchema = z.object({
   /** Istemci uretimi ULID — idempotent ingest. Dusman girdisidir. */
@@ -165,7 +165,7 @@ export const tokenScopeSchema = z.enum([
   'read:balance',
   /**
    * Istege bagli cekim tetikler. Daemon token'ina (uzun omurlu, diskte
-   * `~/.linger/credentials.json`) verilmesi guvenli: hedef HER ZAMAN token
+   * `~/.lull/credentials.json`) verilmesi guvenli: hedef HER ZAMAN token
    * sahibinin kendi cuzdanidir (ADR-010) — calinmis bir token en kotu
    * ihtimalle erken bir cekimi TETIKLER, parayi baskasina YONLENDIREMEZ.
    */

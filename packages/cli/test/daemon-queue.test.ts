@@ -14,12 +14,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { startDaemon } from '../src/daemon/index.js'
 import { ask } from '../src/cli/daemon-control.js'
-import { FALLBACK_CONFIG } from '@linger/protocol'
-import type { AdPayload } from '@linger/protocol'
+import { FALLBACK_CONFIG } from '@lull/protocol'
+import type { AdPayload } from '@lull/protocol'
 
 const ADS: AdPayload[] = [{
   campaignId: 'sample-1', nonce: '0'.repeat(32), nonceExpiresAt: 9e12,
-  creative: { brand: 'Linger', text: 'sample', cta: 'linger login' },
+  creative: { brand: 'Lull', text: 'sample', cta: 'lull login' },
 }]
 const CONFIG = {
   ...FALLBACK_CONFIG, renderEnabled: true,
@@ -42,7 +42,7 @@ async function birGosterim(socketPath: string) {
 
 describe('sunucusuz kuyruk', () => {
   it('sunucu yokken diske HICBIR SEY yazilmaz', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'linger-q-')); dirs.push(dir)
+    const dir = mkdtempSync(join(tmpdir(), 'lull-q-')); dirs.push(dir)
     const socketPath = join(dir, 's.sock')
     const daemon = await startDaemon({ ads: ADS, socketPath, dataDir: dir, syncSpinner: false, config: CONFIG })
     try {
@@ -56,12 +56,12 @@ describe('sunucusuz kuyruk', () => {
   })
 
   it('sunucu VARSA normal sekilde kuyruga girer', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'linger-q-')); dirs.push(dir)
+    const dir = mkdtempSync(join(tmpdir(), 'lull-q-')); dirs.push(dir)
     const socketPath = join(dir, 's.sock')
     // Ag cagrilarini yutan sahte fetch: kuyruk dolsun, bosalmasin.
     const daemon = await startDaemon({
       socketPath, dataDir: dir, syncSpinner: false, config: CONFIG,
-      serverUrl: 'https://sunucu.test', token: 'lng_x',
+      serverUrl: 'https://sunucu.test', token: 'lul_x',
       fetchImpl: (async () => new Response(null, { status: 503 })) as unknown as typeof fetch,
     })
     try {

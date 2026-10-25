@@ -1,14 +1,14 @@
 /**
  * Ortam degiskenleri — uretimde EKSIK OLANA VARSAYILAN YOK.
  *
- * Denetimde bulundu: `.env.railway` `LINGER_PENDING_MS` icermiyordu ve kod
+ * Denetimde bulundu: `.env.railway` `LULL_PENDING_MS` icermiyordu ve kod
  * gelistirme varsayilanina (30 saniye) dusuyordu. Tasarimin dayandigi
  * 24 saatlik dogrulama penceresi (§9 katman 2) uretimde hic calismiyordu —
  * kimse fark etmeden. Para yolunu etkileyen bir ayar eksikse sunucu
  * ACILMAMALI; sessizce gevsek bir degerle calismak, hic calismamaktan kotu.
  */
 
-import { semverSchema } from '@linger/protocol'
+import { semverSchema } from '@lull/protocol'
 
 type Env = Readonly<Record<string, string | undefined>>
 
@@ -28,27 +28,27 @@ export interface ServerEnv {
  * Bos dizi = acilabilir.
  */
 export function prodProblems(env: Env): string[] {
-  if (env['LINGER_ENV'] !== 'production') return []
+  if (env['LULL_ENV'] !== 'production') return []
   const out: string[] = []
 
-  for (const k of ['LINGER_DB', 'LINGER_HOME_DOMAIN', 'LINGER_IP_SALT'] as const) {
+  for (const k of ['LULL_DB', 'LULL_HOME_DOMAIN', 'LULL_IP_SALT'] as const) {
     if (!env[k]) out.push(`${k} tanimli degil`)
   }
 
   // Acikca verilmisse bile mainnet'te alt sinir var: birkac saniyelik pencere,
   // anomali kontrolunun para cikmadan once calismasini anlamsiz kilar.
   // Testnet'te para gercek degil; demo icin pencere kisaltilabilir (0 dahil).
-  const pending = env['LINGER_PENDING_MS']
-  const mainnet = env['LINGER_NETWORK'] === 'mainnet'
+  const pending = env['LULL_PENDING_MS']
+  const mainnet = env['LULL_NETWORK'] === 'mainnet'
   if (pending !== undefined && !(Number(pending) >= (mainnet ? 3600_000 : 0))) {
     out.push(mainnet
-      ? `LINGER_PENDING_MS mainnet'te en az 1 saat olmali (verilen: ${pending})`
-      : `LINGER_PENDING_MS gecerli bir sure degil (verilen: ${pending})`)
+      ? `LULL_PENDING_MS mainnet'te en az 1 saat olmali (verilen: ${pending})`
+      : `LULL_PENDING_MS gecerli bir sure degil (verilen: ${pending})`)
   }
 
-  const min = env['LINGER_MIN_CLIENT_VERSION']
+  const min = env['LULL_MIN_CLIENT_VERSION']
   if (min !== undefined && !semverSchema.safeParse(min).success) {
-    out.push(`LINGER_MIN_CLIENT_VERSION gecerli bir surum degil: ${min}`)
+    out.push(`LULL_MIN_CLIENT_VERSION gecerli bir surum degil: ${min}`)
   }
 
   return out
@@ -59,14 +59,14 @@ export function readServerEnv(env: Env): ServerEnv {
   if (problems.length > 0) {
     throw new Error(`uretim ayarlari eksik — sunucu acilmiyor:\n  • ${problems.join('\n  • ')}`)
   }
-  const isProd = env['LINGER_ENV'] === 'production'
+  const isProd = env['LULL_ENV'] === 'production'
 
   return {
     isProd,
     // Uretimde varsayilan 24 saat; gelistirmede 30 saniye (24 saat beklemek
     // gelistirmeyi imkansiz kilar).
-    pendingMs: Number(env['LINGER_PENDING_MS'] ?? (isProd ? DAY_MS : 30_000)),
-    minClientVersion: env['LINGER_MIN_CLIENT_VERSION'] ?? '0.0.0',
-    ipSalt: env['LINGER_IP_SALT'] ?? 'dev-salt-degistir',
+    pendingMs: Number(env['LULL_PENDING_MS'] ?? (isProd ? DAY_MS : 30_000)),
+    minClientVersion: env['LULL_MIN_CLIENT_VERSION'] ?? '0.0.0',
+    ipSalt: env['LULL_IP_SALT'] ?? 'dev-salt-degistir',
   }
 }

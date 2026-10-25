@@ -1,12 +1,12 @@
 /**
- * @linger/protocol — istemci ve sunucunun paylastigi tek gercek kaynagi.
+ * @lull/protocol — istemci ve sunucunun paylastigi tek gercek kaynagi.
  *
  * Bu paket ag erisimi yapmaz, dosya okumaz, `Date.now()` cagirmaz.
  * Saf tipler, semalar ve saf fonksiyonlar.
  */
 
 export const PROTOCOL_VERSION = 'v1'
-export const PROTOCOL_HEADER = 'X-Linger-Protocol-Version'
+export const PROTOCOL_HEADER = 'X-Lull-Protocol-Version'
 
 export * from './money.js'
 export * from './clock.js'

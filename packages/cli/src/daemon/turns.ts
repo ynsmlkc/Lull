@@ -13,7 +13,7 @@
  *   ADR-023  reklam yalnizca tur icinde + 4sn tolerans; bosta ekran temiz
  */
 
-import type { Clock, IdGenerator, AdPayload, RemoteConfig, Surface } from '@linger/protocol'
+import type { Clock, IdGenerator, AdPayload, RemoteConfig, Surface } from '@lull/protocol'
 
 /* ─────────────────────────── tipler ─────────────────────────── */
 
@@ -37,7 +37,7 @@ export interface RenderDecision {
   /** Basilacak reklam; `null` ise HICBIR SEY basilmaz (bos string bile degil). */
   readonly ad: AdPayload | null
   readonly phase: TurnPhase
-  /** Neden gosterilmiyor — `linger doctor` bunu gosterir. */
+  /** Neden gosterilmiyor — `lull doctor` bunu gosterir. */
   readonly reason: string | null
 }
 
@@ -113,7 +113,7 @@ export interface TurnMachineDeps {
   /** Sirada bekleyen reklami verir. Yoksa `null` — o zaman hicbir sey basilmaz. */
   readonly nextAd: () => AdPayload | null
   readonly config: () => RemoteConfig
-  /** Kullanici `linger pause` demis mi? */
+  /** Kullanici `lull pause` demis mi? */
   readonly isPaused: () => boolean
   /** Giris yapilmis ve token gecerli mi? */
   readonly isAuthenticated: () => boolean

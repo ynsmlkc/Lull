@@ -20,7 +20,7 @@ const targets = [
   { in: 'src/shim/statusline.ts', out: 'dist/statusline.mjs' },
   { in: 'src/shim/hook.ts', out: 'dist/hook.mjs' },
   { in: 'src/daemon/entry.ts', out: 'dist/daemon.mjs' },
-  { in: 'src/cli/main.ts', out: 'dist/linger.mjs' },
+  { in: 'src/cli/main.ts', out: 'dist/lull.mjs' },
 ]
 
 for (const t of targets) {
@@ -31,7 +31,7 @@ for (const t of targets) {
     platform: 'node',
     target: 'node20',
     format: 'esm',
-    define: { __LINGER_VERSION__: JSON.stringify(version) },
+    define: { __LULL_VERSION__: JSON.stringify(version) },
     // Shim'in kucuk kalmasi onemli: her cagrida parse ediliyor.
     minify: t.out.includes('statusline') || t.out.includes('hook'),
     // Banner EKLEMIYORUZ: kaynak dosyalarda zaten shebang var ve esbuild

@@ -14,7 +14,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { startDaemon, type Daemon } from '../src/daemon/index.js'
-import type { AdPayload } from '@linger/protocol'
+import type { AdPayload } from '@lull/protocol'
 import type { CompletedImpression } from '../src/daemon/turns.js'
 
 const SHIM = resolve(import.meta.dirname, '../dist/statusline.mjs')
@@ -46,12 +46,12 @@ async function runShim(socket: string, session = 's1', columns = 120, input?: st
   const t0 = performance.now()
   const child = run(process.execPath, [SHIM], {
     env: {
-      ...process.env, LINGER_SOCKET: socket, COLUMNS: String(columns),
+      ...process.env, LULL_SOCKET: socket, COLUMNS: String(columns),
       // Testte butce acikca yukseltiliyor: buradaki amac DOGRULUK, zamanlama
       // degil. Uretim butcesi ayri olculuyor (shimbench). Yuklu bir makinede
       // ts-strip ile 50ms asilabiliyor ve shim sessizce bos donuyor — dogru
       // davranis ama testi kirilgan yapar.
-      LINGER_BUDGET_MS: process.env['LINGER_BUDGET_MS'] ?? '2000',
+      LULL_BUDGET_MS: process.env['LULL_BUDGET_MS'] ?? '2000',
     },
     encoding: 'utf8',
   })
@@ -62,7 +62,7 @@ async function runShim(socket: string, session = 's1', columns = 120, input?: st
 
 describe('uctan uca — shim ile daemon', () => {
   it('tur yokken HICBIR SEY basmaz', async () => {
-    dir = mkdtempSync(join(tmpdir(), 'linger-e2e-'))
+    dir = mkdtempSync(join(tmpdir(), 'lull-e2e-'))
     const sock = join(dir, 'd.sock')
     daemon = await startDaemon({ socketPath: sock, dataDir: dir, ads: [AD] })
 
@@ -70,7 +70,7 @@ describe('uctan uca — shim ile daemon', () => {
   })
 
   it('tur icinde reklami basar — ifsa glifi ve ANSI ile', async () => {
-    dir = mkdtempSync(join(tmpdir(), 'linger-e2e-'))
+    dir = mkdtempSync(join(tmpdir(), 'lull-e2e-'))
     const sock = join(dir, 'd.sock')
     daemon = await startDaemon({ socketPath: sock, dataDir: dir, ads: [AD] })
     daemon.hook('UserPromptSubmit', 's1')
@@ -83,7 +83,7 @@ describe('uctan uca — shim ile daemon', () => {
   })
 
   it('daemon YOKSA sessizce cikar — Claude Code bozulmaz', async () => {
-    dir = mkdtempSync(join(tmpdir(), 'linger-e2e-'))
+    dir = mkdtempSync(join(tmpdir(), 'lull-e2e-'))
     const missing = join(dir, 'yok.sock')
     const t0 = performance.now()
     const { out } = await runShim(missing, 's1', 120, '{}')
@@ -92,7 +92,7 @@ describe('uctan uca — shim ile daemon', () => {
   })
 
   it('bozuk stdin gelse bile patlamaz', async () => {
-    dir = mkdtempSync(join(tmpdir(), 'linger-e2e-'))
+    dir = mkdtempSync(join(tmpdir(), 'lull-e2e-'))
     const sock = join(dir, 'd.sock')
     daemon = await startDaemon({ socketPath: sock, dataDir: dir, ads: [AD] })
     daemon.hook('UserPromptSubmit', '?')
@@ -102,7 +102,7 @@ describe('uctan uca — shim ile daemon', () => {
   })
 
   it('dar terminalde satir sigar', async () => {
-    dir = mkdtempSync(join(tmpdir(), 'linger-e2e-'))
+    dir = mkdtempSync(join(tmpdir(), 'lull-e2e-'))
     const sock = join(dir, 'd.sock')
     daemon = await startDaemon({ socketPath: sock, dataDir: dir, ads: [AD] })
     daemon.hook('UserPromptSubmit', 's1')
@@ -113,7 +113,7 @@ describe('uctan uca — shim ile daemon', () => {
   })
 
   it('ADR-003 — shim butcesi: socket gidis donusu 50ms icinde', async () => {
-    dir = mkdtempSync(join(tmpdir(), 'linger-e2e-'))
+    dir = mkdtempSync(join(tmpdir(), 'lull-e2e-'))
     const sock = join(dir, 'd.sock')
     daemon = await startDaemon({ socketPath: sock, dataDir: dir, ads: [AD] })
     daemon.hook('UserPromptSubmit', 's1')
@@ -132,7 +132,7 @@ describe('uctan uca — shim ile daemon', () => {
 
 describe('uctan uca — tam tur', () => {
   it('tur boyunca gosterim sayilir, bitince raporlanir', async () => {
-    dir = mkdtempSync(join(tmpdir(), 'linger-e2e-'))
+    dir = mkdtempSync(join(tmpdir(), 'lull-e2e-'))
     const sock = join(dir, 'd.sock')
     const seen: string[] = []
     const sayilan: CompletedImpression[] = []

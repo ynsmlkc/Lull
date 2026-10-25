@@ -3,7 +3,7 @@
  * Kivilcim 1 — probe kaldirici.
  * settings.json'i yedekten BIREBIR geri yukler.
  *
- * Gercek `linger uninstall` de bunu yapmak zorunda (§6.1 bitti kriteri):
+ * Gercek `lull uninstall` de bunu yapmak zorunda (§6.1 bitti kriteri):
  * kullanicinin ayarlari kurulum oncesi haline donmeli.
  */
 

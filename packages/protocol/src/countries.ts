@@ -1,7 +1,7 @@
 /**
  * ISO 3166-1 alpha-2 ulke kodlari — siralama profilinde kabul edilen degerler.
  *
- * Sunucu (dogrulama) ve CLI (`linger login` sayfasi, `linger profile`) AYNI
+ * Sunucu (dogrulama) ve CLI (`lull login` sayfasi, `lull profile`) AYNI
  * listeyi kullaniyor; iki kopya, birinin kabul edip digerinin reddettigi bir
  * ulke demek olurdu. Liste sitedeki kurenin ulke merkezleriyle
  * (`server/public/globe-data.js`) ayni kaynaktan uretildi:

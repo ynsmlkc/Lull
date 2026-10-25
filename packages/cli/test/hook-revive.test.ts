@@ -1,7 +1,7 @@
 /**
  * `SessionStart` hook'u olu daemon'i canlandirir mi?
  *
- * Gercekte yasandi: lingerd reboot'ta ya da carptiginda kimse onu geri
+ * Gercekte yasandi: lulld reboot'ta ya da carptiginda kimse onu geri
  * acmiyordu — hook yalnizca "canliysa haber ver" modundaydi ve soket olu
  * bulununca sessizce vazgeciyordu (bkz. `shim/hook.ts` `tryRevive`).
  *
@@ -31,7 +31,7 @@ afterEach(async () => {
 
 async function runHook(event: string, socket: string, home: string) {
   const child = run(process.execPath, [HOOK, event], {
-    env: { ...process.env, LINGER_SOCKET: socket, LINGER_HOME: home },
+    env: { ...process.env, LULL_SOCKET: socket, LULL_HOME: home },
     encoding: 'utf8',
   })
   child.child.stdin?.end(JSON.stringify({ session_id: 's1' }))
@@ -40,9 +40,9 @@ async function runHook(event: string, socket: string, home: string) {
 
 describe('SessionStart hook — olu daemon canlandirma', () => {
   it('daemon calismazken SessionStart onu arka planda baslatir', async () => {
-    dir = mkdtempSync(join(tmpdir(), 'linger-revive-'))
-    const home = join(dir, '.linger')
-    const sock = join(home, 'lingerd.sock')
+    dir = mkdtempSync(join(tmpdir(), 'lull-revive-'))
+    const home = join(dir, '.lull')
+    const sock = join(home, 'lulld.sock')
 
     expect(await dc.isAlive(sock, 200)).toBe(false)
 
@@ -62,9 +62,9 @@ describe('SessionStart hook — olu daemon canlandirma', () => {
   }, 10_000)
 
   it('SessionStart DISINDAKI olaylar canlandirmaz — sadece haber vermeyi dener', async () => {
-    dir = mkdtempSync(join(tmpdir(), 'linger-revive-'))
-    const home = join(dir, '.linger')
-    const sock = join(home, 'lingerd.sock')
+    dir = mkdtempSync(join(tmpdir(), 'lull-revive-'))
+    const home = join(dir, '.lull')
+    const sock = join(home, 'lulld.sock')
 
     await runHook('UserPromptSubmit', sock, home)
 

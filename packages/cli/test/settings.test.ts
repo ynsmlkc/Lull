@@ -24,14 +24,14 @@ let t = 1_700_000_000_000
 const now = () => (t += 1000)
 
 const OPTS = {
-  statusLineCommand: '/usr/local/bin/linger-statusline',
-  hookCommand: '/usr/local/bin/linger-hook',
+  statusLineCommand: '/usr/local/bin/lull-statusline',
+  hookCommand: '/usr/local/bin/lull-hook',
   refreshIntervalSec: 1,
   now,
 }
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'linger-set-'))
+  dir = mkdtempSync(join(tmpdir(), 'lull-set-'))
   path = join(dir, 'settings.json')
   t = 1_700_000_000_000
 })
@@ -77,7 +77,7 @@ describe('kurulum', () => {
     // "Zaten var, atla" yetmez: ikili yolu degisince eski komut oldugu
     // yerde kalir ve hook'lar olu bir dosyayi cagirir. Kullanici "kuruldu"
     // gorur ama hicbir sey calismaz.
-    install({ ...OPTS, hookCommand: '/eski/yol/linger-hook' }, path)
+    install({ ...OPTS, hookCommand: '/eski/yol/lull-hook' }, path)
     install(OPTS, path)
 
     const cmd = read().hooks!['Stop']![0]!.hooks[0]!.command
@@ -208,7 +208,7 @@ describe('doctor — kurulum saglam mi', () => {
 
   it('BASKA BIR ARAC ayarimizi degistirmisse tespit eder', () => {
     // Ayni yuzey icin yarisan bir eklenti periyodik olarak kendi ayarini
-    // geri koyabiliyor. Kullanici "Linger calismiyor" der, sebebini bilemez.
+    // geri koyabiliyor. Kullanici "Lull calismiyor" der, sebebini bilemez.
     install(OPTS, path)
     const s = read()
     s.statusLine = { type: 'command', command: '/rakip/statusline.sh' }
@@ -236,7 +236,7 @@ describe('yedek birikimi', () => {
   it('son 10 yedek tutulur', () => {
     write({ theme: 'dark' })
     for (let i = 0; i < 15; i++) install(OPTS, path)
-    const backups = readdirSync(join(dir, 'linger-backups'))
+    const backups = readdirSync(join(dir, 'lull-backups'))
     expect(backups.length).toBeLessThanOrEqual(10)
   })
 })
@@ -282,7 +282,7 @@ describe('dosya guvenligi — sembolik baglanti, izin, atomiklik', () => {
   it('yazmadan geriye gecici dosya kalmaz', () => {
     bagla()
     install(OPTS, path)
-    const artik = readdirSync(join(dir, 'dotfiles')).filter((f) => f.includes('linger-tmp'))
+    const artik = readdirSync(join(dir, 'dotfiles')).filter((f) => f.includes('lull-tmp'))
     expect(artik).toEqual([])
   })
 

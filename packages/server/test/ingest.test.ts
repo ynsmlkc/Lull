@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock, micros } from '@linger/protocol'
-import type { ImpressionEvent } from '@linger/protocol'
+import { fixedClock, micros } from '@lull/protocol'
+import type { ImpressionEvent } from '@lull/protocol'
 import { ImpressionIngest, compareVersions, type DeliveredAd, type StoredImpression } from '../src/impressions/ingest.js'
 
 const PUB = 'pub-1'

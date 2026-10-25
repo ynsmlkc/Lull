@@ -46,7 +46,7 @@ export async function startSocketServer(
   // Once gercekten olu mu diye bakilir, canliysa DOKUNULMAZ.
   if (existsSync(socketPath)) {
     if (await isSocketAlive(socketPath)) {
-      throw new Error(`lingerd is already running: ${socketPath}`)
+      throw new Error(`lulld is already running: ${socketPath}`)
     }
     try { unlinkSync(socketPath) } catch { /* yaris — bind zaten patlar */ }
   }
@@ -58,7 +58,7 @@ export async function startSocketServer(
     sock.on('error', (e: NodeJS.ErrnoException) => {
       // EPIPE / ECONNRESET beklenen durumdur, hata degil: shim cevabini alir
       // almaz soketi kapatir (butcesi 200 ms). Bunlari `lastError`'a yazmak
-      // `linger doctor`'i her tikta yaniltir.
+      // `lull doctor`'i her tikta yaniltir.
       if (e.code === 'EPIPE' || e.code === 'ECONNRESET') return
       onError(e)
     })
@@ -77,7 +77,7 @@ export async function startSocketServer(
         const line = buf.slice(0, nl)
         buf = buf.slice(nl + 1)
         const req = decode<Request>(line)
-        if (!req) { sock.write(encode({ t: 'error', code: 'LNG_9001' })); continue }
+        if (!req) { sock.write(encode({ t: 'error', code: 'LUL_9001' })); continue }
         // `Promise.resolve(handle(req))` YETMEZ: handle senkron firlatirsa
         // hata Promise'e hic girmez, `.catch()` yakalayamaz ve daemon duser.
         // Bu yol her saniye kat ediliyor — tek bir senkron hata her seyi
@@ -90,7 +90,7 @@ export async function startSocketServer(
           })
           .catch((e) => {
             onError(e)
-            if (!sock.destroyed) sock.write(encode({ t: 'error', code: 'LNG_9001' }))
+            if (!sock.destroyed) sock.write(encode({ t: 'error', code: 'LUL_9001' }))
           })
       }
     })

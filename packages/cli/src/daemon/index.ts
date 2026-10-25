@@ -6,8 +6,8 @@
  * havuzu disaridan veriliyor.
  */
 
-import { renderAdLine, systemClock, cryptoIdGenerator, FALLBACK_CONFIG } from '@linger/protocol'
-import type { AdPayload, RemoteConfig, Clock } from '@linger/protocol'
+import { renderAdLine, systemClock, cryptoIdGenerator, FALLBACK_CONFIG } from '@lull/protocol'
+import type { AdPayload, RemoteConfig, Clock } from '@lull/protocol'
 import { TurnMachine, type CompletedImpression } from './turns.js'
 import { startSocketServer, type SocketServer } from './server.js'
 import { ImpressionQueue } from './queue.js'
@@ -15,7 +15,7 @@ import { SpinnerSync } from './spinner-sync.js'
 import { ServerSync } from './sync.js'
 import { writeFileSync, existsSync, unlinkSync } from 'node:fs'
 import { join, dirname } from 'node:path'
-import { SOCKET_PATH, LINGER_HOME, type Request, type Response, type HookEvent } from '../ipc.js'
+import { SOCKET_PATH, LULL_HOME, type Request, type Response, type HookEvent } from '../ipc.js'
 import { VERSION } from '../version.js'
 
 export interface DaemonOptions {
@@ -24,7 +24,7 @@ export interface DaemonOptions {
   readonly config?: RemoteConfig
   /** Reklam havuzu. Ilerideki prefetch bunu besleyecek. */
   readonly ads?: readonly AdPayload[]
-  /** Kuyrugun yazilacagi dizin. Varsayilan `~/.linger`. */
+  /** Kuyrugun yazilacagi dizin. Varsayilan `~/.lull`. */
   readonly dataDir?: string
   /** Spinner katmanini aktif reklamla senkronla (ADR-001). */
   readonly syncSpinner?: boolean
@@ -87,7 +87,7 @@ export async function startDaemon(opts: DaemonOptions = {}): Promise<Daemon> {
   let paused = existsSync(pausePath())
   let lastError: string | null = null
   const queue = new ImpressionQueue({
-    dir: opts.dataDir ?? LINGER_HOME,
+    dir: opts.dataDir ?? LULL_HOME,
     onError: (e) => {
       lastError = e instanceof Error ? e.message : String(e)
       opts.onError?.(e)
@@ -145,7 +145,7 @@ export async function startDaemon(opts: DaemonOptions = {}): Promise<Daemon> {
       // sunucuya gidip toptan reddediliyor, ve GERCEK kazanci o yiginin
       // arkasinda siraya giriyor. Bir kullanicida 3.152 kayit birikmisti.
       //
-      // Sayilmaya devam ediyorlar (log ve `linger status` icin), yalnizca
+      // Sayilmaya devam ediyorlar (log ve `lull status` icin), yalnizca
       // diske yazilmiyorlar.
       if (sync) queue.add(imp)
       opts.onImpression?.(imp)
@@ -196,7 +196,7 @@ export async function startDaemon(opts: DaemonOptions = {}): Promise<Daemon> {
       case 'pause': {
         // Duraklatma DISKE yazilir.
         //
-        // Yalnizca bellekte tutsaydik `linger restart` ya da makine yeniden
+        // Yalnizca bellekte tutsaydik `lull restart` ya da makine yeniden
         // baslatma sessizce devam ettirirdi — kullanici durdurdugunu bilir,
         // reklamlar doner. Sessizce yanlis calisan bir anahtar, hic olmayan
         // anahtardan kotudur.
@@ -246,7 +246,7 @@ export async function startDaemon(opts: DaemonOptions = {}): Promise<Daemon> {
 
   sync?.start()
 
-  // Ilk reklami hemen yaz: kurulumdan sonraki ILK tur, `linger init`'in
+  // Ilk reklami hemen yaz: kurulumdan sonraki ILK tur, `lull init`'in
   // koydugu yer tutucuyu degil gercek bir reklami gormeli.
   spinner?.sync(spinnerAd()?.creative.brand ?? null)
 
@@ -269,7 +269,7 @@ export async function startDaemon(opts: DaemonOptions = {}): Promise<Daemon> {
       /**
        * Spinner listesi BOSALTILMAZ.
        *
-       * Burada `spinner.clear()` vardi ve her durusta — `linger restart`,
+       * Burada `spinner.clear()` vardi ve her durusta — `lull restart`,
        * makine kapanisi, SIGTERM — listeyi bosaltiyordu. Oysa `clear()`
        * kendi aciklamasinda "yalnizca uninstall cagirir" diyor.
        *
@@ -278,7 +278,7 @@ export async function startDaemon(opts: DaemonOptions = {}): Promise<Daemon> {
        * BOYUNCA oyle kalir — deger canli okunmuyor. Yani bir yeniden
        * baslatma, sonraki oturumun tamaminda reklami susturuyordu.
        *
-       * `linger uninstall` icin de gerekli degil: `settings.ts` alanin
+       * `lull uninstall` icin de gerekli degil: `settings.ts` alanin
        * kendisini siliyor.
        */
       await server.close()

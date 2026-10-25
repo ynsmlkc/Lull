@@ -7,7 +7,7 @@
  * transaction DEGILDIR ve aga gonderilemez. Guvenlik bu ayrimdan gelir.
  *
  * Neden ham byte degil de yapili mesaj:
- *   1. Cuzdan mesaji kullaniciya gosterir: "linger.example sitesine giris" —
+ *   1. Cuzdan mesaji kullaniciya gosterir: "lull.example sitesine giris" —
  *      kullanici neyi imzaladigini okuyabilir.
  *   2. Alan adi mesajin icinde: baska bir sitenin imzalattigi mesaj burada
  *      gecmez (phishing savunmasi).
@@ -32,7 +32,7 @@
  */
 
 import { recoverMessageAddress, isHex } from 'viem'
-import type { Clock, IdGenerator } from '@linger/protocol'
+import type { Clock, IdGenerator } from '@lull/protocol'
 import { normalizeAddress } from './address.js'
 import type { Network } from './wallet.js'
 
@@ -67,7 +67,7 @@ export const CHAIN_ID = { testnet: 5042002, mainnet: 5042 } as const satisfies R
 
 /** Mesajin ilk satirindan sonra gelen sabit ifade. */
 const STATEMENT =
-  'Linger hesabina giris yapiyorsun. Bu bir islem degildir, ucret dogurmaz ve cuzdanindan para cikmaz.'
+  'Lull hesabina giris yapiyorsun. Bu bir islem degildir, ucret dogurmaz ve cuzdanindan para cikmaz.'
 
 export class Siwe {
   constructor(

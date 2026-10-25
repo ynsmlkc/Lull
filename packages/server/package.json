@@ -1,5 +1,5 @@
 {
-  "name": "@linger/server",
+  "name": "@lull/server",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
-    "@linger/payments": "workspace:*",
-    "@linger/protocol": "workspace:*",
+    "@lull/payments": "workspace:*",
+    "@lull/protocol": "workspace:*",
     "hono": "^4.13.1",
     "maxmind": "^5.0.7"
   },

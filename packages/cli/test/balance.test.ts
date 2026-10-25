@@ -1,5 +1,5 @@
 /**
- * `linger balance`.
+ * `lull balance`.
  *
  * Bu komut kullanicinin parasini gosteriyor; yanlis bir sayi guveni bitirir.
  * Testlerin cogu "dogru sayi mi" degil, "yaniltici mi" sorusunu soruyor:
@@ -20,8 +20,8 @@ let dir: string
 let yazilan: string[]
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'linger-bal-'))
-  process.env['LINGER_CREDENTIALS'] = join(dir, 'creds.json')
+  dir = mkdtempSync(join(tmpdir(), 'lull-bal-'))
+  process.env['LULL_CREDENTIALS'] = join(dir, 'creds.json')
   yazilan = []
   // `fail()` stderr'e yaziyor, geri kalani stdout'a. Ikisini de yakalamak
   // gerekiyor: hata mesajlarini test etmek istiyoruz.
@@ -32,7 +32,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
-  delete process.env['LINGER_CREDENTIALS']
+  delete process.env['LULL_CREDENTIALS']
   rmSync(dir, { recursive: true, force: true })
 })
 
@@ -40,7 +40,7 @@ const ekran = (): string => yazilan.join('')
 
 function girisYap(): void {
   saveCredentials({
-    serverUrl: 'https://api.test', token: 'lng_t', publisherId: ADDR,
+    serverUrl: 'https://api.test', token: 'lul_t', publisherId: ADDR,
     tokenId: 't1', loggedInAt: 1,
   })
 }
@@ -52,10 +52,10 @@ const cevap = (over: Partial<BalanceResponse> = {}): typeof fetch =>
     recentPayouts: [], blockedReason: null, ...over,
   }), { status: 200 })) as unknown as typeof fetch
 
-describe('linger balance', () => {
+describe('lull balance', () => {
   it('giris yapilmamissa aciklayici hata verir', async () => {
     await expect(cmdBalance([], cevap())).rejects.toThrow()
-    expect(ekran()).toContain('linger login')
+    expect(ekran()).toContain('lull login')
   })
 
   /**
@@ -148,7 +148,7 @@ describe('linger balance', () => {
     girisYap()
     const f = (async () => new Response('{}', { status: 401 })) as unknown as typeof fetch
     await expect(cmdBalance([], f)).rejects.toThrow()
-    expect(ekran()).toContain('linger login --force')
+    expect(ekran()).toContain('lull login --force')
   })
 
   it('ag yokken cokmez, ne oldugunu soyler', async () => {
@@ -180,7 +180,7 @@ describe('link', () => {
   })
 
   /**
-   * Boruya yazarken kacis dizisi GONDERILMEZ. `linger balance | grep` yapan
+   * Boruya yazarken kacis dizisi GONDERILMEZ. `lull balance | grep` yapan
    * biri gorunmez karakterlerle ugrasmamali.
    */
   it('TTY degilse duz metin — kacis dizisi yok', () => {

@@ -1,20 +1,20 @@
 /**
- * `linger profile` — siralama profilini terminalden gor ve degistir.
+ * `lull profile` — siralama profilini terminalden gor ve degistir.
  *
- * `linger login` sirasindaki istege bagli adimin terminal karsiligi: o adimi
+ * `lull login` sirasindaki istege bagli adimin terminal karsiligi: o adimi
  * atlayan ya da zaten giris yapmis olan kullanici buradan katilir.
  *
- *   linger profile                                  durumu goster
- *   linger profile --nickname ada --country TR --listed
- *   linger profile --unlisted                       listeden cik
- *   linger profile --country none                   ulkeyi gizle
+ *   lull profile                                  durumu goster
+ *   lull profile --nickname ada --country TR --listed
+ *   lull profile --unlisted                       listeden cik
+ *   lull profile --country none                   ulkeyi gizle
  *
  * Verilmeyen alan mevcut profilden alinir. Ulke HICBIR ZAMAN sessizce
  * doldurulmaz: baglantidan tahmin edilen ulke yalnizca ONERILIR, yazilmasi
  * icin `--country` ile acikca verilmesi gerekir.
  */
 
-import { COUNTRY_CODES } from '@linger/protocol'
+import { COUNTRY_CODES } from '@lull/protocol'
 import { loadCredentials } from '../credentials.js'
 import { out, ok, warn, info, fail, dim, bold, banner, rows } from './output.js'
 
@@ -79,10 +79,10 @@ export async function cmdProfile(
   fetchImpl: typeof fetch = fetch,
 ): Promise<void> {
   const creds = loadCredentials()
-  if (!creds) fail('DWL-2001', 'Not logged in', '`linger login` to connect your wallet')
+  if (!creds) fail('DWL-2001', 'Not logged in', '`lull login` to connect your wallet')
 
   const args = parseProfileArgs(argv)
-  if ('error' in args) fail('DWL-9001', args.error, '`linger profile --nickname ada --country TR --listed`')
+  if ('error' in args) fail('DWL-9001', args.error, '`lull profile --nickname ada --country TR --listed`')
 
   const call = async (method: 'GET' | 'PUT', body?: unknown): Promise<Response> => {
     try {
@@ -98,7 +98,7 @@ export async function cmdProfile(
   }
 
   const res = await call('GET')
-  if (res.status === 401) fail('DWL-2002', 'Token is invalid', '`linger login --force` to reconnect')
+  if (res.status === 401) fail('DWL-2002', 'Token is invalid', '`lull login --force` to reconnect')
   if (!res.ok) fail('DWL-3001', `Server error (HTTP ${res.status})`)
   const current = (await res.json()) as ProfileResponse
 
@@ -110,7 +110,7 @@ export async function cmdProfile(
 
   const nickname = args.nickname ?? current.profile?.nickname
   if (!nickname) {
-    fail('DWL-9001', 'Pick a nickname first', '`linger profile --nickname <name> --listed`')
+    fail('DWL-9001', 'Pick a nickname first', '`lull profile --nickname <name> --listed`')
   }
   const next = {
     nickname,
@@ -141,7 +141,7 @@ function show(r: ProfileResponse, serverUrl: string): void {
     if (r.suggestedCountry) info(dim(`your connection looks like ${r.suggestedCountry}`))
     out()
     const c = r.suggestedCountry ? ` --country ${r.suggestedCountry}` : ''
-    info(`join: ${bold(`linger profile --nickname <name>${c} --listed`)}`)
+    info(`join: ${bold(`lull profile --nickname <name>${c} --listed`)}`)
     out()
     return
   }
@@ -151,7 +151,7 @@ function show(r: ProfileResponse, serverUrl: string): void {
     ['leaderboard', p.listed ? bold('listed') : dim('not listed')],
   ])
   out()
-  if (!p.listed) warn(`not visible — ${bold('linger profile --listed')} to join`)
+  if (!p.listed) warn(`not visible — ${bold('lull profile --listed')} to join`)
   else info(dim(`${serverUrl}/#board`))
   out()
 }

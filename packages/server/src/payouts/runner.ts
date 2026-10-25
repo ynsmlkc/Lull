@@ -16,10 +16,10 @@
  * kotu ihtimalle para "yolda" asili kalir; bu geri alinabilir bir hata.
  */
 
-import type { Clock, Micros } from '@linger/protocol'
-import { micros } from '@linger/protocol'
-import { PayoutJob, type PayoutCandidate, type PaymentRail } from '@linger/payments'
-import type { WalletStore } from '@linger/payments'
+import type { Clock, Micros } from '@lull/protocol'
+import { micros } from '@lull/protocol'
+import { PayoutJob, type PayoutCandidate, type PaymentRail } from '@lull/payments'
+import type { WalletStore } from '@lull/payments'
 import type { Ledger } from '../ledger/ledger.js'
 import { accountId } from '../ledger/accounts.js'
 import { type PayoutStore, stateFromSettlement } from './store.js'

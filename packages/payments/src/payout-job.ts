@@ -6,8 +6,8 @@
  * hepsi teoride degil, olcumle gorulmus davranislar.
  */
 
-import { type Micros, micros, add, ZERO } from '@linger/protocol'
-import type { Clock } from '@linger/protocol'
+import { type Micros, micros, add, ZERO } from '@lull/protocol'
+import type { Clock } from '@lull/protocol'
 import type {
   PaymentRail, PayoutBatch, PayoutItem, SubmissionReceipt, SettlementResult,
 } from './rail.js'

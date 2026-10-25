@@ -5,7 +5,7 @@
  * hareket ettigi yer. Dolayisiyla buradaki her karar geri alinamaz sonuclar
  * dogurur: zincire yazilan bir odeme geri cagirilamaz.
  *
- * Para operator cuzdaninda DEGIL, `LingerVault` kontratinda duruyor.
+ * Para operator cuzdaninda DEGIL, `LullVault` kontratinda duruyor.
  * Operator yalnizca `payout(batchId, alicilar, tutarlar)` cagirir ve gazi
  * oder. Bu ayrimin iki kazanci var:
  *
@@ -33,7 +33,7 @@ import {
   type Hex, type PublicClient,
 } from 'viem'
 import { privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
-import { micros } from '@linger/protocol'
+import { micros } from '@lull/protocol'
 import type {
   PaymentRail, PayoutBatch, DestinationStatus, SubmissionReceipt,
   SettlementResult, SourceAccountStatus,
@@ -88,7 +88,7 @@ export interface ArcRailConfig {
   readonly rpcUrl: string
   /** Operator cuzdaninin gizli anahtari. Yalnizca sunucuda, secret manager'dan. */
   readonly operatorKey: string
-  /** `LingerVault` adresi — paranin durdugu ve odemenin ciktigi yer. */
+  /** `LullVault` adresi — paranin durdugu ve odemenin ciktigi yer. */
   readonly vault: string
   /**
    * Odenecek USDC.

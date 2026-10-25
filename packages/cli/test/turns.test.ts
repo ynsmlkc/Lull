@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock, fakeIdGenerator, FALLBACK_CONFIG } from '@linger/protocol'
-import type { AdPayload, RemoteConfig } from '@linger/protocol'
+import { fixedClock, fakeIdGenerator, FALLBACK_CONFIG } from '@lull/protocol'
+import type { AdPayload, RemoteConfig } from '@lull/protocol'
 import { TurnMachine, MAX_QUIET_TURN_MS } from '../src/daemon/turns.js'
 
 const CONFIG: RemoteConfig = {

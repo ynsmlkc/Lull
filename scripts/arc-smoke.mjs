@@ -13,7 +13,7 @@
  *
  * Testnet'te ya da kucuk tutarlarla mainnet'te calistirilir:
  *
- *   ADVERTISER_KEY=0x… LINGER_SERVER=https://… node scripts/arc-smoke.mjs 1.00
+ *   ADVERTISER_KEY=0x… LULL_SERVER=https://… node scripts/arc-smoke.mjs 1.00
  *
  * Anahtar yalnizca bu surecte, imza icin kullanilir; hicbir yere gonderilmez.
  */
@@ -21,7 +21,7 @@
 import { createPublicClient, createWalletClient, http, parseAbi, getAddress } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
-const API = (process.env.LINGER_SERVER ?? 'http://127.0.0.1:8787').replace(/\/+$/, '')
+const API = (process.env.LULL_SERVER ?? 'http://127.0.0.1:8787').replace(/\/+$/, '')
 const KEY = process.env.ADVERTISER_KEY
 if (!KEY) { console.error('ADVERTISER_KEY gerekli (0x… 32 bayt hex)'); process.exit(2) }
 
@@ -42,7 +42,7 @@ async function call(path, { method = 'GET', body, token } = {}) {
   const res = await fetch(API + path, {
     method,
     headers: {
-      'x-linger-client-version': '0.1.16',
+      'x-lull-client-version': '0.1.16',
       ...(body ? { 'content-type': 'application/json' } : {}),
       ...(token ? { authorization: `Bearer ${token}` } : {}),
     },
@@ -55,7 +55,7 @@ async function call(path, { method = 'GET', body, token } = {}) {
 
 const health = await call('/health')
 if (!health.vault) throw new Error('sunucuda odeme kapali (kasa yok)')
-const rpc = process.env.LINGER_RPC ?? (health.network === 'mainnet' ? 'https://rpc.mainnet.arc.io' : 'https://rpc.testnet.arc.io')
+const rpc = process.env.LULL_RPC ?? (health.network === 'mainnet' ? 'https://rpc.mainnet.arc.io' : 'https://rpc.testnet.arc.io')
 const chain = {
   id: health.chainId, name: 'Arc', nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
   rpcUrls: { default: { http: [rpc] } },
@@ -98,7 +98,7 @@ say(`✓ defterde · bakiye ${Number(me.balanceMicros) / 1e6} USDC`)
 // 4. kampanya
 const camp = await call('/v1/advertiser/campaigns', {
   method: 'POST', token,
-  body: { brand: 'Linger', text: 'Ads for AI coding tools, paid in USDC on Arc', cta: 'linger.sh', bidCpmMicros: '2000000' },
+  body: { brand: 'Lull', text: 'Ads for AI coding tools, paid in USDC on Arc', cta: 'lull.sh', bidCpmMicros: '2000000' },
 })
 say(`✓ kampanya ${camp.id ?? ''}`)
 

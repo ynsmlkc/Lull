@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock, micros, FALLBACK_CONFIG } from '@linger/protocol'
+import { fixedClock, micros, FALLBACK_CONFIG } from '@lull/protocol'
 import { createApp } from '../src/http/app.js'
 import { TokenStore, hashToken } from '../src/http/auth.js'
 import { Pipeline } from '../src/pipeline.js'
@@ -23,7 +23,7 @@ const ADV = 'adv-1'
 const ALICE = 'pub-alice'
 const BOB = 'pub-bob'
 const CAROL = 'pub-carol'
-const TOKEN = 'lng_alice_token_0123456789abcdef'
+const TOKEN = 'lul_alice_token_0123456789abcdef'
 
 /** Kampanya → reklamveren. `c-self` Carol'un kendi kampanyasi. */
 const ADVERTISER: Record<string, string> = { c1: ADV, 'c-self': CAROL }

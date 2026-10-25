@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock, fakeIdGenerator, micros, sum } from '@linger/protocol'
-import type { ImpressionEvent } from '@linger/protocol'
+import { fixedClock, fakeIdGenerator, micros, sum } from '@lull/protocol'
+import type { ImpressionEvent } from '@lull/protocol'
 import { Pipeline } from '../src/pipeline.js'
 import { Ledger } from '../src/ledger/ledger.js'
 import { MemoryLedgerStore } from '../src/ledger/memory-store.js'

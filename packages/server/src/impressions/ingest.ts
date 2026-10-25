@@ -10,8 +10,8 @@
  * `pending` olarak kaydetmek. Dogrulama sonra, odemeden once (§9 katman 2).
  */
 
-import { type Micros, micros } from '@linger/protocol'
-import type { Clock, ImpressionEvent } from '@linger/protocol'
+import { type Micros, micros } from '@lull/protocol'
+import type { Clock, ImpressionEvent } from '@lull/protocol'
 
 export type ImpressionState = 'pending' | 'verified' | 'rejected'
 

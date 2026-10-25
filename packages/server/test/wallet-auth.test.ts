@@ -10,12 +10,12 @@
 
 import { describe, it, expect, beforeEach } from 'vitest'
 import { generatePrivateKey, privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
-import { Siwe } from '@linger/payments'
-import { fixedClock, cryptoIdGenerator } from '@linger/protocol'
+import { Siwe } from '@lull/payments'
+import { fixedClock, cryptoIdGenerator } from '@lull/protocol'
 import { WalletAuth, LOGIN_SCOPES } from '../src/http/wallet-auth.js'
 import { hashToken } from '../src/http/auth.js'
 
-const HOME = 'linger.test'
+const HOME = 'lull.test'
 
 function setup(now = 1_700_000_000_000) {
   const issued: { publisherId: string; tokenHash: string }[] = []

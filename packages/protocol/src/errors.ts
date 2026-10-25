@@ -2,7 +2,7 @@
  * Hata taksonomisi.
  *
  * Kapali bir union; yeni kod eklemek bilincli bir karardir. CLI asla stack
- * trace basmaz — kullaniciya `LNG-xxxx` kodu ve tek cumlelik aciklama gider.
+ * trace basmaz — kullaniciya `LUL-xxxx` kodu ve tek cumlelik aciklama gider.
  *
  * Kod araliklari:
  *   1xxx  istemci / kurulum
@@ -15,49 +15,49 @@
 
 export const ERROR_CODES = {
   // 1xxx — istemci
-  LNG_1001: 'Daemon calismiyor',
-  LNG_1002: 'Daemon soketine baglanilamadi',
-  LNG_1003: 'Claude Code settings.json bulunamadi',
-  LNG_1004: 'settings.json zaten baska bir statusLine iceriyor',
-  LNG_1005: 'Istemci surumu cok eski — guncelleme gerekli',
-  LNG_1006: 'Kurulum bozuk — `linger doctor` calistir',
+  LUL_1001: 'Daemon calismiyor',
+  LUL_1002: 'Daemon soketine baglanilamadi',
+  LUL_1003: 'Claude Code settings.json bulunamadi',
+  LUL_1004: 'settings.json zaten baska bir statusLine iceriyor',
+  LUL_1005: 'Istemci surumu cok eski — guncelleme gerekli',
+  LUL_1006: 'Kurulum bozuk — `lull doctor` calistir',
 
   // 2xxx — kimlik
-  LNG_2001: 'Giris yapilmamis',
-  LNG_2002: 'Device token gecersiz veya iptal edilmis',
-  LNG_2003: 'Bu islem icin yetki yok',
-  LNG_2004: 'GitHub dogrulamasi tamamlanmadi',
+  LUL_2001: 'Giris yapilmamis',
+  LUL_2002: 'Device token gecersiz veya iptal edilmis',
+  LUL_2003: 'Bu islem icin yetki yok',
+  LUL_2004: 'GitHub dogrulamasi tamamlanmadi',
 
   // 3xxx — gosterim
-  LNG_3001: 'Gosterim suresi esigin altinda',
-  LNG_3002: 'Nonce gecersiz veya suresi dolmus',
-  LNG_3003: 'Gosterim zaten kaydedilmis',
-  LNG_3004: 'Aktif kampanya yok',
-  LNG_3005: 'Render uzaktan kapatildi',
+  LUL_3001: 'Gosterim suresi esigin altinda',
+  LUL_3002: 'Nonce gecersiz veya suresi dolmus',
+  LUL_3003: 'Gosterim zaten kaydedilmis',
+  LUL_3004: 'Aktif kampanya yok',
+  LUL_3005: 'Render uzaktan kapatildi',
 
   // 4xxx — cuzdan
-  LNG_4001: 'Gecersiz Arc adresi',
-  LNG_4002: 'Bu adres bir program hesabi (PDA) — cuzdan adresi degil',
-  LNG_4003: 'Bu adres bir token hesabi — cuzdan adresini gir',
-  LNG_4004: 'USDC token hesabi dondurulmus',
-  LNG_4005: 'Bu adres USDC mint adresinin kendisi',
-  LNG_4006: 'Gizli anahtar girildi — bu cuzdani artik kullanma',
-  LNG_4007: 'Bu adres baska bir hesaba bagli',
-  LNG_4008: 'Adres degisikligi bekleme suresinde',
-  LNG_4009: 'Desteklenmeyen adres tipi',
-  LNG_4010: 'Adres sahipligi dogrulanamadi',
+  LUL_4001: 'Gecersiz Arc adresi',
+  LUL_4002: 'Bu adres bir program hesabi (PDA) — cuzdan adresi degil',
+  LUL_4003: 'Bu adres bir token hesabi — cuzdan adresini gir',
+  LUL_4004: 'USDC token hesabi dondurulmus',
+  LUL_4005: 'Bu adres USDC mint adresinin kendisi',
+  LUL_4006: 'Gizli anahtar girildi — bu cuzdani artik kullanma',
+  LUL_4007: 'Bu adres baska bir hesaba bagli',
+  LUL_4008: 'Adres degisikligi bekleme suresinde',
+  LUL_4009: 'Desteklenmeyen adres tipi',
+  LUL_4010: 'Adres sahipligi dogrulanamadi',
 
   // 5xxx — odeme
-  LNG_5001: 'Bakiye odeme esiginin altinda',
-  LNG_5002: 'Odeme zaten islemde',
-  LNG_5003: 'Odeme gonderildi ama henuz onaylanmadi',
-  LNG_5004: 'Odeme basarisiz — ters kayit yazildi',
-  LNG_5005: 'Kampanya butcesi yetersiz',
-  LNG_5006: 'Ledger invariant ihlali',
+  LUL_5001: 'Bakiye odeme esiginin altinda',
+  LUL_5002: 'Odeme zaten islemde',
+  LUL_5003: 'Odeme gonderildi ama henuz onaylanmadi',
+  LUL_5004: 'Odeme basarisiz — ters kayit yazildi',
+  LUL_5005: 'Kampanya butcesi yetersiz',
+  LUL_5006: 'Ledger invariant ihlali',
 
   // 9xxx
-  LNG_9001: 'Sunucu hatasi',
-  LNG_9002: 'Hiz siniri asildi',
+  LUL_9001: 'Sunucu hatasi',
+  LUL_9002: 'Hiz siniri asildi',
 } as const
 
 export type ErrorCode = keyof typeof ERROR_CODES
@@ -73,8 +73,8 @@ export interface ErrorEnvelope {
   readonly traceId?: string
 }
 
-export class LingerError extends Error {
-  override readonly name = 'LingerError'
+export class LullError extends Error {
+  override readonly name = 'LullError'
   readonly code: ErrorCode
   readonly hint: string | undefined
   readonly traceId: string | undefined

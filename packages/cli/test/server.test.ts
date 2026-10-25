@@ -9,7 +9,7 @@ import { encode, type Request, type Response } from '../src/ipc.js'
 let server: SocketServer | null = null
 let dir: string
 
-const newDir = () => (dir = mkdtempSync(join(tmpdir(), 'linger-test-')))
+const newDir = () => (dir = mkdtempSync(join(tmpdir(), 'lull-test-')))
 
 afterEach(async () => {
   await server?.close()
@@ -62,13 +62,13 @@ describe('unix socket sunucusu', () => {
       c.on('error', () => resolve(null))
       setTimeout(() => { c.destroy(); resolve(null) }, 1000)
     })
-    expect(res).toEqual({ t: 'error', code: 'LNG_9001' })
+    expect(res).toEqual({ t: 'error', code: 'LUL_9001' })
   })
 
   it('handler patlarsa baglanti olmez, hata cevabi doner', async () => {
     const p = join(newDir(), 'd.sock')
     server = await startSocketServer(p, () => { throw new Error('boom') }, () => {})
-    expect(await ask(p, { t: 'health' })).toEqual({ t: 'error', code: 'LNG_9001' })
+    expect(await ask(p, { t: 'health' })).toEqual({ t: 'error', code: 'LUL_9001' })
   })
 
   it('bayat soket dosyasi temizlenir — daemon carpmissa yeniden baslayabilmeli', async () => {

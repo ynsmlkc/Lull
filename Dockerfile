@@ -1,4 +1,4 @@
-# Linger sunucusu.
+# Lull sunucusu.
 #
 # Iki asamali: birinci asama derler, ikinci asama yalnizca sonucu tasir.
 # Sebep guvenlik ve boyut — yayinlanan imajda kaynak kod, test, pnpm ve
@@ -27,7 +27,7 @@ COPY packages/cli/package.json       packages/cli/
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN pnpm --filter @linger/server build
+RUN pnpm --filter @lull/server build
 
 # IP → ulke veritabani (DB-IP "IP to Country Lite", CC BY 4.0, ~8 MB).
 # Yalnizca profil formunda ulkeyi onceden doldurmak icin; IP disari cikmaz.
@@ -46,26 +46,26 @@ WORKDIR /app
 
 # root DEGIL. Konteynerden kacan bir aciğin makineyi de ele gecirmemesi icin.
 #
-# Ama `USER linger` BURADA verilmiyor: Railway diski root'a ait baglaniyor ve
+# Ama `USER lull` BURADA verilmiyor: Railway diski root'a ait baglaniyor ve
 # sahipligini duzeltmek icin bir an root olmak gerekiyor. Entrypoint bunu
-# yapip hemen `linger` kullanicisina duserek node'u calistiriyor.
-RUN addgroup -S linger && adduser -S linger -G linger \
+# yapip hemen `lull` kullanicisina duserek node'u calistiriyor.
+RUN addgroup -S lull && adduser -S lull -G lull \
  && apk add --no-cache su-exec
 
 # Tek dosya. Butun bagimliliklar esbuild ile iceri gomulu, bu yuzden
 # `node_modules` TASINMIYOR — imaj ~150 MB yerine ~50 MB.
-COPY --from=build --chown=linger:linger /app/packages/server/dist/server.mjs ./server.mjs
+COPY --from=build --chown=lull:lull /app/packages/server/dist/server.mjs ./server.mjs
 # Site. Sunucu bunlari `/` altinda servis ediyor; API `/v1/*` altinda kaliyor.
 # Ayni adres olmasi CORS'u tamamen ortadan kaldiriyor.
-COPY --from=build --chown=linger:linger /app/packages/server/public ./public
-COPY --from=build --chown=linger:linger /app/geo ./geo
+COPY --from=build --chown=lull:lull /app/packages/server/public ./public
+COPY --from=build --chown=lull:lull /app/geo ./geo
 COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 # Konteynerde 0.0.0.0 SART: 127.0.0.1'e baglanan bir sunucuya disaridan
 # ulasilamaz ve platform "saglik kontrolu basarisiz" der.
 ENV HOST=0.0.0.0
 ENV NODE_ENV=production
-ENV LINGER_ENV=production
+ENV LULL_ENV=production
 
 # Platform kendi PORT'unu verir; bu yalnizca yerelde calistirmak icin.
 ENV PORT=8787

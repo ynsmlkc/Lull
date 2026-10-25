@@ -11,8 +11,8 @@
  *   3. Ayni idempotency key ile ikinci yazma hata degil, ORIJINAL SONUC doner.
  */
 
-import { type Micros, micros, add, neg, sum, splitRevenue, ZERO } from '@linger/protocol'
-import type { Clock } from '@linger/protocol'
+import { type Micros, micros, add, neg, sum, splitRevenue, ZERO } from '@lull/protocol'
+import type { Clock } from '@lull/protocol'
 import {
   type AccountId, type AccountKind, parseAccountId,
   PLATFORM_REVENUE, EXTERNAL_CASH, EXTERNAL_SETTLEMENT, NON_NEGATIVE, accountId,
@@ -191,7 +191,7 @@ export class Ledger {
     topupId: string
     asset?: Asset
   }): readonly Entry[] {
-    if (input.amount <= 0n) throw new LedgerError('yatirilan tutar pozitif olmali', 'LNG_5006')
+    if (input.amount <= 0n) throw new LedgerError('yatirilan tutar pozitif olmali', 'LUL_5006')
     const asset = input.asset ?? 'USDC'
     const advertiser = accountId('advertiser', input.advertiserId)
 
@@ -234,7 +234,7 @@ export class Ledger {
     revShareBps: number
     asset?: Asset
   }): readonly Entry[] {
-    if (input.rate < 0n) throw new LedgerError('rate negatif olamaz', 'LNG_5006')
+    if (input.rate < 0n) throw new LedgerError('rate negatif olamaz', 'LUL_5006')
     const asset = input.asset ?? 'USDC'
     const { publisher, platform } = splitRevenue(input.rate, input.revShareBps)
 
@@ -287,7 +287,7 @@ export class Ledger {
      */
     kind?: 'publisher' | 'advertiser' | 'platform_revenue'
   }): readonly Entry[] {
-    if (input.amount <= 0n) throw new LedgerError('odeme tutari pozitif olmali', 'LNG_5006')
+    if (input.amount <= 0n) throw new LedgerError('odeme tutari pozitif olmali', 'LUL_5006')
     const asset = input.asset ?? 'USDC'
     const key = `${input.batchId}:${input.publisherId}`
 
@@ -306,7 +306,7 @@ export class Ledger {
     if (!tekrar && this.store.balance(fromAccount, asset) < input.amount) {
       throw new LedgerError(
         `odeme hesabi eksiye dusururdu: ${fromAccount} bakiye ${this.store.balance(fromAccount, asset)} < ${input.amount}`,
-        'LNG_5006',
+        'LUL_5006',
       )
     }
 
@@ -364,7 +364,7 @@ export class Ledger {
   reverse(refType: RefType, refId: string, reason: string): readonly Entry[] {
     const original = this.store.byRef(refType, refId)
     if (original.length === 0) {
-      throw new LedgerError(`ters cevrilecek kayit yok: ${refType}:${refId}`, 'LNG_5006')
+      throw new LedgerError(`ters cevrilecek kayit yok: ${refType}:${refId}`, 'LUL_5006')
     }
     const reversalRef = `${refId}:reversal`
     if (this.store.byRef('reversal', reversalRef).length > 0) {
@@ -472,7 +472,7 @@ export class Ledger {
     if (total !== 0n) {
       throw new LedgerError(
         `dengesiz kayit grubu: toplam ${total} (sifir olmali) — ${entries[0]?.refType}:${entries[0]?.refId}`,
-        'LNG_5006',
+        'LUL_5006',
       )
     }
     this.#billed = null

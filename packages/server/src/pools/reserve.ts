@@ -7,7 +7,7 @@
  * Ucunun ayri hesaplamasi, birinin digerinden farkli rakam soylemesi demek.
  */
 
-import { micros, type Micros } from '@linger/protocol'
+import { micros, type Micros } from '@lull/protocol'
 import type { PoolStore, Pool } from './pool-store.js'
 import type { CampaignStore } from '../ads/campaign-store.js'
 

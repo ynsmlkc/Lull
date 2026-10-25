@@ -14,8 +14,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { fixedClock, micros, type Micros } from '@linger/protocol'
-import { WalletStore } from '@linger/payments'
+import { fixedClock, micros, type Micros } from '@lull/protocol'
+import { WalletStore } from '@lull/payments'
 import { openDb, type Db, vacuumExpired } from '../src/store/db.js'
 import {
   SqliteLedgerStore, SqliteTokenStore, SqlitePayoutStore,
@@ -35,8 +35,8 @@ let n = 0
 const ids = () => `id-${++n}`
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'linger-db-'))
-  path = join(dir, 'linger.db')
+  dir = mkdtempSync(join(tmpdir(), 'lull-db-'))
+  path = join(dir, 'lull.db')
   db = openDb(path)
   n = 0
 })
@@ -141,13 +141,13 @@ describe('token\'lar', () => {
   it('giris yeniden baslatmadan sonra gecerli kalir', () => {
     const t1 = new SqliteTokenStore(db)
     t1.add({
-      id: 'tok-1', publisherId: 'GABC', tokenHash: hashToken('lng_gizli'),
+      id: 'tok-1', publisherId: 'GABC', tokenHash: hashToken('lul_gizli'),
       scopes: ['report:impressions', 'read:balance'],
       clientVersion: null, revokedAt: null, lastSeenAt: null,
     })
 
     const t2 = new SqliteTokenStore(yenidenBaslat())
-    const bulunan = t2.find('lng_gizli')
+    const bulunan = t2.find('lul_gizli')
     expect(bulunan?.publisherId).toBe('GABC')
     expect(bulunan?.scopes).toEqual(['report:impressions', 'read:balance'])
   })
@@ -155,23 +155,23 @@ describe('token\'lar', () => {
   it('iptal edilmis token yeniden baslatmadan sonra da IPTAL', () => {
     const t1 = new SqliteTokenStore(db)
     t1.add({
-      id: 'tok-1', publisherId: 'GABC', tokenHash: hashToken('lng_gizli'),
+      id: 'tok-1', publisherId: 'GABC', tokenHash: hashToken('lul_gizli'),
       scopes: ['read:balance'], clientVersion: null, revokedAt: null, lastSeenAt: null,
     })
     t1.revoke('tok-1', 12345)
 
     const t2 = new SqliteTokenStore(yenidenBaslat())
-    expect(t2.find('lng_gizli')?.revokedAt).toBe(12345)
+    expect(t2.find('lul_gizli')?.revokedAt).toBe(12345)
   })
 
   it('ham token diskte SAKLANMAZ', () => {
     const t1 = new SqliteTokenStore(db)
     t1.add({
-      id: 'tok-1', publisherId: 'GABC', tokenHash: hashToken('lng_cok_gizli'),
+      id: 'tok-1', publisherId: 'GABC', tokenHash: hashToken('lul_cok_gizli'),
       scopes: ['read:balance'], clientVersion: null, revokedAt: null, lastSeenAt: null,
     })
     const satirlar = JSON.stringify(db.prepare('SELECT * FROM tokens').all())
-    expect(satirlar).not.toContain('lng_cok_gizli')
+    expect(satirlar).not.toContain('lul_cok_gizli')
   })
 })
 

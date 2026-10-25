@@ -1,5 +1,5 @@
 /**
- * `linger login` sirasinda tarayicida acilan sayfa.
+ * `lull login` sirasinda tarayicida acilan sayfa.
  *
  * Neden tarayici? Cunku ozel anahtari GORMEK ISTEMIYORUZ (ADR-014). MetaMask,
  * Rabby ve Coinbase Wallet tarayici eklentileri; imzayi onlar atar, biz yalnizca
@@ -12,7 +12,7 @@
  * baglanamiyor.
  */
 
-import { COUNTRY_CODES } from '@linger/protocol'
+import { COUNTRY_CODES } from '@lull/protocol'
 
 export interface LoginPageOpts {
   readonly nonce: string
@@ -29,7 +29,7 @@ export function loginPage(opts: LoginPageOpts): string {
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Linger — connect your wallet</title>
+<title>Lull — connect your wallet</title>
 <style>
   /* Sitenin (landing) dili: sicak koyu zemin, Geist, tek turuncu vurgu,
      urunun kendisi — terminal penceresi — sahnenin ortasinda. CSP disariya
@@ -162,7 +162,7 @@ export function loginPage(opts: LoginPageOpts): string {
 <body>
 
 <header>
-  <span class="brand"><i>✶</i>linger</span>
+  <span class="brand"><i>✶</i>lull</span>
   <span class="chip"><i></i>local · 127.0.0.1:${opts.port}</span>
 </header>
 
@@ -184,7 +184,7 @@ export function loginPage(opts: LoginPageOpts): string {
       <div class="win">
         <div class="win-bar">
           <span class="dots"><i></i><i></i><i></i></span>
-          <span class="title">linger login</span>
+          <span class="title">lull login</span>
           <span id="status">ready</span>
         </div>
         <div class="log" id="log"></div>
@@ -209,7 +209,7 @@ export function loginPage(opts: LoginPageOpts): string {
       <div class="manual hide" id="profilebox">
         <p class="kicker"><i>✶</i>step 3 of 3 · optional</p>
         <p style="color:var(--ink)">Join the public leaderboard and the world map?</p>
-        <p>Only a nickname and a country are shown, never your wallet address. Earnings from your own campaigns don't count. Change or leave any time with <b>linger profile</b>.</p>
+        <p>Only a nickname and a country are shown, never your wallet address. Earnings from your own campaigns don't count. Change or leave any time with <b>lull profile</b>.</p>
         <input id="p-nick" maxlength="20" placeholder="nickname — 3–20 letters, digits, _ . -" autocomplete="off" spellcheck="false">
         <select id="p-country"><option value="">Don't show a country</option></select>
         <p id="p-guess" class="hide" style="font-size:12.5px"></p>
@@ -225,7 +225,7 @@ export function loginPage(opts: LoginPageOpts): string {
 </main>
 
 <footer>
-  <span>✶ linger</span>
+  <span>✶ lull</span>
   <span>Ctrl-C in the terminal to close</span>
 </footer>
 
@@ -251,7 +251,7 @@ function status(text, color) {
   $('status').style.color = color || DIM
 }
 
-log('❯ linger login', DIM)
+log('❯ lull login', DIM)
 log('  wallet not connected', DIM)
 
 /* ─────────────────────────── sunucu ─────────────────────────── */
@@ -259,7 +259,7 @@ log('  wallet not connected', DIM)
 async function post(path, body) {
   const r = await fetch(path, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-linger-nonce': NONCE },
+    headers: { 'content-type': 'application/json', 'x-lull-nonce': NONCE },
     body: JSON.stringify(body),
   })
   const j = await r.json().catch(() => ({}))
@@ -375,7 +375,7 @@ async function finish(address, message, signature) {
 
   done = true
   log('✓ verified — earnings will go to this address', ACC)
-  log('✓ session saved to ~/.linger/credentials.json', DIM)
+  log('✓ session saved to ~/.lull/credentials.json', DIM)
   status('connected', ACC)
   $('scene').classList.add('on')
 
@@ -475,7 +475,7 @@ $('p-save').onclick = async () => {
 $('p-skip').onclick = async () => {
   try { await post('/profile/skip', {}) } catch {}
   $('profilebox').classList.add('hide')
-  log('  leaderboard skipped — join later with: linger profile', DIM)
+  log('  leaderboard skipped — join later with: lull profile', DIM)
   status('done — you can close this page', ACC)
 }
 

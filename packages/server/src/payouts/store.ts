@@ -20,8 +20,8 @@
  *                    yazmak olurdu.
  */
 
-import type { Micros } from '@linger/protocol'
-import type { SubmissionReceipt, SettlementState } from '@linger/payments'
+import type { Micros } from '@lull/protocol'
+import type { SubmissionReceipt, SettlementState } from '@lull/payments'
 
 export type PayoutItemState =
   /** Gonderildi, zincirde onay bekleniyor. */

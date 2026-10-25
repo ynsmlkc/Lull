@@ -4,8 +4,8 @@
  * Onceden `daemon/index.ts` icinde `const VERSION = '0.0.0'` yaziyordu ve
  * hicbir yere bagli degildi. Iki sonucu vardi:
  *
- *   • `linger status` her surumde "0.0.0" gosteriyordu
- *   • Sunucuya giden `x-linger-client-version` basligi da "0.0.0" idi
+ *   • `lull status` her surumde "0.0.0" gosteriyordu
+ *   • Sunucuya giden `x-lull-client-version` basligi da "0.0.0" idi
  *
  * Ikincisi sessiz ve tehlikeliydi: sunucudaki `minClientVersion` kapisi
  * boylece ISLEVSIZ. Bir gun eski istemcileri kesmek icin esik yukseltilse,
@@ -19,7 +19,7 @@
  * yanilgiyi tekrar uretirdi.
  */
 
-declare const __LINGER_VERSION__: string | undefined
+declare const __LULL_VERSION__: string | undefined
 
 export const VERSION: string =
-  typeof __LINGER_VERSION__ === 'string' ? __LINGER_VERSION__ : 'dev'
+  typeof __LULL_VERSION__ === 'string' ? __LULL_VERSION__ : 'dev'

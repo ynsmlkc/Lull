@@ -9,14 +9,14 @@ let dir = ''
 let path = ''
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'linger-spin-'))
+  dir = mkdtempSync(join(tmpdir(), 'lull-spin-'))
   path = join(dir, 'settings.json')
 })
 afterEach(() => rmSync(dir, { recursive: true, force: true }))
 
 const write = (s: ClaudeSettings) => writeFileSync(path, JSON.stringify(s, null, 2))
 const read = (): ClaudeSettings => JSON.parse(readFileSync(path, 'utf8'))
-const ours = { mode: 'replace' as const, verbs: ['✶ Linger'], [MARKER]: true as const }
+const ours = { mode: 'replace' as const, verbs: ['✶ Lull'], [MARKER]: true as const }
 
 describe('spinner senkronu', () => {
   it('aktif reklamin markasini yazar', () => {
@@ -125,7 +125,7 @@ describe('cok oturum — spinner GLOBAL bir ayardir', () => {
     // ve kullanici spinner'da "Brewing…" goruyordu.
     const { startDaemon } = await import('../src/daemon/index.js')
     const { mkdtempSync: mk } = await import('node:fs')
-    const tmp = mk(join(tmpdir(), 'linger-multi-'))
+    const tmp = mk(join(tmpdir(), 'lull-multi-'))
     const settings = join(tmp, 'settings.json')
     writeFileSync(settings, JSON.stringify({ spinnerVerbs: ours }))
 
@@ -157,7 +157,7 @@ describe('tur basina rotasyon — yalnizca tur bitiminde yazilir', () => {
   async function daemonWith(settings: string) {
     const { startDaemon } = await import('../src/daemon/index.js')
     const { mkdtempSync: mk } = await import('node:fs')
-    const tmp = mk(join(tmpdir(), 'linger-turn-'))
+    const tmp = mk(join(tmpdir(), 'lull-turn-'))
     writeFileSync(settings, JSON.stringify({ spinnerVerbs: ours }))
     const ad = (b: string) => ({ campaignId: b, nonce: '0'.repeat(32), nonceExpiresAt: 9e12,
       creative: { brand: b, text: 'metin' } })
@@ -171,7 +171,7 @@ describe('tur basina rotasyon — yalnizca tur bitiminde yazilir', () => {
   it('tur ICINDE spinner sabit kalir — dosya ekranda gorunenle ayni', () => {
     // Tur icinde yazmak o turu etkilemez (CC tur basinda okuyor) ama dosyayi
     // ekrandan farkli hale getirir ve hata ayiklamayi yaniltir.
-    const dir2 = mkdtempSync(join(tmpdir(), 'linger-t1-'))
+    const dir2 = mkdtempSync(join(tmpdir(), 'lull-t1-'))
     const set = join(dir2, 'settings.json')
     return daemonWith(set).then(async ({ d, tmp }) => {
       const read = () => JSON.parse(readFileSync(set, 'utf8')).spinnerVerbs.verbs[0]
@@ -185,7 +185,7 @@ describe('tur basina rotasyon — yalnizca tur bitiminde yazilir', () => {
   })
 
   it('tur BITINCE siradaki reklam on yuklenir', async () => {
-    const dir2 = mkdtempSync(join(tmpdir(), 'linger-t2-'))
+    const dir2 = mkdtempSync(join(tmpdir(), 'lull-t2-'))
     const set = join(dir2, 'settings.json')
     const { d, tmp } = await daemonWith(set)
     const read = () => JSON.parse(readFileSync(set, 'utf8')).spinnerVerbs.verbs[0]
@@ -206,7 +206,7 @@ describe('tur basina rotasyon — yalnizca tur bitiminde yazilir', () => {
   })
 
   it('daemon acilirken ilk reklami yazar — ilk tur yer tutucu gormez', async () => {
-    const dir2 = mkdtempSync(join(tmpdir(), 'linger-t3-'))
+    const dir2 = mkdtempSync(join(tmpdir(), 'lull-t3-'))
     const set = join(dir2, 'settings.json')
     const { d, tmp } = await daemonWith(set)
     expect(JSON.parse(readFileSync(set, 'utf8')).spinnerVerbs.verbs[0]).toBe('✶ Bir')
@@ -219,7 +219,7 @@ describe('tur basina rotasyon — yalnizca tur bitiminde yazilir', () => {
  * Daemon DURDURULUNCA spinner listesi bosalmamali.
  *
  * Gercekte yasandi: `stop()` icinde `spinner.clear()` cagriliyordu, yani
- * her `linger restart`, her makine kapanisi ve her SIGTERM listeyi
+ * her `lull restart`, her makine kapanisi ve her SIGTERM listeyi
  * bosaltiyordu. `clear()` kendi aciklamasinda "yalnizca uninstall cagirir"
  * dedigi halde.
  *
@@ -235,7 +235,7 @@ describe('daemon durunca spinner', () => {
       statusLine: { type: 'command', command: 'x' },
       spinnerVerbs: { mode: 'replace', verbs: ['✶ Marka'], [MARKER]: true },
     })
-    const dizin = mkdtempSync(join(tmpdir(), 'linger-stop-'))
+    const dizin = mkdtempSync(join(tmpdir(), 'lull-stop-'))
 
     const d = await startDaemon({
       dataDir: dizin,

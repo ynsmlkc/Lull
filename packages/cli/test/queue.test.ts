@@ -6,7 +6,7 @@ import { ImpressionQueue } from '../src/daemon/queue.js'
 import type { CompletedImpression } from '../src/daemon/turns.js'
 
 let dir = ''
-beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'linger-q-')) })
+beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'lull-q-')) })
 afterEach(() => rmSync(dir, { recursive: true, force: true }))
 
 const imp = (id: string): CompletedImpression => ({

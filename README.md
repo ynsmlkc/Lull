@@ -1,10 +1,10 @@
-# Linger on Arc
+# Lull on Arc
 
 > Terminal-native ad marketplace that turns AI coding wait states into revenue, paid out in USDC on Arc.
 
 While Claude Code is thinking, a single clearly-disclosed sponsored line appears in the status line. Verified impressions accrue to the developer's balance, and the developer can withdraw any amount at any time, straight from an on-chain vault, in one Arc transaction. No bank account, no country restrictions, no payout threshold.
 
-**Status: live on Arc mainnet.** Real USDC moves through `LingerVault`.
+**Status: live on Arc mainnet.** Real USDC moves through `LullVault`.
 
 | | |
 |---|---|
@@ -13,9 +13,9 @@ While Claude Code is thinking, a single clearly-disclosed sponsored line appears
 | Built with | [Arc Studio](https://studio.arc.io) — the vault contract, its audit and its tests |
 
 ```bash
-npm i -g lingersh-arc && linger init --spinner   # status line + daemon
-linger login                                     # connect MetaMask / Rabby / Coinbase Wallet
-linger balance                                   # what you've earned
+npm i -g lullsh && lull init --spinner   # status line + daemon
+lull login                                     # connect MetaMask / Rabby / Coinbase Wallet
+lull balance                                   # what you've earned
 ```
 
 Advertisers sign in at `/advertisers/app`, deposit USDC with one click from their wallet and launch a campaign. Developers see what they earned at `/app` and withdraw whenever they like.
@@ -35,7 +35,7 @@ Arc removes the parts that made this awkward on other chains:
 ## How money moves
 
 ```
-advertiser wallet ──USDC transfer──▶ LingerVault ──payout(batchId, [devs], [amounts])──▶ developer wallets
+advertiser wallet ──USDC transfer──▶ LullVault ──payout(batchId, [devs], [amounts])──▶ developer wallets
                                          ▲
                      operator (server hot wallet) signs payout, pays gas
 ```
@@ -44,7 +44,7 @@ advertiser wallet ──USDC transfer──▶ LingerVault ──payout(batchId,
 - **Payouts** are atomic batches. The vault records each `batchId` and refuses to pay it twice, so even a server that crashes mid-payout and retries cannot double-pay on-chain. That guarantee sits underneath the ledger's own idempotency.
 - **The money is not in the hot wallet.** The operator can only call `payout`. The owner (a separate wallet) can `pause`, replace the operator, or `rescue` funds.
 
-`LingerVault` was written, security-reviewed (manual review and Slither) and tested (40 Foundry tests, including a conservation invariant) in Arc Studio, then deployed to Arc testnet from there. The prompt that produced it is in [`contracts/vault/ARC-STUDIO-PROMPT.md`](contracts/vault/ARC-STUDIO-PROMPT.md), and the Studio session is recorded in [`contracts/vault/arc-studio-session.json`](contracts/vault/arc-studio-session.json).
+`LullVault` was written, security-reviewed (manual review and Slither) and tested (40 Foundry tests, including a conservation invariant) in Arc Studio, then deployed to Arc testnet from there. The prompt that produced it is in [`contracts/vault/ARC-STUDIO-PROMPT.md`](contracts/vault/ARC-STUDIO-PROMPT.md), and the Studio session is recorded in [`contracts/vault/arc-studio-session.json`](contracts/vault/arc-studio-session.json).
 
 ## Payment rail: failure modes encoded
 
@@ -72,12 +72,12 @@ Address policy rejects pasted private keys and mnemonics (without echoing them),
 Claude Code
     │  hooks: UserPromptSubmit → Stop
     ▼
-statusLine shim ──22ms──> lingerd ──> turn state machine
+statusLine shim ──22ms──> lulld ──> turn state machine
     │                        │            │
     └──── ✶ Sponsor … ───────┘       disk queue
                                           │
                                           ▼
-                                   Linger backend ──> Arc (USDC, LingerVault)
+                                   Lull backend ──> Arc (USDC, LullVault)
 ```
 
 The daemon holds the ad in memory so the shim never touches the network. If the daemon is down, unreachable, or unsure, the shim prints **nothing**: no error, no stale line. It fails closed.
@@ -95,11 +95,11 @@ The daemon holds the ad in memory so the shim never touches the network. If the 
 ## Repo layout
 
 ```
-contracts/vault/        LingerVault (Solidity, Foundry) — built with Arc Studio
+contracts/vault/        LullVault (Solidity, Foundry) — built with Arc Studio
 packages/protocol/      shared types, money, sanitizer, schemas
 packages/payments/      ArcRail, deposit source, address policy, wallet sign-in, payout job
 packages/server/        HTTP API, ledger, ad selection, deposits, withdrawals, web panels
-packages/cli/           daemon, unix socket, shim, disk queue, `linger` command
+packages/cli/           daemon, unix socket, shim, disk queue, `lull` command
 scripts/arc-smoke.mjs   end-to-end money loop against a live server
 spikes/                 throwaway probes (ad-surface measurements)
 PROJECT.md              design document — ADRs, data model
@@ -115,13 +115,13 @@ pnpm test:contracts    # forge test (needs Foundry; see contracts/vault/README.m
 
 # rail against a real EVM node + the real vault (needs Foundry)
 (cd contracts/vault && forge build)
-LINGER_ANVIL=1 pnpm --filter @linger/payments test
+LULL_ANVIL=1 pnpm --filter @lull/payments test
 ```
 
 Run the server locally (in-memory database, Arc testnet):
 
 ```bash
-pnpm --filter @linger/server build
+pnpm --filter @lull/server build
 PORT=8787 node packages/server/dist/server.mjs
 ```
 
@@ -132,7 +132,7 @@ See [`.env.example`](.env.example) for every variable, and [`contracts/vault/REA
 | Area | Status |
 |---|---|
 | Unit tests (protocol, payments, server, CLI) | ✅ 718 pass |
-| `LingerVault` Foundry tests (unit + invariant) | ✅ 40 pass |
+| `LullVault` Foundry tests (unit + invariant) | ✅ 40 pass |
 | `ArcRail` + deposit source against anvil with the real vault | ✅ 7 pass |
 | Full money loop (login → deposit → credit → campaign → withdraw from vault) on a local chain | ✅ |
 | Vault deployed on Arc testnet from Arc Studio | ✅ `0x2a7db15f85f947b7374847382b00133d470d6eda` |

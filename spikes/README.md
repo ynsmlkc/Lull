@@ -8,11 +8,11 @@ Sonuçlar `PROJECT.md`'ye tablo olarak işlendikten sonra bu klasör silinir. Te
 
 ## Kıvılcım 2 — Arc batch ödeme ✅ yerel EVM düğümünde koşuldu
 
-Bu kıvılcımın kodu artık atılacak kod değil: `packages/payments/test/integration/arc-anvil.test.ts`. Yerel bir `anvil` açar, gerçek `LingerVault`'u ve sahte bir USDC'yi deploy eder, sonra `ArcRail`'i ve yatırma kaynağını gerçek düğümde dener.
+Bu kıvılcımın kodu artık atılacak kod değil: `packages/payments/test/integration/arc-anvil.test.ts`. Yerel bir `anvil` açar, gerçek `LullVault`'u ve sahte bir USDC'yi deploy eder, sonra `ArcRail`'i ve yatırma kaynağını gerçek düğümde dener.
 
 ```bash
 (cd contracts/vault && forge build)
-LINGER_ANVIL=1 pnpm --filter @linger/payments test
+LULL_ANVIL=1 pnpm --filter @lull/payments test
 ```
 
 | İddia | Sonuç |
@@ -56,5 +56,5 @@ node uninstall.mjs            # geri al
 - Alt satırda reklam göründü mü, beklerken duruyor mu yoksa donuyor mu?
 - `--spinner` ile: spinner `✶ Firecrawl…` diyor mu? Alttaki "Tip:" satırı değişti mi?
 - **`settings.json` canlı okunuyor mu?** Probe çalışırken `spinnerVerbs.verbs`'ü elle değiştir — oturumu yeniden başlatmadan değişti mi? Bu, spinner katmanının rotasyona uygun olup olmadığını belirleyen tek soru.
-- Footer'daki `esc to interrupt` kayboldu mu? (ekran görüntüsü al — `linger uninstall`'ın testi buna dayanacak)
+- Footer'daki `esc to interrupt` kayboldu mu? (ekran görüntüsü al — `lull uninstall`'ın testi buna dayanacak)
 - Hook shim'i tool call'ları yavaşlattı mı? **Yavaşlattıysa bu kırmızı çizgi.**

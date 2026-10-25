@@ -3,11 +3,11 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {LingerVault} from "../src/LingerVault.sol";
-import {MockERC20} from "./mocks/LingerMocks.sol";
+import {LullVault} from "../src/LullVault.sol";
+import {MockERC20} from "./mocks/LullMocks.sol";
 
 contract VaultHandler is Test {
-    LingerVault public vault;
+    LullVault public vault;
     MockERC20 public usdc;
     address public operator;
     address public depositor = address(0xD0);
@@ -15,7 +15,7 @@ contract VaultHandler is Test {
     uint256 public nonce;
     address[] public paidTo;
 
-    constructor(LingerVault v, MockERC20 t, address op) {
+    constructor(LullVault v, MockERC20 t, address op) {
         vault = v;
         usdc = t;
         operator = op;
@@ -57,15 +57,15 @@ contract VaultHandler is Test {
     }
 }
 
-contract LingerVaultInvariantTest is Test {
-    LingerVault internal vault;
+contract LullVaultInvariantTest is Test {
+    LullVault internal vault;
     MockERC20 internal usdc;
     VaultHandler internal handler;
 
     function setUp() public {
         usdc = new MockERC20();
         address op = makeAddr("operator");
-        vault = new LingerVault(IERC20(address(usdc)), makeAddr("owner"), op);
+        vault = new LullVault(IERC20(address(usdc)), makeAddr("owner"), op);
         handler = new VaultHandler(vault, usdc, op);
         targetContract(address(handler));
     }

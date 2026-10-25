@@ -7,7 +7,7 @@
  * anda ve deterministik olarak uretebilmek.
  */
 
-import { type Micros, micros, ZERO } from '@linger/protocol'
+import { type Micros, micros, ZERO } from '@lull/protocol'
 import type {
   PaymentRail, PayoutBatch, SubmissionReceipt, SettlementResult,
   DestinationStatus, SourceAccountStatus,

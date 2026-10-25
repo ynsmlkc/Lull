@@ -2,7 +2,7 @@
 /**
  * Hook shim — Claude Code'un tur olaylarinda cagirdigi program.
  *
- * `linger-hook <EventName>` seklinde cagrilir; olay adi argumandan, oturum
+ * `lull-hook <EventName>` seklinde cagrilir; olay adi argumandan, oturum
  * kimligi stdin'deki JSON'dan gelir.
  *
  * MUTLAK KURAL: her zaman 0 ile cikar ve HICBIR SEY basmaz.
@@ -19,9 +19,9 @@ import { existsSync, openSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const SOCKET = process.env['LINGER_SOCKET']
-  ?? socketPathFor(process.env['LINGER_HOME'] ?? `${process.env['HOME']}/.linger`)
-const BUDGET_MS = Number(process.env['LINGER_HOOK_BUDGET_MS'] ?? 300) || 300
+const SOCKET = process.env['LULL_SOCKET']
+  ?? socketPathFor(process.env['LULL_HOME'] ?? `${process.env['HOME']}/.lull`)
+const BUDGET_MS = Number(process.env['LULL_HOOK_BUDGET_MS'] ?? 300) || 300
 
 const quit = (): never => process.exit(0)
 
@@ -47,7 +47,7 @@ function tryRevive(): void {
     const entry = join(pkgRoot, 'dist', 'daemon.mjs')
     if (!existsSync(entry)) return
 
-    const home = process.env['LINGER_HOME'] ?? `${process.env['HOME']}/.linger`
+    const home = process.env['LULL_HOME'] ?? `${process.env['HOME']}/.lull`
     mkdirSync(home, { recursive: true, mode: 0o700 })
     const logFd = openSync(join(home, 'daemon.log'), 'a')
     const child = spawn(process.execPath, [entry], {

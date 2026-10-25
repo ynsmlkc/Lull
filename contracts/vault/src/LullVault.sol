@@ -8,12 +8,12 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-/// @title LingerVault
+/// @title LullVault
 /// @notice Holds advertiser USDC and executes operator-authorized, atomic developer payouts.
 /// @dev Accounting and payout authorization are maintained off-chain. Amounts are in the
 /// token's smallest units (six decimals for USDC). Direct ERC-20 transfers are supported.
 /// The owner can replace the operator, pause payouts, and rescue all held USDC.
-contract LingerVault is Ownable2Step, Pausable, ReentrancyGuard {
+contract LullVault is Ownable2Step, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     /// @notice Maximum recipients allowed in one payout batch.

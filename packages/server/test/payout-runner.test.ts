@@ -8,8 +8,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock, micros, type Micros } from '@linger/protocol'
-import { WalletStore, type PaymentRail, type SubmissionReceipt, type PayoutBatch } from '@linger/payments'
+import { fixedClock, micros, type Micros } from '@lull/protocol'
+import { WalletStore, type PaymentRail, type SubmissionReceipt, type PayoutBatch } from '@lull/payments'
 import { Ledger } from '../src/ledger/ledger.js'
 import { MemoryLedgerStore } from '../src/ledger/memory-store.js'
 import { accountId } from '../src/ledger/accounts.js'

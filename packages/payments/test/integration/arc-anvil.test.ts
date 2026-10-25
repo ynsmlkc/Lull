@@ -6,11 +6,11 @@
  * ayni batch'in tekrar odenmesi, engelli alici, harcanmis nonce.
  *
  * Yerel bir `anvil` acar (Arc testnet zincir kimligiyle), Foundry'nin
- * derledigi `LingerVault` ve sahte USDC'yi deploy eder. Ag ya da cuzdan
+ * derledigi `LullVault` ve sahte USDC'yi deploy eder. Ag ya da cuzdan
  * gerekmez; yalnizca Foundry kurulu olmali:
  *
  *   cd contracts/vault && forge build
- *   LINGER_ANVIL=1 pnpm --filter @linger/payments test
+ *   LULL_ANVIL=1 pnpm --filter @lull/payments test
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
@@ -22,11 +22,11 @@ import {
   createPublicClient, createWalletClient, http, parseAbi, getAddress, type Hex, type Abi,
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { micros } from '@linger/protocol'
+import { micros } from '@lull/protocol'
 import { ArcRail, arcChain } from '../../src/arc-rail.js'
 import { ArcDepositSource } from '../../src/deposit-source.js'
 
-const RUN = process.env['LINGER_ANVIL'] === '1'
+const RUN = process.env['LULL_ANVIL'] === '1'
 const PORT = 8547
 const RPC = `http://127.0.0.1:${PORT}`
 
@@ -81,7 +81,7 @@ async function send(acct: typeof owner, fn: 'mint' | 'transfer' | 'setBlocked', 
   await pub.waitForTransactionReceipt({ hash })
 }
 
-describe.skipIf(!RUN)('Arc rayi — yerel anvil + gercek LingerVault', () => {
+describe.skipIf(!RUN)('Arc rayi — yerel anvil + gercek LullVault', () => {
   beforeAll(async () => {
     node = spawn('anvil', ['--port', String(PORT), '--chain-id', '5042002', '--silent'], { stdio: 'ignore' })
     for (let i = 0; ; i++) {
@@ -91,9 +91,9 @@ describe.skipIf(!RUN)('Arc rayi — yerel anvil + gercek LingerVault', () => {
       }
     }
 
-    usdc = await deploy(artifact('LingerMocks.sol', 'MockBlockableERC20'), [])
+    usdc = await deploy(artifact('LullMocks.sol', 'MockBlockableERC20'), [])
     fromBlock = await pub.getBlockNumber()
-    vault = await deploy(artifact('LingerVault.sol', 'LingerVault'), [usdc, owner.address, operator.address])
+    vault = await deploy(artifact('LullVault.sol', 'LullVault'), [usdc, owner.address, operator.address])
 
     rail = new ArcRail({ network: 'testnet', rpcUrl: RPC, operatorKey: KEYS[1], vault, usdc })
   }, 30_000)

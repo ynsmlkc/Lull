@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { fixedClock, micros, FALLBACK_CONFIG } from '@linger/protocol'
+import { fixedClock, micros, FALLBACK_CONFIG } from '@lull/protocol'
 import { createApp } from '../src/http/app.js'
 import { TokenStore, hashToken } from '../src/http/auth.js'
 import { Pipeline } from '../src/pipeline.js'
@@ -19,14 +19,14 @@ import { openDb, MEMORY, type Db } from '../src/store/db.js'
 import { poolReserve, poolCampaignIds, type ReserveDeps } from '../src/pools/reserve.js'
 import { WithdrawService } from '../src/payouts/withdraw.js'
 import { MemoryPayoutStore } from '../src/payouts/store.js'
-import type { PaymentRail, PayoutBatch, SubmissionReceipt } from '@linger/payments'
+import type { PaymentRail, PayoutBatch, SubmissionReceipt } from '@lull/payments'
 
 const SPONSOR = 'G-SPONSOR'
 const ADV = 'G-ADV'
 const ALICE = 'G-ALICE'
 const BOB = 'G-BOB'
 const OUTSIDER = 'G-OUTSIDER'
-const TOK = { sponsor: 'lng_sponsor_token_0123456789abcdef', alice: 'lng_alice_token_00123456789abcdef', bob: 'lng_bob_token_0000123456789abcdef', adv: 'lng_adv_token_0000123456789abcdefg' }
+const TOK = { sponsor: 'lul_sponsor_token_0123456789abcdef', alice: 'lul_alice_token_00123456789abcdef', bob: 'lul_bob_token_0000123456789abcdef', adv: 'lul_adv_token_0000123456789abcdefg' }
 const BID = micros(10_000_000n)   // $1 CPM → gosterim basina 10_000 micro
 
 let clock: ReturnType<typeof fixedClock>

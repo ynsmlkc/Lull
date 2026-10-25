@@ -16,9 +16,9 @@
  * "eslesmeyen yatirma" olarak birikir ve elle cozulur.
  */
 
-import type { Clock } from '@linger/protocol'
-import { micros, type Micros } from '@linger/protocol'
-import type { DepositSource } from '@linger/payments'
+import type { Clock } from '@lull/protocol'
+import { micros, type Micros } from '@lull/protocol'
+import type { DepositSource } from '@lull/payments'
 import type { Ledger } from '../ledger/ledger.js'
 
 export interface DepositWatcherDeps {

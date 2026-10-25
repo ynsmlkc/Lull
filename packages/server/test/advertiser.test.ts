@@ -13,11 +13,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { fixedClock, micros } from '@linger/protocol'
+import { fixedClock, micros } from '@lull/protocol'
 import { openDb, type Db } from '../src/store/db.js'
 import { CampaignStore, validateCreative, MIN_BID_CPM, DEFAULT_REV_SHARE_BPS } from '../src/ads/campaign-store.js'
 import { DepositWatcher } from '../src/advertisers/deposits.js'
-import type { IncomingTransfer } from '@linger/payments'
+import type { IncomingTransfer } from '@lull/payments'
 import { SqliteLedgerStore } from '../src/store/persistent.js'
 import { Ledger } from '../src/ledger/ledger.js'
 import { accountId } from '../src/ledger/accounts.js'
@@ -30,7 +30,7 @@ const clock = fixedClock(1_700_000_000_000)
 let n = 0
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'linger-adv-'))
+  dir = mkdtempSync(join(tmpdir(), 'lull-adv-'))
   db = openDb(join(dir, 'a.db'))
   n = 0
 })
@@ -294,7 +294,7 @@ describe('para yatirma', () => {
  */
 describe('giriste cuzdan baglanmasi', () => {
   it('yayinci girisi cuzdani baglar ve odeme engeli KALKAR', async () => {
-    const { WalletStore } = await import('@linger/payments')
+    const { WalletStore } = await import('@lull/payments')
     const w = new WalletStore({ clock, holdMs: 0, notify: () => {} })
 
     // Giris oncesi: odeme engelli.
@@ -310,7 +310,7 @@ describe('giriste cuzdan baglanmasi', () => {
   })
 
   it('ikinci giris bekleme suresi BASLATMAZ', async () => {
-    const { WalletStore } = await import('@linger/payments')
+    const { WalletStore } = await import('@lull/payments')
     const bildirimler: unknown[] = []
     const w = new WalletStore({ clock, holdMs: 72 * 3600_000, notify: (n) => bildirimler.push(n) })
 
@@ -335,7 +335,7 @@ describe('giriste cuzdan baglanmasi', () => {
 describe('reklam secimi — butce tukenmesi', () => {
   it('parasi yetmeyen YUKSEK teklif, karsilanabilir dusuk teklifi engellemez', async () => {
     const { AdSelector } = await import('../src/ads/selector.js')
-    const { cryptoIdGenerator } = await import('@linger/protocol')
+    const { cryptoIdGenerator } = await import('@lull/protocol')
 
     const zengin = 'GZENGIN', fakir = 'GFAKIR'
     const kampanyalar = [
@@ -361,7 +361,7 @@ describe('reklam secimi — butce tukenmesi', () => {
 
   it('hicbiri karsilanamiyorsa sessizce durur', async () => {
     const { AdSelector } = await import('../src/ads/selector.js')
-    const { cryptoIdGenerator } = await import('@linger/protocol')
+    const { cryptoIdGenerator } = await import('@lull/protocol')
     const sel = new AdSelector({
       clock, ids: cryptoIdGenerator(clock),
       campaigns: () => [{ id: 'x', advertiserId: 'GA', bidCpm: micros(2_000_000_000n), revShareBps: 5000,
