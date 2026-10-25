@@ -100,7 +100,7 @@ const generalAd = () => {
 const BUDGET = micros(10_000_000n)  // $1 = 100 gosterim
 
 const openPool = (opts: { budget?: bigint; cap?: number } = {}) => {
-  const r = pools.create({ sponsorId: SPONSOR, name: 'Solana Hack Istanbul', bidCpm: BID, budget: micros(opts.budget ?? BUDGET), ...(opts.cap ? { dailyCapPerMember: opts.cap } : {}) })
+  const r = pools.create({ sponsorId: SPONSOR, name: 'Arc Hack Istanbul', bidCpm: BID, budget: micros(opts.budget ?? BUDGET), ...(opts.cap ? { dailyCapPerMember: opts.cap } : {}) })
   if (!r.ok) throw new Error(r.reason)
   return r.pool
 }
@@ -240,7 +240,7 @@ describe('PoolStore', () => {
     pools.join(p.code, ALICE)
     const c = project(p, BOB, 'BobApp')
     const reopened = new PoolStore(db, clock, () => 'x', () => 'Y')
-    expect(reopened.byCode(p.code)?.name).toBe('Solana Hack Istanbul')
+    expect(reopened.byCode(p.code)?.name).toBe('Arc Hack Istanbul')
     expect(reopened.poolOf(ALICE)).toBe(p.id)
     const rc = new CampaignStore(db, clock, () => 'z').get(c.id)!
     expect([rc.poolId, rc.submittedBy, rc.advertiserId]).toEqual([p.id, BOB, SPONSOR])
@@ -250,7 +250,7 @@ describe('PoolStore', () => {
 describe('HTTP', () => {
   it('sponsor havuz acar, katilimci kodla katilir ve projesini girer', async () => {
     expect((await call('POST', '/v1/advertiser/pools', TOK.sponsor, { name: 'No Budget Hack', bidCpmMicros: BID.toString() })).status).toBe(400)
-    const created = await call('POST', '/v1/advertiser/pools', TOK.sponsor, { name: 'Solana Hack Istanbul', bidCpmMicros: BID.toString(), budgetMicros: BUDGET.toString(), dailyCapPerMember: 50 })
+    const created = await call('POST', '/v1/advertiser/pools', TOK.sponsor, { name: 'Arc Hack Istanbul', bidCpmMicros: BID.toString(), budgetMicros: BUDGET.toString(), dailyCapPerMember: 50 })
     expect(created.status).toBe(201)
     const { code, id } = await json(created)
     expect(code).toMatch(/^HACK-/)
@@ -272,7 +272,7 @@ describe('HTTP', () => {
     expect(JSON.stringify(list)).not.toContain(BOB)
 
     const pub = await json(await call('GET', `/v1/pools/${code.toLowerCase()}`))
-    expect(pub).toEqual({ name: 'Solana Hack Istanbul', status: 'open', members: 2, projects: [{ brand: 'BobApp', text: 'our hackathon project', cta: 'bob.dev' }] })
+    expect(pub).toEqual({ name: 'Arc Hack Istanbul', status: 'open', members: 2, projects: [{ brand: 'BobApp', text: 'our hackathon project', cta: 'bob.dev' }] })
   })
 
   it('takim basina tek proje; havuzsuz proje girilemez', async () => {
@@ -313,13 +313,13 @@ describe('cekim — havuza ayrilan para cekilemez', () => {
     #n = 0
     now() { return clock.now() }
     async validateDestinations(addrs: readonly string[]) {
-      return addrs.map((address) => ({ address, onCurve: true, isTokenAccount: false, isMint: false,
-        ataExists: true, ataFrozen: false }))
+      return addrs.map((address) => ({ address, valid: true, isContract: false, isToken: false,
+        blocked: false }))
     }
-    async sourceStatus() { return { address: 'HotWallet1111111111111111111111111111111111', usdcBalance: micros(10n ** 12n), availableLamports: 10n ** 9n } }
+    async sourceStatus() { return { address: 'HotWallet1111111111111111111111111111111111', usdcBalance: micros(10n ** 12n), availableGas: 10n ** 18n } }
     async prepare(batch: PayoutBatch): Promise<SubmissionReceipt> {
-      return { batchId: batch.batchId, txHash: `h${++this.#n}`.padEnd(64, '0'), serializedTx: 'x', recentBlockhash: String(this.#n),
-        lastValidBlockHeight: 250_000_150, feeBid: 100n, opIndex: batch.items.map((it, index) => ({ publisherId: it.publisherId, index })) }
+      return { batchId: batch.batchId, txHash: `h${++this.#n}`.padEnd(64, '0'), serializedTx: 'x', validityRef: String(this.#n),
+        validUntil: 250_000_150, feeBid: 100n, opIndex: batch.items.map((it, index) => ({ publisherId: it.publisherId, index })) }
     }
     async send() {}
     async reconcile(r: SubmissionReceipt) { return { state: 'settled' as const, txHash: r.txHash, slot: 1, feeCharged: 100n, opResults: [] } }

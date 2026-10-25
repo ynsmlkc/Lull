@@ -1,0 +1,14 @@
+{
+  "appId": "115f0ad4-c41f-4e3a-b5d5-28b2d1cc27ea",
+  "webUrl": "https://studio.arc.io/app/115f0ad4-c41f-4e3a-b5d5-28b2d1cc27ea",
+  "deployments": [
+    {
+      "contract": "LingerVault",
+      "address": "0x2a7db15f85f947b7374847382b00133d470d6eda",
+      "network": "Arc Testnet",
+      "explorerUrl": "https://explorer.testnet.arc.io/address/0x2a7db15f85f947b7374847382b00133d470d6eda",
+      "txHash": "0x7be84d160040f346479649d2ed586053a41a913c10a5a6fd87b63a79ff563afe",
+      "deployedAt": "2026-10-25T13:11:39.811Z"
+    }
+  ]
+}

@@ -33,15 +33,15 @@ class SahteRail implements PaymentRail {
 
   async validateDestinations(addresses: readonly string[]) {
       return addresses.map((address) => ({
-        address, onCurve: true, isTokenAccount: false, isMint: false,
-        ataExists: true, ataFrozen: false,
+        address, valid: true, isContract: false, isToken: false,
+        blocked: false,
       }))
     }
 
   async sourceStatus() {
     return {
       address: 'HotWallet1111111111111111111111111111111111', usdcBalance: micros(10n ** 12n),
-      availableLamports: 10n ** 9n,
+      availableGas: 10n ** 18n,
     }
   }
 
@@ -52,8 +52,8 @@ class SahteRail implements PaymentRail {
       batchId: batch.batchId,
       txHash: `hash${++this.#n}`.padEnd(64, '0'),
       serializedTx: `tx-${batch.batchId}`,
-      recentBlockhash: String(this.#n),
-      lastValidBlockHeight: 250_000_150,
+      validityRef: String(this.#n),
+      validUntil: 250_000_150,
       feeBid: 100n * BigInt(batch.items.length),
       opIndex: batch.items.map((it, index) => ({ publisherId: it.publisherId, index })),
     }
@@ -106,8 +106,8 @@ describe('PayoutRunner', () => {
   let t: ReturnType<typeof kur>
   beforeEach(() => {
     t = kur()
-    t.wallets.bind('alice', ADDR['alice']!, 'devnet')
-    t.wallets.bind('bob', ADDR['bob']!, 'devnet')
+    t.wallets.bind('alice', ADDR['alice']!, 'testnet')
+    t.wallets.bind('bob', ADDR['bob']!, 'testnet')
   })
 
   it('esigi gecenler aday, gecmeyenler degil', () => {
@@ -192,7 +192,7 @@ describe('PayoutRunner', () => {
     t.kazandir('alice', 25_000_000n)
     await t.runner.run()
 
-    t.wallets.bind('alice', ADDR['bob']!, 'devnet')
+    t.wallets.bind('alice', ADDR['bob']!, 'testnet')
 
     expect(t.store.forPublisher('alice')[0]!.destinationAddress).toBe(ADDR['alice'])
   })

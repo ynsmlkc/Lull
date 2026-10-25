@@ -37,7 +37,7 @@ export function prodProblems(env: Env): string[] {
 
   // Acikca verilmisse bile mainnet'te alt sinir var: birkac saniyelik pencere,
   // anomali kontrolunun para cikmadan once calismasini anlamsiz kilar.
-  // Devnet'te para gercek degil; demo icin pencere kisaltilabilir (0 dahil).
+  // Testnet'te para gercek degil; demo icin pencere kisaltilabilir (0 dahil).
   const pending = env['LINGER_PENDING_MS']
   const mainnet = env['LINGER_NETWORK'] === 'mainnet'
   if (pending !== undefined && !(Number(pending) >= (mainnet ? 3600_000 : 0))) {

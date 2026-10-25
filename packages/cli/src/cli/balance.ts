@@ -34,9 +34,9 @@ export interface BalanceResponse {
   readonly blockedReason: string | null
 }
 
-// Varsayilan devnet; `LINGER_NETWORK=mainnet` ile ana agin linkleri uretilir.
-const EXPLORER = 'https://explorer.solana.com/tx'
-const cluster = (): string => (process.env['LINGER_NETWORK'] === 'mainnet' ? '' : '?cluster=devnet')
+// Varsayilan testnet; `LINGER_NETWORK=mainnet` ile ana agin linkleri uretilir.
+const explorerTx = (hash: string): string =>
+  `${process.env['LINGER_NETWORK'] === 'mainnet' ? 'https://explorer.arc.io' : 'https://explorer.testnet.arc.io'}/tx/${hash}`
 
 export async function cmdBalance(
   argv: readonly string[] = [],
@@ -126,6 +126,6 @@ export function link(txHash: string, isTty = process.stdout.isTTY === true): str
   // OSC 8. Desteklemeyen terminaller diziyi yutar, yalnizca metni basar;
   // destekleyende tiklanabilir olur. Sonlandirici olarak `\u0007` (BEL)
   // kullaniliyor: ST (`ESC \\`) eski terminallerde daha kotu bozuluyor.
-  const url = `${EXPLORER}/${txHash}${cluster()}`
+  const url = explorerTx(txHash)
   return `\u001b]8;;${url}\u0007${kisa}\u001b]8;;\u0007`
 }

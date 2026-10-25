@@ -29,10 +29,9 @@ export interface PayoutJobDeps {
   /**
    * ADR-006 — batch boyutu.
    *
-   * Transaction 1232 bayti gecemez; yeni ATA acilan her hedef yer kaplar, bu
-   * yuzden uretimde 6. Solana'da ucret imza basina oldugu icin batch kucuk bir
-   * ucret KAZANDIRIR — ama transaction atomiktir: tek bozuk hedef tum batch'i
-   * dusurur. Buyuk batch, kucuk kazanc icin en pahali ariza modunu satin alir.
+   * Kasa tek cagrida en fazla 64 alici oduyor; batch gaz tasarrufu saglar
+   * ama kasa atomiktir: tek bozuk hedef tum batch'i geri alir. Buyuk batch,
+   * kucuk kazanc icin en pahali ariza modunu satin alir — bu yuzden 6.
    */
   readonly batchSize?: number
   /** Ledger'a "yolda" kaydini yazar. Submit'ten ONCE cagrilir. */
@@ -44,8 +43,8 @@ export interface PayoutJobDeps {
   /** Bir publisher batch'ten dusuruldu. Sebep kullaniciya gosterilir. */
   readonly onSkipped: (publisherId: string, reason: string) => void
   readonly newBatchId: () => string
-  /** Sicak cuzdanda en az bu kadar SOL (lamport) kalmali (ADR-015). */
-  readonly minLamportsReserve?: bigint
+  /** Operator cuzdaninda en az bu kadar gaz (wei, 18 ondalik USDC) kalmali (ADR-015). */
+  readonly minGasReserve?: bigint
 }
 
 export interface PayoutRunResult {
@@ -59,8 +58,8 @@ export interface PayoutRunResult {
 
 export const DEFAULT_BATCH_SIZE = 6
 
-/** 0.05 SOL: onlarca islem ucretini ve yeni alici hesaplarinin kirasini karsilar. */
-export const DEFAULT_MIN_LAMPORTS_RESERVE = 50_000_000n
+/** 0.5 USDC (18 ondalik): Arc'ta yuzlerce odeme transaction'inin gazini karsilar. */
+export const DEFAULT_MIN_GAS_RESERVE = 500_000_000_000_000_000n
 
 export class PayoutJob {
   constructor(private readonly deps: PayoutJobDeps) {}
@@ -79,10 +78,10 @@ export class PayoutJob {
     if (source.usdcBalance < needed) {
       alerts.push(`sicak cuzdan USDC yetersiz: ${source.usdcBalance} < ${needed}`)
     }
-    const minLamports = this.deps.minLamportsReserve ?? DEFAULT_MIN_LAMPORTS_RESERVE
-    if (source.availableLamports < minLamports) {
-      // USDC dolu ama SOL biten hesap SESSIZCE durur ve USDC alarmi susar.
-      alerts.push(`sicak cuzdan SOL yetersiz: ${source.availableLamports} < ${minLamports} lamport — HICBIR odeme yapilamaz`)
+    const minGas = this.deps.minGasReserve ?? DEFAULT_MIN_GAS_RESERVE
+    if (source.availableGas < minGas) {
+      // Kasa dolu ama gazi biten operator SESSIZCE durur ve USDC alarmi susar.
+      alerts.push(`operator gazi yetersiz: ${source.availableGas} < ${minGas} wei — HICBIR odeme yapilamaz`)
       return { batches: 0, paid: 0, skipped, failed: 0, totalPaid, alerts }
     }
 
@@ -144,12 +143,11 @@ export class PayoutJob {
 
   #rejectReason(s: ReturnType<Map<string, any>['get']>, _amount: Micros): string | null {
     if (!s) return 'hedef dogrulanamadi'
-    if (!s.onCurve) return 'adres bir program hesabi (PDA), cuzdan degil'
-    if (s.isMint) return 'adres bir token mint adresi'
-    if (s.isTokenAccount) return 'adres bir token hesabi, cuzdan degil'
-    // Dondurulmus hedefe transfer TUM transaction'i dusurur.
-    if (s.ataFrozen) return 'USDC hesabi dondurulmus'
-    // ATA'nin bulunmamasi ENGEL DEGIL: rail ilk odemede olusturur.
+    if (!s.valid) return 'gecersiz adres bicimi'
+    if (s.isToken) return 'adres bir token kontrati'
+    if (s.isContract) return 'adres bir kontrat, cuzdan degil'
+    // Engelli hedefe transfer TUM batch'i geri alir.
+    if (s.blocked) return 'adres USDC ihraccisi tarafindan engellenmis'
     return null
   }
 
@@ -215,11 +213,11 @@ export class PayoutJob {
       return { ok: false, amount: ZERO }
     }
 
-    // `expired`: blockhash omru doldu, transaction hicbir zaman dahil edilmedi.
-    // Para publisher'a geri doner; bir sonraki kosuda YENI blockhash ile
-    // yeniden kurulur.
+    // `expired`: nonce baska bir transaction'la harcandi, bu hicbir zaman
+    // dahil edilmedi. Para publisher'a geri doner; bir sonraki kosuda yeniden
+    // kurulur.
     if (settlement.state === 'expired') {
-      this.deps.onFailed(batchId, items, 'transaction blockhash omru doldu, dahil edilmedi')
+      this.deps.onFailed(batchId, items, 'transaction nonce\'u harcandi, dahil edilmedi')
       return { ok: false, amount: ZERO }
     }
 
@@ -233,9 +231,9 @@ export class PayoutJob {
    * Mutabakat.
    *
    * "Zincirde yok" tek basina anlamsizdir: ya henuz dahil edilmedi, ya hic
-   * edilmeyecek. Ayrim yapilmadan yeni blockhash ile yeniden kurmak CIFT
-   * ODEME uretir. Kural: transaction ancak blockhash omru (son gecerli blok
-   * yuksekligi) gectiyse VE hala bulunamiyorsa oludur — bu karari rail verir
+   * edilmeyecek. Ayrim yapilmadan yeniden kurmak CIFT ODEME uretir (kasanin
+   * batch korumasi bunu zincirde de yakalar, ama defter ona guvenmez). Kural:
+   * transaction ancak nonce'u harcandiysa VE hala bulunamiyorsa oludur — bu karari rail verir
    * ve `expired` olarak doner.
    */
   async #awaitSettlement(receipt: SubmissionReceipt, alerts: string[]): Promise<SettlementResult> {

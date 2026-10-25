@@ -5,14 +5,12 @@
  * sisteminde hata, yanlis kisiyi iceri almaktir. Dogru kisiyi iceri almamak
  * can sikici; yanlis kisiyi almak geri alinamaz.
  *
- * Imzalar gercek ed25519: cuzdanin `signMessage` ile yaptigi seyin ayni.
+ * Imzalar gercek secp256k1: cuzdanin `personal_sign` ile yaptigi seyin ayni.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { Keypair, PublicKey } from '@solana/web3.js'
-import nacl from 'tweetnacl'
-import bs58 from 'bs58'
-import { Siws } from '@linger/payments'
+import { generatePrivateKey, privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
+import { Siwe } from '@linger/payments'
 import { fixedClock, cryptoIdGenerator } from '@linger/protocol'
 import { WalletAuth, LOGIN_SCOPES } from '../src/http/wallet-auth.js'
 import { hashToken } from '../src/http/auth.js'
@@ -25,7 +23,7 @@ function setup(now = 1_700_000_000_000) {
   const ids = cryptoIdGenerator(clock)
   const auth = new WalletAuth({
     clock, ids,
-    siws: new Siws({ domain: HOME, network: 'devnet' }, clock, ids),
+    siwe: new Siwe({ domain: HOME, network: 'testnet' }, clock, ids),
     hashToken,
     issueToken: (i) => {
       issued.push({ publisherId: i.publisherId, tokenHash: i.tokenHash })
@@ -35,14 +33,14 @@ function setup(now = 1_700_000_000_000) {
   return { auth, issued, clock }
 }
 
-/** Kullanicinin cuzdaninin yapacagi: mesaji imzala, base64 dondur. */
-const sign = (message: string, kp: Keypair): string =>
-  Buffer.from(nacl.sign.detached(Buffer.from(message, 'utf8'), kp.secretKey)).toString('base64')
+/** Kullanicinin cuzdaninin yapacagi: mesaji EIP-191 ile imzala, hex dondur. */
+const sign = (message: string, acct: PrivateKeyAccount): Promise<string> => acct.signMessage({ message })
+const newAccount = () => privateKeyToAccount(generatePrivateKey())
 
 describe('WalletAuth', () => {
-  let user: Keypair
+  let user: PrivateKeyAccount
   let addr: string
-  beforeEach(() => { user = Keypair.generate(); addr = user.publicKey.toBase58() })
+  beforeEach(() => { user = newAccount(); addr = user.address })
 
   it('gecerli imza token uretir ve publisherId adresin kendisidir', async () => {
     const { auth, issued } = setup()
@@ -50,7 +48,7 @@ describe('WalletAuth', () => {
     expect(c.ok).toBe(true)
     if (!c.ok) return
 
-    const r = await auth.verify(addr, c.message, sign(c.message, user))
+    const r = await auth.verify(addr, c.message, await sign(c.message, user))
     expect(r.ok).toBe(true)
     if (!r.ok) return
 
@@ -63,7 +61,7 @@ describe('WalletAuth', () => {
     const { auth, issued } = setup()
     const c = auth.challenge(addr)
     if (!c.ok) return
-    const r = await auth.verify(addr, c.message, sign(c.message, user))
+    const r = await auth.verify(addr, c.message, await sign(c.message, user))
     if (!r.ok) return
 
     expect(issued[0]!.tokenHash).toBe(hashToken(r.token))
@@ -81,7 +79,7 @@ describe('WalletAuth', () => {
     if (!c.ok) return
 
     // Saldirgan kendi anahtariyla imzaliyor, ama kurbanin adresini iddia ediyor.
-    const r = await auth.verify(addr, c.message, sign(c.message, Keypair.generate()))
+    const r = await auth.verify(addr, c.message, await sign(c.message, newAccount()))
     expect(r.ok).toBe(false)
     expect(issued).toHaveLength(0)
   })
@@ -91,15 +89,15 @@ describe('WalletAuth', () => {
     const c = auth.challenge(addr)
     if (!c.ok) return
     expect((await auth.verify(addr, c.message, '')).ok).toBe(false)
-    expect((await auth.verify(addr, c.message, Buffer.from('kisa').toString('base64'))).ok).toBe(false)
+    expect((await auth.verify(addr, c.message, '0xdeadbeef')).ok).toBe(false)
   })
 
   it('istemcinin degistirdigi mesaj reddedilir — imza gecerli olsa bile', async () => {
     const { auth, issued } = setup()
     const c = auth.challenge(addr)
     if (!c.ok) return
-    const kurcalanmis = c.message.replace('devnet', 'mainnet')
-    const r = await auth.verify(addr, kurcalanmis, sign(kurcalanmis, user))
+    const kurcalanmis = c.message.replace('Chain ID: 5042002', 'Chain ID: 5042')
+    const r = await auth.verify(addr, kurcalanmis, await sign(kurcalanmis, user))
     expect(r.ok).toBe(false)
     expect(issued).toHaveLength(0)
   })
@@ -108,7 +106,7 @@ describe('WalletAuth', () => {
     const { auth, issued } = setup()
     const c = auth.challenge(addr)
     if (!c.ok) return
-    const sig = sign(c.message, user)
+    const sig = await sign(c.message, user)
 
     expect((await auth.verify(addr, c.message, sig)).ok).toBe(true)
     // Replay: ayni imza tekrar gonderiliyor. Ikinci token URETILMEMELI.
@@ -123,7 +121,7 @@ describe('WalletAuth', () => {
     const c = other.auth.challenge(addr)
     if (!c.ok) return
     // Imza gecerli ama BU sunucu boyle bir challenge uretmedi.
-    const r = await auth.verify(addr, c.message, sign(c.message, user))
+    const r = await auth.verify(addr, c.message, await sign(c.message, user))
     expect(r.ok).toBe(false)
     expect(r.ok === false && r.reason).toContain('challenge bulunamadi')
   })
@@ -133,22 +131,26 @@ describe('WalletAuth', () => {
     for (const bad of [
       '',
       'abc',                                // kisa
-      'O0Il' + 'A'.repeat(40),              // base58 disi harfler
-      bs58.encode(user.secretKey),          // GIZLI ANAHTAR — asla
+      '0x' + 'g'.repeat(40),                // hex disi harfler
+      generatePrivateKey(),                 // GIZLI ANAHTAR — asla
     ]) {
       expect(auth.challenge(bad).ok, bad.slice(0, 8)).toBe(false)
     }
   })
 
-  it('program hesabi (PDA) adresi challenge alamaz', () => {
-    const { auth } = setup()
-    const [pda] = PublicKey.findProgramAddressSync([Buffer.from('x')], Keypair.generate().publicKey)
-    expect(auth.challenge(pda.toBase58()).ok).toBe(false)
+  it('kucuk harfli adresle alinan challenge checksum hesabina baglanir', async () => {
+    // Cuzdanlarin cogu kucuk harf dondurur. Ayni cuzdan iki hesap acmamali.
+    const { auth, issued } = setup()
+    const c = auth.challenge(addr.toLowerCase())
+    if (!c.ok) return
+    const r = await auth.verify(addr.toLowerCase(), c.message, await await sign(c.message, user))
+    expect(r.ok && r.publisherId).toBe(addr)
+    expect(issued[0]!.publisherId).toBe(addr)
   })
 
   it('gizli anahtar hata mesajinda ECHO EDILMEZ', () => {
     const { auth } = setup()
-    const secret = bs58.encode(user.secretKey)
+    const secret = generatePrivateKey()
     const r = auth.challenge(secret)
     expect(r.ok).toBe(false)
     if (r.ok) return
@@ -160,7 +162,7 @@ describe('WalletAuth', () => {
     const { auth, clock } = setup()
     const c = auth.challenge(addr)
     if (!c.ok) return
-    const sig = sign(c.message, user)
+    const sig = await sign(c.message, user)
 
     clock.advance(6 * 60_000)   // 5 dakikalik omru asti
     const r = await auth.verify(addr, c.message, sig)
@@ -170,7 +172,7 @@ describe('WalletAuth', () => {
 
   it('suresi gecmis challenge\'lar bellekte birikmez', () => {
     const { auth } = setup()
-    for (let i = 0; i < 50; i++) auth.challenge(Keypair.generate().publicKey.toBase58())
+    for (let i = 0; i < 50; i++) auth.challenge(newAccount().address)
     expect(auth.pendingCount()).toBeLessThanOrEqual(50)
   })
 })

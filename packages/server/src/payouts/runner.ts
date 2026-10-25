@@ -34,7 +34,7 @@ export interface PayoutRunnerDeps {
   readonly newBatchId: () => string
   readonly log: (m: string) => void
   readonly batchSize?: number
-  readonly minLamportsReserve?: bigint
+  readonly minGasReserve?: bigint
 }
 
 export interface RunnerResult {
@@ -100,7 +100,7 @@ export class PayoutRunner {
       threshold: this.deps.threshold,
       newBatchId: this.deps.newBatchId,
       ...(this.deps.batchSize !== undefined ? { batchSize: this.deps.batchSize } : {}),
-      ...(this.deps.minLamportsReserve !== undefined ? { minLamportsReserve: this.deps.minLamportsReserve } : {}),
+      ...(this.deps.minGasReserve !== undefined ? { minGasReserve: this.deps.minGasReserve } : {}),
 
       // ── 1. Gonderimden ONCE: defter + kayit ──
       onSubmit: (batchId, items, receipt) => {

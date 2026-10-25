@@ -176,7 +176,7 @@ describe('link', () => {
   it('TTY\'de tiklanabilir OSC 8 uretir', () => {
     const l = link('a'.repeat(64), true)
     expect(l).toContain('\u001b]8;;')
-    expect(l).toContain('explorer.solana.com')
+    expect(l).toContain('explorer.testnet.arc.io')
   })
 
   /**

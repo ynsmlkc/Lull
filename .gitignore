@@ -9,21 +9,18 @@ packages/*/dist/
 .env.*
 !.env.example
 
-# Devnet havuz anahtari — git'e girmez
-.devnet-faucet.json
 
 # Bilinen sorunlar notu — YEREL KALIR.
 # Icinde saldiri senaryolari ve savunmalarin nerede tutmadigi yaziyor;
 # depoyu goren birine yol tarifi olurdu.
 PROBLEMS.md
 
-# Devnet test cuzdani — git'e girmez
-.devnet-test-payer.json
 
 # IP → ulke veritabani; Docker derlemesinde indiriliyor (bkz. Dockerfile)
 *.mmdb
 *.mmdb.gz
 
-# Devnet demo: sicak cuzdan, test USDC mint anahtari ve yerel DB — git'e girmez
-.devnet-*.json
-.devnet-data/
+# Arc demo: operator anahtari ve yerel DB — git'e girmez
+.arc-*.json
+.arc-data/
+contracts/vault/.env

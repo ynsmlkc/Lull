@@ -49,12 +49,14 @@ export interface AppDeps {
   readonly payouts?: PayoutStore
   /** Reklamveren tarafi. Verilmezse `/v1/advertiser/*` uclari acilmaz. */
   readonly campaigns?: CampaignStore
-  /** Sicak cuzdan adresi — reklamveren parayi buraya gonderir. */
+  /** Kasa (LingerVault) adresi — reklamveren parayi buraya gonderir. */
   readonly depositAddress?: string
-  /** Hangi Solana agi: `devnet` veya `mainnet`. */
-  readonly network?: 'devnet' | 'mainnet'
-  /** Odeme ve yatirmalarda kullanilan USDC mint adresi. */
-  readonly usdcMint?: string
+  /** Hangi Arc agi: `testnet` veya `mainnet`. */
+  readonly network?: 'testnet' | 'mainnet'
+  /** Arc zincir kimligi (EIP-155) — cuzdan dogru aga gecsin diye panele verilir. */
+  readonly chainId?: number
+  /** Odeme ve yatirmalarda kullanilan USDC (ERC-20 arayuzu) adresi. */
+  readonly usdcToken?: string
   /** Cuzdanla giris. Verilmezse `/v1/auth/*` uclari acilmaz. */
   readonly walletAuth?: WalletAuth
   /** Reklamverenin harcamadigi butceyi geri cekmesi. */
@@ -176,7 +178,15 @@ export function createApp(deps: AppDeps) {
    * oldugunu da SIZDIRMAZ — kampanya sayisi, bakiye, kullanici sayisi gibi
    * seyler kimlik dogrulamasi olmayan bir uctan disari cikmaz.
    */
-  app.get('/health', (c) => c.json({ ok: true, version: PROTOCOL_VERSION }))
+  // Ag bilgisi de burada: site cuzdani dogru zincire gecirmek ve gezgin
+  // linklerini dogru aga kurmak icin baska bir sey sormak zorunda kalmasin.
+  app.get('/health', (c) => c.json({
+    ok: true, version: PROTOCOL_VERSION,
+    network: deps.network ?? 'testnet',
+    chainId: deps.chainId ?? null,
+    usdcToken: deps.usdcToken ?? null,
+    vault: deps.depositAddress ?? null,
+  }))
 
   /* ─────────────────── cuzdanla giris ─────────────────── */
 
@@ -197,7 +207,7 @@ export function createApp(deps: AppDeps) {
       const r = wa.challenge(address)
       if (!r.ok) return c.json(err('LNG_4001', r.reason), 400)
 
-      // `message`: cuzdana imzalatilacak OKUNABILIR metin (SIWS bicimi).
+      // `message`: cuzdana imzalatilacak OKUNABILIR metin (SIWE mantigi, `personal_sign`).
       return c.json({ message: r.message, expiresAt: r.expiresAt })
     })
 
@@ -207,7 +217,7 @@ export function createApp(deps: AppDeps) {
       const message = typeof body?.message === 'string' ? body.message : ''
       const signature = typeof body?.signature === 'string' ? body.signature : ''
       if (!address || !message || !signature) {
-        return c.json(err('LNG_9001', '`address`, `message` ve `signature` (base64) gerekli'), 400)
+        return c.json(err('LNG_9001', '`address`, `message` ve `signature` (hex) gerekli'), 400)
       }
 
       // Rol token'in kapsamini belirliyor. Bilinmeyen deger yayinci sayilir
@@ -380,8 +390,9 @@ export function createApp(deps: AppDeps) {
           ? {
               address: deps.depositAddress,
               asset: 'USDC',
-              network: deps.network ?? 'devnet',
-              usdcMint: deps.usdcMint ?? null,
+              network: deps.network ?? 'testnet',
+              chainId: deps.chainId ?? null,
+              usdcToken: deps.usdcToken ?? null,
               // KRITIK: para KENDI cuzdanindan gelmeli. Eslesme gonderen
               // adrese gore yapiliyor; borsadan gonderilen para sahipsiz kalir.
               note: `Yalnizca ${advertiserId} adresinden gonderilen odemeler hesabina yazilir`,

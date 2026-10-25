@@ -2,12 +2,12 @@
  * `linger login` / `logout` / `whoami` — ADR-010 (revize), ADR-014.
  *
  * Kimlik cuzdandir. GitHub yok, e-posta yok, sifre yok. `publisherId` dogrudan
- * Solana adresinin kendisi: kazanci alacak adres ile kimlik ayni sey, ikisini
+ * Arc (EVM) adresinin kendisi: kazanci alacak adres ile kimlik ayni sey, ikisini
  * ayirmak gereksiz bir eslesme katmani olurdu.
  *
  * Akis:
  *   linger login  → 127.0.0.1'de gecici sunucu + tarayici
- *   tarayici     → Phantom/Solflare/Backpack ile mesaj imzasi
+ *   tarayici     → MetaMask/Rabby/Coinbase Wallet ile mesaj imzasi
  *   yerel sunucu → Linger sunucusuna proxy, token'i diske yazar
  *
  * Ozel anahtar HICBIR ZAMAN bu surece girmez. Terminale secret key sordurmak

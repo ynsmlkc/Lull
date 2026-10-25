@@ -14,8 +14,8 @@ await build({
   // @linger/protocol bir workspace paketi ve KAYNAK TypeScript. Disarida
   // birakilirsa calisma aninda .ts cozumleyemez; bundle'a katilmali.
 
-  // ESM ciktisinda `require` YOKTUR. Bagimliliklarimizin bir kismi (Solana
-  // SDK zinciri) hala CommonJS ve calisma aninda `require('util')` cagiriyor.
+  // ESM ciktisinda `require` YOKTUR. Bagimliliklarimizin bir kismi hala
+  // CommonJS ve calisma aninda `require('util')` cagiriyor.
   // Bu banner olmadan sunucu ILK SATIRDA oluyor:
   //
   //   Error: Dynamic require of "util" is not supported

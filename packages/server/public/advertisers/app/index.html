@@ -101,7 +101,7 @@
     <p class="body" style="margin: 0 0 20px">This one matters. Deposits are matched by <strong style="color: var(--ink-soft)">who sent them</strong>, so the wallet you connect now is the only wallet whose money we can credit to you.</p>
 
     <div class="note note-accent hidden" id="no-wallet" style="margin-bottom: 18px">
-      No Solana wallet found. Install <a href="https://phantom.app" target="_blank" rel="noopener" style="color: var(--accent)">Phantom</a>, <a href="https://solflare.com" target="_blank" rel="noopener" style="color: var(--accent)">Solflare</a> or <a href="https://backpack.app" target="_blank" rel="noopener" style="color: var(--accent)">Backpack</a>, then reload.
+      No EVM wallet found. Install <a href="https://metamask.io" target="_blank" rel="noopener" style="color: var(--accent)">MetaMask</a>, <a href="https://rabby.io" target="_blank" rel="noopener" style="color: var(--accent)">Rabby</a> or <a href="https://www.coinbase.com/wallet" target="_blank" rel="noopener" style="color: var(--accent)">Coinbase Wallet</a>, then reload.
     </div>
 
     <button class="btn btn-primary" id="connect" style="width: 100%">
@@ -134,18 +134,25 @@
   <!-- ═══ para yatirma — bakiye sifirken TEK ekran ═══ -->
   <div id="v-deposit" class="hidden">
     <h1 style="margin-bottom: 8px">Add funds</h1>
-    <p class="body" style="margin: 0 0 clamp(24px, 4vw, 36px); max-width: 62ch">Send devnet USDC to the address below. Nothing can run until there is a balance.</p>
+    <p class="body" style="margin: 0 0 clamp(24px, 4vw, 36px); max-width: 62ch">Fund your campaigns with USDC on Arc. One transaction from your wallet, gas paid in USDC, settled in under a second. Nothing can run until there is a balance.</p>
 
     <div class="two">
       <div>
-        <p class="figure-label">Send to</p>
+        <p class="figure-label">Deposit from your wallet</p>
+        <div style="display: flex; flex-wrap: wrap; align-items: end; gap: 10px">
+          <label class="field" style="flex: 1 1 140px">Amount (USDC)<input type="text" inputmode="decimal" id="dep-amount" placeholder="25.00" autocomplete="off"></label>
+          <button class="btn btn-primary btn-sm" id="dep-send"><span class="spinner hidden" id="dep-spin"></span><span id="dep-label">Deposit</span></button>
+        </div>
+        <p class="body hidden" id="dep-status" style="margin: 12px 0 0; font-size: 12.5px"></p>
+
+        <p class="figure-label" style="margin-top: 28px">Or send manually to</p>
         <code id="deposit-addr" style="font-size: clamp(11px, 1.25vw, 13.5px)"></code>
         <button class="btn btn-sm btn-quiet" id="copy-deposit" style="margin-top: 12px"><span class="tag">copy address</span></button>
 
         <dl class="mono" style="margin: 26px 0 0; display: grid; gap: 12px; font-size: 12.5px">
           <div style="display: flex; gap: 12px"><dt style="color: var(--dim); min-width: 68px">asset</dt><dd style="margin: 0; color: var(--ink-soft)" id="asset-code">USDC</dd></div>
-          <div style="display: flex; gap: 12px"><dt style="color: var(--dim); min-width: 68px">issuer</dt><dd style="margin: 0; color: var(--faint); word-break: break-all; line-height: 1.6" id="asset-issuer"></dd></div>
-          <div style="display: flex; gap: 12px"><dt style="color: var(--dim); min-width: 68px">network</dt><dd style="margin: 0; color: var(--ink-soft)">Solana devnet</dd></div>
+          <div style="display: flex; gap: 12px"><dt style="color: var(--dim); min-width: 68px">token</dt><dd style="margin: 0; color: var(--faint); word-break: break-all; line-height: 1.6" id="asset-issuer"></dd></div>
+          <div style="display: flex; gap: 12px"><dt style="color: var(--dim); min-width: 68px">network</dt><dd style="margin: 0; color: var(--ink-soft)" id="asset-net">Arc</dd></div>
         </dl>
       </div>
 
@@ -159,7 +166,7 @@
 
         <div style="margin-top: 18px; border: 1px solid var(--line); background: var(--bg-2); border-radius: 10px; padding: 16px 18px; display: flex; align-items: center; gap: 12px">
           <span class="pulse" style="width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none"></span>
-          <p class="body" style="margin: 0; font-size: 13px">Watching the chain. A deposit usually shows up here within 20 seconds.</p>
+          <p class="body" style="margin: 0; font-size: 13px">Watching the chain. A deposit usually shows up here within 30 seconds.</p>
         </div>
         <button class="btn btn-sm btn-quiet hidden" id="back-to-campaigns" style="margin-top: 18px">← back to campaigns</button>
       </div>
@@ -354,7 +361,7 @@
       <div class="card">
         <h3 style="margin-bottom: 6px">Open a pool</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; margin-top: 18px; align-items: end">
-          <label class="field">Pool name<input type="text" id="pool-name" maxlength="60" placeholder="Solana Hack Istanbul"></label>
+          <label class="field">Pool name<input type="text" id="pool-name" maxlength="60" placeholder="Arc Hack Istanbul"></label>
           <label class="field">CPM in USD, for every project<input type="text" id="pool-cpm" value="5"></label>
           <label class="field">Pool budget in USD<input type="text" id="pool-budget" value="50"></label>
           <label class="field">Max impressions per member per day<input type="text" id="pool-cap" value="200"></label>
@@ -372,7 +379,7 @@
 
 <footer>
   <div class="wrap">
-    <span>✶ linger — devnet</span>
+    <span>✶ linger — arc</span>
     <div style="display: flex; gap: 24px">
       <a href="https://github.com/ynsmlkc/Linger" target="_blank" rel="noopener">GitHub</a>
       <a href="/privacy">Privacy</a>
@@ -381,7 +388,7 @@
 </footer>
 
 <script type="module">
-import { $, show, usd, toMicros, short, api, ApiError, session, login, walletReady, copyButton, explorer } from '/app.js';
+import { $, show, usd, toMicros, short, api, ApiError, session, login, walletReady, copyButton, explorer, depositUsdc } from '/app.js';
 
 const MAX_LINE = 80;
 const MIN_CPM = 100000n;           // $0.10 / 1000 (micro = 1e-6 USDC)
@@ -504,16 +511,18 @@ function render() {
   // sonra yatirilir. Yatirma ekrani yalnizca istendiginde.
   if (forceDeposit) {
     $('#deposit-addr').textContent = me.deposit?.address || '(payouts are off on this server)';
-    $('#asset-issuer').textContent = me.deposit?.assetIssuer || '—';
-    $('#asset-code').textContent = me.deposit?.assetCode || 'USDC';
+    $('#asset-issuer').textContent = me.deposit?.usdcToken || '—';
+    $('#asset-code').textContent = me.deposit?.asset || 'USDC';
+    $('#asset-net').textContent = me.deposit?.network === 'mainnet' ? 'Arc mainnet' : 'Arc testnet';
+    $('#dep-send').disabled = !me.deposit?.address;
     $('#own-addr').textContent = me.advertiserId;
     show($('#back-to-campaigns'), true);
     view('v-deposit');
-    if (zero) pollDeposit();
+    pollDeposit(balance);
     return;
   }
   show($('#fund-banner'), zero);
-  if (zero) pollDeposit();
+  if (zero) pollDeposit(balance);
 
   $('#balance').textContent = usd(me.balanceMicros);
   const reserved = balance - spendable;
@@ -823,18 +832,52 @@ $('#pool-create').onclick = async () => {
 /* ─────────── yatirma beklemesi ─────────── */
 
 let pollTimer = null;
-function pollDeposit() {
+/**
+ * Bakiye `since`'i GECENE kadar bekler. Sifir yerine baslangic bakiyesine
+ * bakiyor: bakiyesi olan biri para eklediginde ekran hemen kapanmasin.
+ */
+function pollDeposit(since) {
   clearInterval(pollTimer);
   pollTimer = setInterval(async () => {
     try {
       const fresh = await api('/v1/advertiser/me');
-      if (BigInt(fresh.balanceMicros) > 0n) {
+      if (BigInt(fresh.balanceMicros) > since) {
         clearInterval(pollTimer);
         me = fresh; forceDeposit = false; render();
       }
     } catch { /* ag gidip gelebilir; bir sonraki turda tekrar */ }
   }, 6000);
 }
+
+/* ─────────── cuzdandan yatirma ─────────── */
+
+$('#dep-send').addEventListener('click', async () => {
+  const amount = toMicros($('#dep-amount').value);
+  const st = $('#dep-status');
+  const say = (text, tone) => { st.textContent = text; st.style.color = tone || ''; show(st, true); };
+  if (amount === null || amount <= 0n) { say('Enter an amount in USDC, for example 25 or 12.50.', 'var(--warn)'); return; }
+
+  $('#dep-send').disabled = true;
+  show($('#dep-spin'), true);
+  try {
+    const hash = await depositUsdc(amount, (step) => { $('#dep-label').textContent = step; });
+    st.innerHTML = '';
+    st.append(`Sent ${usd(amount)} — waiting for the server to see it. `);
+    const a = document.createElement('a');
+    a.href = explorer.tx(hash); a.target = '_blank'; a.rel = 'noopener';
+    a.style.color = 'var(--accent)'; a.textContent = 'View on Arc Explorer ↗';
+    st.append(a);
+    show(st, true);
+    pollDeposit(BigInt(me.balanceMicros));
+  } catch (e) {
+    // 4001: kullanici cuzdanda reddetti — hata degil, vazgecti.
+    say(e?.code === 4001 ? 'Cancelled in the wallet.' : (e?.message || String(e)), 'var(--warn)');
+  } finally {
+    $('#dep-send').disabled = false;
+    show($('#dep-spin'), false);
+    $('#dep-label').textContent = 'Deposit';
+  }
+});
 
 /* ─────────── form ─────────── */
 

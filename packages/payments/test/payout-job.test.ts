@@ -34,7 +34,7 @@ function setup(opts: {
 
   const n = opts.publishers ?? 3
   for (let i = 1; i <= n; i++) {
-    wallets.bind(`p${i}`, addr(i), 'devnet')
+    wallets.bind(`p${i}`, addr(i), 'testnet')
     rail.addressMap[`p${i}`] = addr(i)
   }
 
@@ -85,20 +85,20 @@ describe('mutlu yol', () => {
 })
 
 describe('§8 tuzak #1 — tek bozuk hedef tum batch\'i dusurur', () => {
-  it('dondurulmus hesapli hedef batch\'e HIC ALINMAZ', async () => {
+  it('engelli hedef batch\'e HIC ALINMAZ', async () => {
     const r = await setup({
-      rail: { destinations: { [addr(2)]: { ataFrozen: true } } },
+      rail: { destinations: { [addr(2)]: { blocked: true } } },
     }).run()
 
     expect(r.skipped).toBe(1)
     expect(r.paid, 'digerleri odenmeli').toBe(2)
-    expect(events).toContainEqual(expect.stringMatching(/skip:p2:USDC hesabi dondurulmus/))
+    expect(events).toContainEqual(expect.stringMatching(/skip:p2:adres USDC ihraccisi tarafindan engellenmis/))
   })
 
   it('USDC hesabi (ATA) olmayan hedef ENGEL DEGIL — rail olusturur', async () => {
     // ATA yoksa hedef elenmez: gonderen ATA'yi kendisi acar.
     const r = await setup({
-      rail: { destinations: { [addr(2)]: { ataExists: false } } },
+      rail: { destinations: { [addr(2)]: {} } },
     }).run()
     expect(r.skipped).toBe(0)
     expect(r.paid).toBe(3)
@@ -134,10 +134,10 @@ describe('§8 tuzak #7 — patlayan tx de ledger\'a girer', () => {
 
 describe('hedef eleme', () => {
   const cases: [string, any, RegExp][] = [
-    ['program hesabi (PDA)', { onCurve: false }, /PDA/],
-    ['mint adresi', { isMint: true }, /mint/],
-    ['token hesabi', { isTokenAccount: true }, /token hesabi/],
-    ['dondurulmus hesap', { ataFrozen: true }, /dondurulmus/],
+    ["gecersiz adres", { valid: false }, /gecersiz/],
+    ["token kontrati", { isToken: true }, /token kontrati/],
+    ['kontrat', { isContract: true }, /kontrat, cuzdan degil/],
+    ["engelli adres", { blocked: true }, /engellenmis/],
   ]
 
   for (const [name, dest, pattern] of cases) {
@@ -152,7 +152,7 @@ describe('hedef eleme', () => {
 describe('ADR-014 — bekleme suresindeki hesap odenmez', () => {
   it('adres degistirmis publisher batch\'ten dusurulur', async () => {
     const job = setup()
-    wallets.bind('p2', addr(99), 'devnet')      // adres degisti → 72 saat
+    wallets.bind('p2', addr(99), 'testnet')      // adres degisti → 72 saat
 
     const r = await job.run()
     expect(r.paid).toBe(2)
@@ -161,7 +161,7 @@ describe('ADR-014 — bekleme suresindeki hesap odenmez', () => {
 
   it('bekleme dolunca odenir', async () => {
     const job = setup()
-    wallets.bind('p2', addr(99), 'devnet')
+    wallets.bind('p2', addr(99), 'testnet')
     rail.addressMap['p2'] = addr(99)
     clock.advance(73 * 3600_000)
 
@@ -170,12 +170,12 @@ describe('ADR-014 — bekleme suresindeki hesap odenmez', () => {
 })
 
 describe('ADR-015 — sicak cuzdan', () => {
-  it('SOL yetersizse HICBIR odeme yapilmaz', async () => {
-    // USDC dolu ama SOL biten hesap sessizce durur; alarm ureten tek sey bu.
-    const r = await setup({ rail: { availableLamports: 1_000n } }).run()
+  it('Operator gazi yetersizse HICBIR odeme yapilmaz', async () => {
+    // Kasa dolu ama gazi biten operator sessizce durur; alarm ureten tek sey bu.
+    const r = await setup({ rail: { availableGas: 1_000n } }).run()
     expect(r.batches).toBe(0)
     expect(r.paid).toBe(0)
-    expect(r.alerts).toContainEqual(expect.stringMatching(/SOL yetersiz/))
+    expect(r.alerts).toContainEqual(expect.stringMatching(/gazi yetersiz/))
   })
 
   it('USDC yetersizse alarm uretilir', async () => {
@@ -204,29 +204,29 @@ describe('ADR-006 — batch boyutu', () => {
   })
 })
 
-describe('§8 tuzak #10 — belirsizlik ve blockhash omru', () => {
+describe('§8 tuzak #10 — belirsizlik ve nonce', () => {
   it('gecici pending sonrasi AYNI transaction tekrar gonderilir', async () => {
     const r = await setup({ rail: { pendingRounds: 2 } }).run()
     expect(r.paid).toBe(3)
     // Ilk gonderim + iki yeniden gonderim. Ucu de AYNI byte'lar.
     expect(rail.resubmits, 'yeniden insa DEGIL, ayni byte\'lar').toEqual(['tx-b1', 'tx-b1', 'tx-b1'])
-    // Transaction yalnizca BIR KEZ kuruldu. Yeniden kurmak yeni blockhash ve
+    // Transaction yalnizca BIR KEZ kuruldu. Yeniden kurmak yeni nonce ve
     // yeni imza uretirdi.
     expect(rail.prepared, 'transaction tek kez kurulur').toHaveLength(1)
   })
 
-  it('blockhash omru dolmadan ASLA yeni transaction kurulmaz', async () => {
-    // "Zincirde yok" tek basina anlamsizdir; yeni blockhash ile yeniden
+  it('nonce harcanmadan ASLA yeni transaction kurulmaz', async () => {
+    // "Zincirde yok" tek basina anlamsizdir; yeniden
     // kurmak cift odeme uretir.
     const r = await setup({ rail: { neverIncluded: true } }).run()
     expect(rail.prepared, 'ikinci transaction kurulmadi').toHaveLength(1)
     expect(r.paid).toBe(0)
   })
 
-  it('blockhash omru dolunca olu sayilir ve ters kayit yazilir', async () => {
+  it('nonce harcaninca olu sayilir ve ters kayit yazilir', async () => {
     // Karari rail verir: son gecerli blok yuksekligi asildi ve imza hala yok.
     const r = await setup({ rail: { neverIncludedAndExpired: true } }).run()
-    expect(events).toContainEqual(expect.stringMatching(/failed:.*blockhash omru/))
+    expect(events).toContainEqual(expect.stringMatching(/failed:.*nonce/))
     expect(r.paid).toBe(0)
   })
 })

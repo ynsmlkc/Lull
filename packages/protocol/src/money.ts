@@ -1,8 +1,8 @@
 /**
  * Para — ADR-005.
  *
- * Birim **micro** (1e-6 USDC), Solana'daki USDC mint'inin ondalik hassasiyeti
- * (6 hane) — zincir ustu tutar ile defter tutari BIREBIR ayni sayidir, arada
+ * Birim **micro** (1e-6 USDC), Arc'taki USDC ERC-20 arayuzunun ondalik
+ * hassasiyeti (6 hane) — zincir ustu tutar ile defter tutari BIREBIR ayni sayidir, arada
  * donusum katsayisi yoktur.
  * `int64` tavani 9_223_372_036_854_775_807 micro ≈ 9.223.372.036.854 USDC.
  *
@@ -21,10 +21,15 @@ export type Micros = bigint & { readonly [microsBrand]: 'Micros' }
 /** 1 USDC = 1_000_000 micro. */
 export const SCALE = 1_000_000n
 
-/** USDC mint'inin ondalik hane sayisi (Solana). */
+/**
+ * USDC ERC-20 arayuzunun ondalik hane sayisi (Arc).
+ *
+ * DIKKAT: Arc'ta gaz olarak kullanilan YEREL USDC 18 ondaliklidir. Defter
+ * yalnizca ERC-20 tutarlarini tutar; ikisi asla karistirilmaz.
+ */
 export const USDC_DECIMALS = 6
 
-/** Defter tutarlari int64 ile sinirli (SPL token tutari u64, int64 icine sigar). */
+/** Defter tutarlari int64 ile sinirli (ERC-20 tutari uint256; defter siniri asan bir tutari zaten kabul etmez). */
 export const MAX_MICROS = 9_223_372_036_854_775_807n
 
 export class MoneyError extends Error {

@@ -1,26 +1,24 @@
 /**
  * ADR-020 — hedef adres dogrulamasi.
  *
- * Gercek Solana anahtarlariyla: uydurma adres, "gecerli gorunen" ama yanlis
+ * Gercek EVM anahtarlariyla: uydurma adres, "gecerli gorunen" ama yanlis
  * adresleri yakalamaz.
  */
 
 import { describe, it, expect } from 'vitest'
-import { Keypair, PublicKey } from '@solana/web3.js'
-import bs58 from 'bs58'
+import { generatePrivateKey, privateKeyToAccount, generateMnemonic, english } from 'viem/accounts'
 import {
-  checkAddress, checkAddressFormat, checkAddressOnChain, shortAddress,
+  checkAddress, checkAddressFormat, checkAddressOnChain, normalizeAddress, shortAddress,
   type OnChainAccount, type OnChainCheckInput,
 } from '../src/address.js'
+import { USDC_ADDRESS } from '../src/arc-rail.js'
 
-const MINT = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
-const WALLET = Keypair.generate().publicKey.toBase58()
+const KEY = generatePrivateKey()
+const WALLET = privateKeyToAccount(KEY).address
 
-const healthy: OnChainAccount = {
-  isTokenAccount: false, isMint: false, ata: { exists: true, frozen: false },
-}
+const healthy: OnChainAccount = { isContract: false, isToken: false, blocked: false }
 const input = (over: Partial<OnChainCheckInput> = {}, account: Partial<OnChainAccount> = {}): OnChainCheckInput => ({
-  address: WALLET, usdcMint: MINT, boundToOther: false,
+  address: WALLET, usdcToken: USDC_ADDRESS, boundToOther: false,
   account: { ...healthy, ...account },
   ...over,
 })
@@ -30,11 +28,23 @@ describe('bicimsel kontroller', () => {
     expect(checkAddressFormat(WALLET).ok).toBe(true)
   })
 
+  it('kucuk harfli adres gecer — cuzdanlarin cogu boyle dondurur', () => {
+    expect(checkAddressFormat(WALLET.toLowerCase()).ok).toBe(true)
+  })
+
   it('bastaki ve sondaki bosluklari temizler', () => {
     expect(checkAddressFormat(`  ${WALLET}\n`).ok).toBe(true)
   })
 
-  for (const bad of ['', 'abc', 'O0Il' + 'A'.repeat(40), 'GABC', 'x'.repeat(50)]) {
+  it('checksum bozuk karisik harfli adres reddedilir — yazim hatasi', () => {
+    // Bir harfin buyuklugunu degistir: EIP-55 bunu yakalamak icin var.
+    const i = [...WALLET].findIndex((ch, n) => n > 1 && /[a-f]/i.test(ch))
+    const ch = WALLET[i]!
+    const flipped = WALLET.slice(0, i) + (ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()) + WALLET.slice(i + 1)
+    expect(checkAddressFormat(flipped).reason).toBe('gecersiz_bicim')
+  })
+
+  for (const bad of ['', 'abc', '0x123', WALLET.slice(0, 41), `${WALLET}00`, 'G'.repeat(42)]) {
     it(`bozuk adres reddedilir: "${bad.slice(0, 12)}"`, () => {
       const r = checkAddressFormat(bad)
       expect(r.ok).toBe(false)
@@ -42,38 +52,36 @@ describe('bicimsel kontroller', () => {
     })
   }
 
-  it('PDA (egri disi) adresi reddedilir', () => {
-    const [pda] = PublicKey.findProgramAddressSync([Buffer.from('vault')], new PublicKey(MINT))
-    const r = checkAddressFormat(pda.toBase58())
-    expect(r.reason).toBe('desteklenmeyen_tip_pda')
+  it('sifir adresi reddedilir — oraya giden para yanar', () => {
+    expect(checkAddressFormat(`0x${'0'.repeat(40)}`).reason).toBe('gecersiz_bicim')
+  })
+
+  it('adres checksum bicimine cevrilir', () => {
+    expect(normalizeAddress(WALLET.toLowerCase())).toBe(WALLET)
+    expect(normalizeAddress('bozuk')).toBeNull()
   })
 })
 
 describe('gizli anahtar korumasi — EN ONEMLI KONTROL', () => {
-  const kp = Keypair.generate()
-
-  it('base58 64 bayt (Phantom disa aktarma) yakalanir', () => {
-    expect(checkAddressFormat(bs58.encode(kp.secretKey)).reason).toBe('secret_key')
+  it('0x onekli ozel anahtar yakalanir', () => {
+    expect(checkAddressFormat(KEY).reason).toBe('secret_key')
   })
 
-  it('JSON dizisi (solana-keygen dosyasi) yakalanir', () => {
-    expect(checkAddressFormat(JSON.stringify([...kp.secretKey])).reason).toBe('secret_key')
+  it('oneksiz ozel anahtar yakalanir', () => {
+    expect(checkAddressFormat(KEY.slice(2)).reason).toBe('secret_key')
   })
 
   it('12 kelimelik kurtarma ifadesi yakalanir', () => {
-    const phrase = 'legal winner thank year wave sausage worth useful legal winner thank yellow'
-    expect(checkAddressFormat(phrase).reason).toBe('secret_key')
+    expect(checkAddressFormat(generateMnemonic(english)).reason).toBe('secret_key')
   })
 
-  it('mesaj ve ipucu anahtarin KENDISINI icermez', () => {
-    const secret = bs58.encode(kp.secretKey)
-    const r = checkAddressFormat(secret)
-    expect(JSON.stringify(r)).not.toContain(secret.slice(0, 16))
-    expect(r.hint).toMatch(/KULLANMA/)
+  it('24 kelimelik kurtarma ifadesi yakalanir', () => {
+    expect(checkAddressFormat(generateMnemonic(english, 256)).reason).toBe('secret_key')
   })
 
-  it('acik adres gizli anahtar sanilmaz', () => {
-    expect(checkAddressFormat(kp.publicKey.toBase58()).ok).toBe(true)
+  it('anahtar hata mesajinda GORUNMEZ', () => {
+    const r = checkAddressFormat(KEY)
+    expect(JSON.stringify(r)).not.toContain(KEY.slice(2, 20))
   })
 })
 
@@ -82,25 +90,22 @@ describe('zincir ustu kontroller', () => {
     expect(checkAddressOnChain(input()).ok).toBe(true)
   })
 
-  it('ATA olmayan cuzdan da gecer — gonderen olusturur', () => {
-    const r = checkAddressOnChain(input({}, { ata: { exists: false, frozen: false } }))
-    expect(r.ok, 'ATA yoklugu engel degil').toBe(true)
+  it('USDC adresinin kendisi reddedilir', () => {
+    expect(checkAddressOnChain(input({ address: USDC_ADDRESS })).reason).toBe('token_adresi')
   })
 
-  it('token hesabi adresi (cuzdan yerine ATA yapistirilmis) reddedilir', () => {
-    const r = checkAddressOnChain(input({}, { isTokenAccount: true }))
-    expect(r.reason).toBe('token_hesabi')
-    expect(r.hint).toMatch(/ana adres/)
+  it('token kontrati reddedilir', () => {
+    expect(checkAddressOnChain(input({}, { isToken: true })).reason).toBe('token_adresi')
   })
 
-  it('mint adresi reddedilir', () => {
-    expect(checkAddressOnChain(input({ address: MINT })).reason).toBe('mint_adresi')
-    expect(checkAddressOnChain(input({}, { isMint: true })).reason).toBe('mint_adresi')
+  it('kontrat adresi reddedilir — para orada kilitlenebilir', () => {
+    const r = checkAddressOnChain(input({}, { isContract: true }))
+    expect(r.reason).toBe('kontrat_adresi')
+    expect(r.hint).toMatch(/MetaMask|Rabby/)
   })
 
-  it('dondurulmus ATA reddedilir', () => {
-    const r = checkAddressOnChain(input({}, { ata: { exists: true, frozen: true } }))
-    expect(r.reason).toBe('ata_dondurulmus')
+  it('engelli adres reddedilir — tum batch\'i dusururdu', () => {
+    expect(checkAddressOnChain(input({}, { blocked: true })).reason).toBe('engelli_adres')
   })
 
   it('baska hesaba bagli adres reddedilir — sybil savunmasi', () => {
@@ -108,15 +113,13 @@ describe('zincir ustu kontroller', () => {
   })
 })
 
-describe('checkAddress — iki asamayi birlestirir', () => {
-  it('bicim bozuksa zincire hic bakmaz', () => {
-    const r = checkAddress(input({ address: 'bozuk' }, { isTokenAccount: true }))
-    expect(r.reason, 'ilk hata bicimden gelmeli').toBe('gecersiz_bicim')
+describe('checkAddress — iki asama birlikte', () => {
+  it('once bicim: gizli anahtar zincire hic sorulmaz', () => {
+    expect(checkAddress(input({ address: KEY })).reason).toBe('secret_key')
   })
 
-  it('bicim gecerse zincir ustu kontrol calisir', () => {
-    expect(checkAddress(input({}, { isTokenAccount: true })).reason).toBe('token_hesabi')
-    expect(checkAddress(input()).ok).toBe(true)
+  it('bicim gecerse zincir kontrolleri calisir', () => {
+    expect(checkAddress(input({}, { isContract: true })).reason).toBe('kontrat_adresi')
   })
 })
 
@@ -124,7 +127,8 @@ describe('shortAddress', () => {
   it('uzun adresi kisaltir', () => {
     expect(shortAddress(WALLET)).toBe(`${WALLET.slice(0, 6)}…${WALLET.slice(-4)}`)
   })
-  it('kisa metne dokunmaz', () => {
+
+  it('kisa metni oldugu gibi birakir', () => {
     expect(shortAddress('abc')).toBe('abc')
   })
 })

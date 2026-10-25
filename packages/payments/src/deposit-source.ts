@@ -1,20 +1,28 @@
 /**
  * Reklamveren yatirma kaynagi — ADR-021.
  *
- * Solana'da "bu odemeyi kim yapti?" sorusu, islemin TOKEN BAKIYE FARKLARINDAN
- * cevaplanir: hazinemizin USDC hesabi artmis, baska bir sahibin USDC hesabi
- * azalmis. Azalan sahip gondericidir. Memo gerekmez — reklamveren de cuzdaniyla
- * giris yaptigi icin gonderen adres hesabin kimligiyle birebir ayni (ADR-010).
+ * Arc'ta "bu odemeyi kim yapti?" sorusunun cevabi USDC'nin `Transfer`
+ * olayinda: `to` kasamiz, `from` gonderen cuzdan. Memo gerekmez —
+ * reklamveren de cuzdaniyla giris yaptigi icin gonderen adres hesabin
+ * kimligiyle birebir ayni (ADR-010).
  *
- * Belirsiz durum (birden fazla gonderen, veya bir program araciligiyla gelen
- * para) `from: null` olarak doner: para hazinede DURUYOR, kaybolmadi, ama
- * kimin oldugunu bilmiyoruz — elle cozulur.
+ * Hem kasaya dogrudan `transfer` hem de kasanin `deposit` fonksiyonu
+ * (`transferFrom`) ayni olayi uretir; ikisi de yakalanir. Bir kontrat
+ * araciligiyla gelen para (orn. bir borsa ya da kopru) `from` olarak o
+ * kontrati gosterir: taninmayan gonderen olarak bekletilir, kaybolmaz.
+ *
+ * Kesinlik: Arc'in uzlasmasi deterministik (BFT) — bir blok uretildiginde
+ * kesindir, fork ve geri donus yok. Bu yuzden tarama en son bloga kadar
+ * yapilir. `finalized` etiketi bilerek KULLANILMIYOR: bazi dugumler (yerel
+ * gelistirme dugumleri dahil) onu onlarca blok geriden verir ve yatirmalar
+ * sebepsiz yere gecikir.
  */
 
-import { Connection, PublicKey } from '@solana/web3.js'
-import { getAssociatedTokenAddressSync } from '@solana/spl-token'
+import { createPublicClient, http, getAddress, type PublicClient } from 'viem'
+import { USDC_ABI, USDC_ADDRESS } from './arc-rail.js'
 
 export interface IncomingTransfer {
+  /** Tekil kimlik: `<txHash>:<logIndex>`. Bir transaction birden fazla transfer tasiyabilir. */
   readonly signature: string
   /** Gonderen cuzdan. Belirlenemediyse `null`. */
   readonly from: string | null
@@ -25,79 +33,86 @@ export interface IncomingTransfer {
 export interface IncomingBatch {
   /** ESKIDEN YENIYE. */
   readonly transfers: readonly IncomingTransfer[]
-  /** Bir sonraki taramanin baslayacagi imza. */
+  /** Bir sonraki taramanin baslayacagi yer. */
   readonly newCursor: string | null
 }
 
 export interface DepositSource {
-  /** `cursor`'dan SONRAKI, kesinlesmis ve BASARILI USDC girislerini dondurur. */
+  /** `cursor`'dan SONRAKI, kesinlesmis USDC girislerini dondurur. */
   incoming(cursor: string | null): Promise<IncomingBatch>
 }
 
-const PAGE = 1000
-/** Ilk taramada bile sonsuza kadar geri gitme. */
-const MAX_PAGES = 20
+/** Tek `eth_getLogs` cagrisinin blok araligi. RPC'ler genis araliklari reddeder. */
+const CHUNK = 10_000n
+/** Tek turda en fazla bu kadar blok: ilk taramada bile sonsuza kadar gitme. */
+const MAX_BLOCKS_PER_POLL = 200_000n
 
-export class SolanaDepositSource implements DepositSource {
-  readonly #conn: Connection
-  readonly #treasury: PublicKey
-  readonly #ata: PublicKey
-  readonly #mint: string
+export interface ArcDepositSourceConfig {
+  readonly rpcUrl: string
+  readonly vault: string
+  readonly usdc?: string
+  /**
+   * Cursor yokken taramanin baslayacagi blok — kasanin deploy edildigi blok.
+   * Daha oncesinde kasaya gelmis bir para olamaz.
+   */
+  readonly fromBlock: bigint
+}
 
-  constructor(rpcUrl: string, treasuryOwner: string, usdcMint: string) {
-    this.#conn = new Connection(rpcUrl, 'finalized')
-    this.#treasury = new PublicKey(treasuryOwner)
-    this.#mint = usdcMint
-    this.#ata = getAssociatedTokenAddressSync(new PublicKey(usdcMint), this.#treasury)
+/**
+ * Cursor: islenmis SON blok numarasi (ondalik metin).
+ *
+ * Blok numarasina gore ilerlemek guvenli: bir blok ya tamamen islenir ya hic.
+ * Ayni bloktaki birden fazla yatirma ayni turda okunur.
+ */
+export class ArcDepositSource implements DepositSource {
+  readonly #client: PublicClient
+  readonly #vault: `0x${string}`
+  readonly #usdc: `0x${string}`
+  readonly #fromBlock: bigint
+
+  constructor(cfg: ArcDepositSourceConfig) {
+    this.#client = createPublicClient({ transport: http(cfg.rpcUrl) })
+    this.#vault = getAddress(cfg.vault)
+    this.#usdc = getAddress(cfg.usdc ?? USDC_ADDRESS)
+    this.#fromBlock = cfg.fromBlock
   }
 
   async incoming(cursor: string | null): Promise<IncomingBatch> {
-    // Yalnizca KESINLESMIS islemler: `confirmed` bir fork'ta dusebilir ve
-    // kimsenin gondermedigi parayi deftere yazmak geri alinamaz bir hatadir.
-    const sigs = []
-    let before: string | undefined
-    for (let i = 0; i < MAX_PAGES; i++) {
-      const page = await this.#conn.getSignaturesForAddress(
-        this.#ata,
-        { limit: PAGE, ...(before ? { before } : {}), ...(cursor ? { until: cursor } : {}) },
-        'finalized',
-      )
-      sigs.push(...page)
-      if (page.length < PAGE) break
-      before = page[page.length - 1]!.signature
-    }
-    if (sigs.length === 0) return { transfers: [], newCursor: cursor }
+    const head = await this.#client.getBlockNumber()
+    const start = cursor !== null ? BigInt(cursor) + 1n : this.#fromBlock
+    if (start > head) return { transfers: [], newCursor: cursor }
 
-    // Liste YENIDEN ESKIYE gelir; en yeni imza yeni cursor olur.
-    const newCursor = sigs[0]!.signature
+    const end = head - start + 1n > MAX_BLOCKS_PER_POLL ? start + MAX_BLOCKS_PER_POLL - 1n : head
     const transfers: IncomingTransfer[] = []
 
-    for (const info of sigs.reverse()) {
-      if (info.err !== null) continue   // basarisiz islemde para HAREKET ETMEDI
-      const tx = await this.#conn.getParsedTransaction(info.signature, {
-        commitment: 'finalized', maxSupportedTransactionVersion: 0,
+    for (let from = start; from <= end; from += CHUNK) {
+      const to = from + CHUNK - 1n > end ? end : from + CHUNK - 1n
+      const logs = await this.#client.getContractEvents({
+        address: this.#usdc,
+        abi: USDC_ABI,
+        eventName: 'Transfer',
+        args: { to: this.#vault },
+        fromBlock: from,
+        toBlock: to,
+        strict: true,
       })
-      if (!tx?.meta) continue
+      // RPC loglari blok ve log sirasiyla dondurur; yine de siraya sokuyoruz —
+      // cursor'in dogrulugu bu siraya dayaniyor.
+      logs.sort((a, b) => (a.blockNumber === b.blockNumber
+        ? a.logIndex - b.logIndex
+        : a.blockNumber < b.blockNumber ? -1 : 1))
 
-      const delta = new Map<string, bigint>()   // sahip → USDC degisimi
-      const add = (owner: string | undefined, mint: string, amount: string, sign: 1n | -1n) => {
-        if (!owner || mint !== this.#mint) return
-        delta.set(owner, (delta.get(owner) ?? 0n) + sign * BigInt(amount))
+      for (const l of logs) {
+        if (l.args.value <= 0n) continue
+        transfers.push({
+          signature: `${l.transactionHash}:${l.logIndex}`,
+          from: getAddress(l.args.from),
+          amount: l.args.value,
+        })
       }
-      for (const b of tx.meta.preTokenBalances ?? []) add(b.owner, b.mint, b.uiTokenAmount.amount, -1n)
-      for (const b of tx.meta.postTokenBalances ?? []) add(b.owner, b.mint, b.uiTokenAmount.amount, 1n)
-
-      const received = delta.get(this.#treasury.toBase58()) ?? 0n
-      if (received <= 0n) continue          // bize gelen bir para degil
-
-      const senders = [...delta.entries()].filter(([o, d]) => d < 0n && o !== this.#treasury.toBase58())
-      transfers.push({
-        signature: info.signature,
-        from: senders.length === 1 ? senders[0]![0] : null,
-        amount: received,
-      })
     }
 
-    return { transfers, newCursor }
+    return { transfers, newCursor: end.toString() }
   }
+
 }

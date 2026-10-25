@@ -291,19 +291,19 @@ describe('POST /v1/publisher/withdraw', () => {
     #n = 0
     async validateDestinations(addrs: readonly string[]) {
       return addrs.map((address) => ({
-        address, onCurve: true, isTokenAccount: false, isMint: false,
-        ataExists: true, ataFrozen: false,
+        address, valid: true, isContract: false, isToken: false,
+        blocked: false,
       }))
     }
     async sourceStatus() {
-      return { address: 'HotWallet1111111111111111111111111111111111', usdcBalance: micros(10n ** 12n), availableLamports: 10n ** 9n }
+      return { address: 'HotWallet1111111111111111111111111111111111', usdcBalance: micros(10n ** 12n), availableGas: 10n ** 18n }
     }
     async prepare(batch: PayoutBatch): Promise<SubmissionReceipt> {
       this.gonderilen.push(batch)
       return {
         batchId: batch.batchId, txHash: `h${++this.#n}`.padEnd(64, '0'),
-        serializedTx: `tx-${batch.batchId}`, recentBlockhash: String(this.#n),
-        lastValidBlockHeight: 250_000_150, feeBid: 100n,
+        serializedTx: `tx-${batch.batchId}`, validityRef: String(this.#n),
+        validUntil: 250_000_150, feeBid: 100n,
         opIndex: batch.items.map((it, index) => ({ publisherId: it.publisherId, index })),
       }
     }
@@ -399,19 +399,19 @@ describe('/v1/admin/*', () => {
     #n = 0
     async validateDestinations(addrs: readonly string[]) {
       return addrs.map((address) => ({
-        address, onCurve: true, isTokenAccount: false, isMint: false,
-        ataExists: true, ataFrozen: false,
+        address, valid: true, isContract: false, isToken: false,
+        blocked: false,
       }))
     }
     async sourceStatus() {
-      return { address: 'HotWallet1111111111111111111111111111111111', usdcBalance: micros(10n ** 12n), availableLamports: 10n ** 9n }
+      return { address: 'HotWallet1111111111111111111111111111111111', usdcBalance: micros(10n ** 12n), availableGas: 10n ** 18n }
     }
     async prepare(batch: PayoutBatch): Promise<SubmissionReceipt> {
       this.gonderilen.push(batch)
       return {
         batchId: batch.batchId, txHash: `h${++this.#n}`.padEnd(64, '0'),
-        serializedTx: `tx-${batch.batchId}`, recentBlockhash: String(this.#n),
-        lastValidBlockHeight: 250_000_150, feeBid: 100n,
+        serializedTx: `tx-${batch.batchId}`, validityRef: String(this.#n),
+        validUntil: 250_000_150, feeBid: 100n,
         opIndex: batch.items.map((it, index) => ({ publisherId: it.publisherId, index })),
       }
     }

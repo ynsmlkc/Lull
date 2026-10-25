@@ -36,7 +36,7 @@ export const ERROR_CODES = {
   LNG_3005: 'Render uzaktan kapatildi',
 
   // 4xxx — cuzdan
-  LNG_4001: 'Gecersiz Solana adresi',
+  LNG_4001: 'Gecersiz Arc adresi',
   LNG_4002: 'Bu adres bir program hesabi (PDA) — cuzdan adresi degil',
   LNG_4003: 'Bu adres bir token hesabi — cuzdan adresini gir',
   LNG_4004: 'USDC token hesabi dondurulmus',

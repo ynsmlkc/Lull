@@ -16,7 +16,6 @@ import type { RemoteConfig } from '@linger/protocol'
 import { createApp } from './http/app.js'
 import { hashToken } from './http/auth.js'
 import { WalletAuth } from './http/wallet-auth.js'
-import { Siws } from '@linger/payments'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -40,7 +39,7 @@ import { poolReserve, poolCampaignIds, type ReserveDeps } from './pools/reserve.
 import { randomBytes } from 'node:crypto'
 import { PayoutRunner } from './payouts/runner.js'
 import {
-  SolanaRail, SolanaDepositSource, USDC_MINT, RPC_URL, parseSecretKey,
+  ArcRail, ArcDepositSource, Siwe, USDC_ADDRESS, RPC_URL, CHAIN_ID, normalizeAddress,
   type Network,
 } from '@linger/payments'
 import { WalletStore } from '@linger/payments'
@@ -177,25 +176,25 @@ const tokens = new SqliteTokenStore(db)
 
 /* ─────────────────── cuzdanla giris ─────────────────── */
 
-/** `devnet` (varsayilan) veya `mainnet`. Yanlis yazim sessizce devnet'e DUSMEZ. */
+/** `testnet` (varsayilan) veya `mainnet`. Yanlis yazim sessizce testnet'e DUSMEZ. */
 const NETWORK: Network = (() => {
-  const v = process.env['LINGER_NETWORK'] ?? 'devnet'
-  if (v !== 'devnet' && v !== 'mainnet') {
-    throw new Error(`LINGER_NETWORK 'devnet' veya 'mainnet' olmali, gelen: ${v}`)
+  const v = process.env['LINGER_NETWORK'] ?? 'testnet'
+  if (v !== 'testnet' && v !== 'mainnet') {
+    throw new Error(`LINGER_NETWORK 'testnet' veya 'mainnet' olmali, gelen: ${v}`)
   }
   return v
 })()
 const RPC = process.env['LINGER_RPC'] ?? RPC_URL[NETWORK]
 /**
- * §8 tuzak #8: Circle'in USDC mint'i, kendi token'imiz DEGIL. Yanlis mint'e
- * odeme, cuzdanda "USDC" gorunur ama degersizdir.
+ * §8 tuzak #8: Circle'in USDC'si, kendi token'imiz DEGIL. Arc'ta ERC-20
+ * arayuzu iki agda da ayni adreste; yalnizca yerel testler icin degistirilir.
  */
-const USDC = process.env['LINGER_USDC_MINT'] ?? USDC_MINT[NETWORK]
+const USDC = process.env['LINGER_USDC'] ?? USDC_ADDRESS
 const HOME_DOMAIN = process.env['LINGER_HOME_DOMAIN'] ?? `${HOST}:${PORT}`
 
 const walletAuth = new WalletAuth({
   clock, ids,
-  siws: new Siws({ domain: HOME_DOMAIN, network: NETWORK }, clock, ids),
+  siwe: new Siwe({ domain: HOME_DOMAIN, network: NETWORK }, clock, ids),
   hashToken,
   issueToken: ({ publisherId, tokenHash, scopes, role }) => {
     const tokenId = ids.impressionId()
@@ -243,15 +242,26 @@ const wallets = new WalletStore({
 })
 
 /**
- * Sicak cuzdan.
+ * Operator cuzdani ve kasa.
  *
- * Anahtar YOKSA hicbir cekim (otomatik ya da istege bagli) baslatilmaz —
- * sahte bir rayla "odedik" demek, odememekten kotudur: kullanici odendigini
- * sanir ve beklemeyi birakir.
+ * Para `LingerVault` kontratinda duruyor; operator yalnizca odeme cagrisini
+ * imzalayip gazini oduyor. Ikisinden biri YOKSA hicbir cekim (otomatik ya da
+ * istege bagli) baslatilmaz — sahte bir rayla "odedik" demek, odememekten
+ * kotudur: kullanici odendigini sanir ve beklemeyi birakir.
  */
-const HOT_SECRET = process.env['LINGER_HOT_SECRET']
-/** Reklamverenin para gonderecegi adres. */
-const hotAddress = HOT_SECRET ? parseSecretKey(HOT_SECRET).publicKey.toBase58() : null
+const VAULT = (() => {
+  const v = process.env['LINGER_VAULT']
+  if (!v) return null
+  const a = normalizeAddress(v)
+  if (!a) throw new Error(`LINGER_VAULT gecerli bir adres degil: ${v}`)
+  return a
+})()
+if (process.env['LINGER_OPERATOR_KEY'] && !VAULT) {
+  throw new Error('LINGER_OPERATOR_KEY verilmis ama LINGER_VAULT yok — odeme nereden cikacak?')
+}
+const HOT_SECRET = VAULT ? process.env['LINGER_OPERATOR_KEY'] : undefined
+/** Reklamverenin para gonderecegi adres: kasanin kendisi. */
+const hotAddress = HOT_SECRET ? VAULT : null
 
 /**
  * Sicak cuzdan TEK: tek ray, tek kuyruk.
@@ -261,8 +271,8 @@ const hotAddress = HOT_SECRET ? parseSecretKey(HOT_SECRET).publicKey.toBase58() 
  * bakiyeyi gorur ve mutabakatla carpisir; para `payouts_in_flight`ta asili
  * kalabilirdi. `hotWallet` butun cekimleri ve mutabakati siraya sokuyor.
  */
-const hotRail = HOT_SECRET
-  ? new SolanaRail({ rpcUrl: RPC, sourceSecret: HOT_SECRET, usdcMint: USDC })
+const hotRail = HOT_SECRET && VAULT
+  ? new ArcRail({ network: NETWORK, rpcUrl: RPC, operatorKey: HOT_SECRET, vault: VAULT, usdc: USDC })
   : null
 const hotWallet = createSerial()
 const payoutRunner = HOT_SECRET
@@ -341,7 +351,7 @@ if (payoutRunner) {
    * Otomatik esik-tetiklemeli odeme turu ARTIK ZAMANLANMIYOR.
    *
    * Yayinci artik `publisherWithdraw` ile istedigi an cekebiliyor — ADR-006
-   * zaten toplu odemenin ucret kazandirsa da (Solana'da ucret imza basina) tek
+   * zaten toplu odemenin gaz kazandirsa da tek
    * bozuk hedefin tum batch'i dusurdugunu tespit etmisti. Otomatik job'un
    * tek faydasi operasyonel rahatlikti, bedeli ise "param ne zaman
    * gelecek" belirsizligiydi. Istege bagli cekim ayni raya dayanarak bu
@@ -366,7 +376,7 @@ if (payoutRunner) {
   setInterval(coz, Number(process.env['LINGER_RECONCILE_MS'] ?? 60_000)).unref()
   log('istege bagli cekim acik · otomatik odeme turu kapali (bkz. main.ts)')
 } else {
-  log('odeme KAPALI — LINGER_HOT_SECRET tanimli degil')
+  log('odeme KAPALI — LINGER_OPERATOR_KEY / LINGER_VAULT tanimli degil')
 }
 
 /* ─────────────────── reklamveren para yatirma ─────────────────── */
@@ -383,7 +393,11 @@ if (payoutRunner) {
 const depositWatcher = HOT_SECRET && hotAddress
   ? new DepositWatcher({
       clock, ledger,
-      source: new SolanaDepositSource(RPC, hotAddress, USDC),
+      source: new ArcDepositSource({
+        rpcUrl: RPC, vault: hotAddress, usdc: USDC,
+        // Kasanin deploy blogu; ondan once kasaya para gelmis olamaz.
+        fromBlock: BigInt(process.env['LINGER_VAULT_FROM_BLOCK'] ?? '0'),
+      }),
       // Bir adres ancak GIRIS YAPMISSA reklamveren sayilir. Rastgele birinin
       // gonderdigi para deftere yazilmaz — kimin oldugunu bilmiyoruz.
       isKnownAdvertiser: (a) => tokens.forPublisher(a).length > 0,
@@ -444,7 +458,8 @@ const app = createApp({
   ...(process.env['LINGER_ADMIN_SECRET'] ? { adminSecret: process.env['LINGER_ADMIN_SECRET'] } : {}),
   ...(hotAddress ? { depositAddress: hotAddress } : {}),
   network: NETWORK,
-  usdcMint: USDC,
+  chainId: CHAIN_ID[NETWORK],
+  usdcToken: USDC,
 })
 
 /**
@@ -496,7 +511,8 @@ const server = serve({ fetch: app.fetch, port: PORT, hostname: HOST }, (info) =>
   log(`${campaignStore.all().length} kampanya · dev reklamveren bakiyesi ${bakiye} micro`)
   if (DEV_TOKEN) log(`gelistirme token'i: ${DEV_TOKEN}`)
   else log("gelistirme token'i YOK (uretim) — giris yalnizca `linger login` ile")
-  log(`ag: ${NETWORK} · rpc ${RPC} · usdc ${USDC}`)
+  log(`ag: arc ${NETWORK} (${CHAIN_ID[NETWORK]}) · rpc ${RPC} · usdc ${USDC}`)
+  if (hotRail) log(`kasa ${hotRail.vaultAddress} · operator ${hotRail.operatorAddress}`)
   log(`veritabani: ${DB_PATH === MEMORY ? 'BELLEK (kalici degil)' : DB_PATH}`)
   log(`${ledger.publishers().length} publisher · ${pipeline.impressions().length} gosterim yuklendi`)
 })

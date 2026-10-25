@@ -23,29 +23,29 @@ const ADV = 'Adv' + 'A'.repeat(40) + 'WHF5'
 
 class SahteRail implements PaymentRail {
   sonuc: SettlementState = 'settled'
-  ataDondurulmus = false
-  cuzdanDegil = false
-  pdaAdres = false
+  engelli = false
+  kontrat = false
+  bozukAdres = false
   prepareVar = true
   gonderilen: PayoutBatch[] = []
   #n = 0
   constructor(private clock: { now: () => number }) {}
   async validateDestinations(a: readonly string[]) {
     return a.map((address) => ({
-      address, onCurve: !this.pdaAdres, isTokenAccount: this.cuzdanDegil, isMint: false,
-      ataExists: false, ataFrozen: this.ataDondurulmus,
+      address, valid: !this.bozukAdres, isContract: this.kontrat, isToken: false,
+        blocked: this.engelli,
     }))
   }
   async sourceStatus() {
-    return { address: 'HotWallet1111111111111111111111111111111111', usdcBalance: micros(10n ** 12n), availableLamports: 10n ** 9n }
+    return { address: 'HotWallet1111111111111111111111111111111111', usdcBalance: micros(10n ** 12n), availableGas: 10n ** 18n }
   }
   async prepare(batch: PayoutBatch): Promise<SubmissionReceipt> {
     if (!this.prepareVar) throw new Error('transaction kurulamadi')
     this.gonderilen.push(batch)
     return {
       batchId: batch.batchId, txHash: `h${++this.#n}`.padEnd(64, '0'),
-      serializedTx: `tx-${batch.batchId}`, recentBlockhash: String(this.#n),
-      lastValidBlockHeight: 250_000_150, feeBid: 100n,
+      serializedTx: `tx-${batch.batchId}`, validityRef: String(this.#n),
+      validUntil: 250_000_150, feeBid: 100n,
       opIndex: batch.items.map((it, index) => ({ publisherId: it.publisherId, index })),
     }
   }
@@ -133,35 +133,35 @@ describe('para cekme', () => {
 
   /* ── cuzdan kontrolleri ── */
 
-  it('dondurulmus USDC hesabina gonderilmez', async () => {
+  it('USDC ihraccisinin engelledigi adrese gonderilmez', async () => {
     const t = kur(20_000_000n)
-    t.rail.ataDondurulmus = true
+    t.rail.engelli = true
     const r = await t.svc.withdraw(ADV, micros(20_000_000n))
 
     expect(r.ok).toBe(false)
-    expect(r.ok === false && r.reason).toContain('dondurulmus')
+    expect(r.ok === false && r.reason).toContain('engellenmis')
     // Para yerinde: gonderilemeyen odeme defterden DUSMEZ.
     expect(bakiye(t.ledger)).toBe(20_000_000n)
     expect(t.rail.gonderilen).toHaveLength(0)
   })
 
-  it('USDC hesabi (ATA) OLMAYAN cuzdana GONDERILIR — rail olusturur', async () => {
-    // Solana'da alicinin hesabini gonderen acar; bu bir engel degil.
+  it('daha once hic USDC almamis cuzdana GONDERILIR', async () => {
+    // Arc'ta her EVM adresi USDC alabilir; alici tarafinda acilacak hesap yok.
     const t = kur(20_000_000n)
     const r = await t.svc.withdraw(ADV, micros(20_000_000n))
     expect(r.ok).toBe(true)
   })
 
-  it('program hesabi (PDA) adresine gonderilmez', async () => {
+  it('gecersiz adrese gonderilmez', async () => {
     const t = kur(20_000_000n)
-    t.rail.pdaAdres = true
+    t.rail.bozukAdres = true
     expect((await t.svc.withdraw(ADV, micros(20_000_000n))).ok).toBe(false)
     expect(bakiye(t.ledger)).toBe(20_000_000n)
   })
 
-  it('cuzdan degil, token hesabi olan adrese gonderilmez', async () => {
+  it('cuzdan degil, kontrat olan adrese gonderilmez', async () => {
     const t = kur(20_000_000n)
-    t.rail.cuzdanDegil = true
+    t.rail.kontrat = true
     expect((await t.svc.withdraw(ADV, micros(20_000_000n))).ok).toBe(false)
     expect(bakiye(t.ledger)).toBe(20_000_000n)
   })

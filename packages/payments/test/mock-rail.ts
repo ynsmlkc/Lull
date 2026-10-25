@@ -1,9 +1,9 @@
 /**
  * Mock odeme rayi — §11 test stratejisi.
  *
- * `payments` HER ZAMAN bunun uzerinde birim test edilir; devnet yalnizca
+ * `payments` HER ZAMAN bunun uzerinde birim test edilir; testnet yalnizca
  * ayri bir entegrasyon suite'inde. Sebebi: Kivilcim 2'de gordugumuz ariza
- * modlarini (hesap dondurulmus, tx failed ama zincirde, blockhash omru) istedigimiz
+ * modlarini (adres engelli, tx failed ama zincirde, nonce harcanmis) istedigimiz
  * anda ve deterministik olarak uretebilmek.
  */
 
@@ -17,7 +17,7 @@ export interface MockRailOptions {
   /** Adres → durum. Tanimsiz adres saglikli bir cuzdan sayilir (ATA yok, olusturulur). */
   destinations?: Record<string, Partial<DestinationStatus>>
   usdcBalance?: bigint
-  availableLamports?: bigint
+  availableGas?: bigint
   /** Bu adres batch'te varsa transaction TAMAMEN patlar (§8 tuzak #1). */
   failingAddress?: string
   /** Transaction KURULURKEN patlasin — hicbir sey gonderilmez. */
@@ -26,9 +26,9 @@ export interface MockRailOptions {
   throwOnSend?: boolean
   /** Mutabakat kac kez `pending` donsun. */
   pendingRounds?: number
-  /** Hicbir zaman dahil edilmesin ve blockhash omru DOLMASIN — belirsiz kalir. */
+  /** Hicbir zaman dahil edilmesin ve nonce HARCANMASIN — belirsiz kalir. */
   neverIncluded?: boolean
-  /** Hicbir zaman dahil edilmesin ve blockhash omru DOLSUN — olu transaction. */
+  /** Hicbir zaman dahil edilmesin ve nonce HARCANSIN — olu transaction. */
   neverIncludedAndExpired?: boolean
 }
 
@@ -50,11 +50,10 @@ export class MockRail implements PaymentRail {
       const o = this.opts.destinations?.[address]
       return {
         address,
-        onCurve: o?.onCurve ?? true,
-        isTokenAccount: o?.isTokenAccount ?? false,
-        isMint: o?.isMint ?? false,
-        ataExists: o?.ataExists ?? false,
-        ataFrozen: o?.ataFrozen ?? false,
+        valid: o?.valid ?? true,
+        isContract: o?.isContract ?? false,
+        isToken: o?.isToken ?? false,
+        blocked: o?.blocked ?? false,
       }
     })
   }
@@ -63,7 +62,7 @@ export class MockRail implements PaymentRail {
     return {
       address: 'SourceWallet1111111111111111111111111111111',
       usdcBalance: micros(this.opts.usdcBalance ?? 1_000_000_000_000n),
-      availableLamports: this.opts.availableLamports ?? 1_000_000_000n,
+      availableGas: this.opts.availableGas ?? 10n ** 18n,
     }
   }
 
@@ -75,8 +74,8 @@ export class MockRail implements PaymentRail {
       // Kivilcim 2: hash submit'ten ONCE bilinir.
       txHash: `hash-${batch.batchId}`,
       serializedTx: `tx-${batch.batchId}`,
-      recentBlockhash: `blockhash-${this.#seq++}`,
-      lastValidBlockHeight: this.#height + 150,
+      validityRef: `nonce:${this.#seq++}`,
+      validUntil: this.#height + 150,
       feeBid: BigInt(batch.items.length) * 1000n,
       opIndex: batch.items.map((it, index) => ({ publisherId: it.publisherId, index })),
     }
@@ -109,7 +108,6 @@ export class MockRail implements PaymentRail {
 
     if (failingIndex >= 0) {
       // §8 tuzak #7 — zincire GIRDI, ucret KESILDI, ama odeme olmadi.
-      // Solana yalniz ILK basarisiz talimati bildirir.
       return {
         state: 'failed',
         txHash: receipt.txHash,

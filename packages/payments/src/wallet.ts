@@ -19,7 +19,7 @@
 
 import type { Clock } from '@linger/protocol'
 
-export type Network = 'devnet' | 'mainnet'
+export type Network = 'testnet' | 'mainnet'
 
 export interface WalletBinding {
   readonly publisherId: string

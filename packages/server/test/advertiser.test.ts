@@ -303,7 +303,7 @@ describe('giriste cuzdan baglanmasi', () => {
     expect(engel.blocked && engel.reason).toContain('bagli degil')
 
     // `main.ts`'teki davranis: publisherId adresin kendisi.
-    w.bind(ADV, ADV, 'devnet')
+    w.bind(ADV, ADV, 'testnet')
 
     expect(w.payoutBlock(ADV).blocked).toBe(false)
     expect(w.get(ADV)!.address).toBe(ADV)
@@ -314,8 +314,8 @@ describe('giriste cuzdan baglanmasi', () => {
     const bildirimler: unknown[] = []
     const w = new WalletStore({ clock, holdMs: 72 * 3600_000, notify: (n) => bildirimler.push(n) })
 
-    w.bind(ADV, ADV, 'devnet')
-    w.bind(ADV, ADV, 'devnet')          // ayni adres — degisiklik degil
+    w.bind(ADV, ADV, 'testnet')
+    w.bind(ADV, ADV, 'testnet')          // ayni adres — degisiklik degil
 
     expect(w.get(ADV)!.holdUntil).toBeNull()
     expect(w.payoutBlock(ADV).blocked).toBe(false)

@@ -6,22 +6,22 @@
  *
  * Kontroller iki gruba ayriliyor:
  *   • Bicimsel — ag erisimi gerektirmez, aninda calisir
- *   • Zincir ustu — token hesabi mi, mint mi, ATA dondurulmus mu
+ *   • Zincir ustu — kontrat mi, USDC'nin kendisi mi, engelli mi
  *
- * Alicinin USDC ATA'sini GONDEREN acar. Bu yuzden ATA'nin bulunmamasi red
- * sebebi degil.
+ * Arc bir EVM zinciri: her adres USDC alabilir, alici tarafinda acilacak bir
+ * hesap yok. Adresler her yerde EIP-55 checksum bicimine cevrilerek tutulur;
+ * ayni cuzdanin kucuk harfli ve checksum'li iki yazimi iki ayri hesap
+ * sayilmasin diye.
  */
 
-import { PublicKey } from '@solana/web3.js'
-import bs58 from 'bs58'
+import { getAddress, isAddress } from 'viem'
 
 export type AddressRejection =
   | 'gecersiz_bicim'
   | 'secret_key'
-  | 'desteklenmeyen_tip_pda'
-  | 'token_hesabi'
-  | 'mint_adresi'
-  | 'ata_dondurulmus'
+  | 'kontrat_adresi'
+  | 'token_adresi'
+  | 'engelli_adres'
   | 'baska_hesaba_bagli'
 
 export interface AddressCheck {
@@ -39,38 +39,36 @@ const fail = (reason: AddressRejection, message: string, hint?: string): Address
 
 const SECRET_HINT =
   'Ekrana veya bir dosyaya yapistirdiysan o cuzdani ARTIK KULLANMA. ' +
-  'Yeni bir cuzdan olustur ve ACIK adresini (kisa, 32-44 karakter) gir.'
+  'Yeni bir cuzdan olustur ve ACIK adresini (0x ile baslayan 42 karakter) gir.'
 
 /**
  * Yapistirilan sey gizli anahtar veya kurtarma ifadesi mi?
  *
  * Gorunum bicimleri:
- *   • Phantom / Solflare "private key" disa aktarma → 64 bayt, base58 (~88 karakter)
- *   • Solana CLI keypair dosyasi → `[12,34,...]` 64 sayilik JSON dizisi
+ *   • MetaMask / Rabby "private key" disa aktarma → 32 bayt hex (64 karakter, 0x'li ya da 0x'siz)
  *   • Kurtarma ifadesi → 12 veya 24 kucuk harfli kelime
  *
- * 32 baytlik ham tohum base58'de acik adresle AYNI gorunur; onu ayirt etmenin
- * yolu yok — bu yuzden yalnizca ayirt edilebilenler burada yakalaniyor.
+ * Acik adres 20 bayttir (40 hex); 64 hex'lik bir deger adres olamaz.
  */
 function looksLikeSecret(raw: string): boolean {
-  if (raw.startsWith('[') && raw.endsWith(']')) {
-    try {
-      const arr: unknown = JSON.parse(raw)
-      if (Array.isArray(arr) && arr.length === 64 && arr.every((n) => Number.isInteger(n) && n >= 0 && n < 256)) {
-        return true
-      }
-    } catch { /* JSON degil */ }
-  }
+  if (/^(0x)?[0-9a-fA-F]{64}$/.test(raw)) return true
 
   const words = raw.split(/\s+/)
-  if ((words.length === 12 || words.length === 24) && words.every((w) => /^[a-z]{3,8}$/.test(w))) {
-    return true
-  }
+  return (words.length === 12 || words.length === 24) && words.every((w) => /^[a-z]{3,8}$/.test(w))
+}
 
-  if (raw.length >= 80 && raw.length <= 90) {
-    try { if (bs58.decode(raw).length === 64) return true } catch { /* base58 degil */ }
-  }
-  return false
+/**
+ * Adresi tek bicime cevirir (EIP-55 checksum). Gecersizse `null`.
+ *
+ * Kucuk harfli adres kabul edilir — cuzdanlarin cogu `eth_requestAccounts`
+ * ile kucuk harf dondurur. Karisik harfli ama checksum'i tutmayan adres
+ * REDDEDILIR: bu bir yazim hatasidir ve EIP-55'in var olma sebebi tam olarak
+ * bunu yakalamaktir.
+ */
+export function normalizeAddress(raw: string): `0x${string}` | null {
+  const a = raw.trim()
+  if (!isAddress(a, { strict: true })) return null
+  return getAddress(a)
 }
 
 /**
@@ -95,22 +93,15 @@ export function checkAddressFormat(raw: string): AddressCheck {
     return fail('secret_key', 'Bu bir GIZLI ANAHTAR veya kurtarma ifadesi. Adres degil.', SECRET_HINT)
   }
 
-  let key: PublicKey
-  try {
-    key = new PublicKey(address)
-  } catch {
+  if (normalizeAddress(address) === null) {
     return fail('gecersiz_bicim',
-      'Gecerli bir Solana adresi degil.',
-      'Adres 32-44 karakterlik base58 metindir (0, O, I, l harflerini icermez).')
+      'Gecerli bir Arc (EVM) adresi degil.',
+      'Adres 0x ile baslayan 42 karakterlik hex metindir. Elle yazdiysan cuzdanindan kopyala.')
   }
 
-  // Egri disi adresler PDA'dir — bir program sahibidir, bir insan degil.
-  // USDC'yi buraya gondermek mumkun ama cekmenin yolu programin koduna baglidir;
-  // cogu durumda para kalici olarak kilitlenir.
-  if (!PublicKey.isOnCurve(key.toBytes())) {
-    return fail('desteklenmeyen_tip_pda',
-      'Program hesaplari (PDA) ve multisig kasalari henuz desteklenmiyor.',
-      'Phantom, Solflare veya Backpack gibi bir cuzdanin kendi adresini gir.')
+  // Sifir adresi bicimsel olarak gecerli ama sahibi yok: oraya giden para yanar.
+  if (/^0x0{40}$/i.test(address)) {
+    return fail('gecersiz_bicim', 'Sifir adresi bir cuzdan degil.', 'Cuzdaninin kendi adresini gir.')
   }
 
   return OK
@@ -118,19 +109,19 @@ export function checkAddressFormat(raw: string): AddressCheck {
 
 /** Zincirden okunan hesap durumu. `PaymentRail` doldurur. */
 export interface OnChainAccount {
-  /** Adres bir token hesabinin kendisi mi? */
-  readonly isTokenAccount: boolean
-  /** Adres bir mint mi? */
-  readonly isMint: boolean
-  /** Adresin USDC ATA'si. Yoksa `exists: false` — odeme sirasinda olusturulur. */
-  readonly ata: { readonly exists: boolean; readonly frozen: boolean }
+  /** Adreste kod var mi? (EIP-7702 yetkilendirmesi olan cuzdanlar haric.) */
+  readonly isContract: boolean
+  /** Adres USDC'nin ya da kasanin kendisi mi? */
+  readonly isToken: boolean
+  /** USDC ihraccisi adresi engellemis mi? */
+  readonly blocked: boolean
 }
 
 export interface OnChainCheckInput {
   readonly address: string
   readonly account: OnChainAccount
-  /** USDC mint adresi. */
-  readonly usdcMint: string
+  /** USDC (ERC-20 arayuzu) adresi. */
+  readonly usdcToken: string
   /** Adres baska bir publisher'a bagli mi? */
   readonly boundToOther: boolean
 }
@@ -139,11 +130,9 @@ export interface OnChainCheckInput {
 export function checkAddressOnChain(input: OnChainCheckInput): AddressCheck {
   const { address, account } = input
 
-  // Mint adresine "odeme" ATA olusturamaz ve islem patlar; yine de kullaniciya
-  // dogru sebebi soylemek icin ayri yakalanir.
-  if (address === input.usdcMint || account.isMint) {
-    return fail('mint_adresi',
-      'Bu adres bir token mint adresi, cuzdan degil.',
+  if (address.toLowerCase() === input.usdcToken.toLowerCase() || account.isToken) {
+    return fail('token_adresi',
+      'Bu adres bir token kontrati, cuzdan degil.',
       'Cuzdaninin kendi adresini gir.')
   }
 
@@ -155,20 +144,20 @@ export function checkAddressOnChain(input: OnChainCheckInput): AddressCheck {
       'Her adres yalnizca bir hesaba baglanabilir.')
   }
 
-  if (account.isTokenAccount) {
-    // En sik yapilan hata: cuzdan yerine USDC token hesabinin adresini
-    // kopyalamak. Para o hesaba gider ama cuzdanin sahibi degisir ve bazi
-    // cuzdanlar bu adresi hic gostermez.
-    return fail('token_hesabi',
-      'Bu adres bir token hesabi. Cuzdan adresi degil.',
-      'Cuzdaninin ana adresini kopyala — USDC hesabini bizim icin o adresten turetiriz.')
+  if (account.isContract) {
+    // Kontrata giden USDC'yi cekmenin yolu kontratin koduna baglidir; cogu
+    // durumda para kalici olarak kilitlenir. Kontratlar mesaj da imzalayamaz,
+    // yani giris yapamazlar.
+    return fail('kontrat_adresi',
+      'Bu adres bir kontrat. Cuzdan adresi degil.',
+      'MetaMask, Rabby veya Coinbase Wallet gibi bir cuzdanin kendi adresini gir.')
   }
 
-  if (account.ata.exists && account.ata.frozen) {
-    // Dondurulmus hesaba transfer patlar ve TUM batch'i dusurur.
-    return fail('ata_dondurulmus',
-      'Bu adresteki USDC hesabi dondurulmus.',
-      'USDC ihraccisi hesabi dondurmus. Baska bir adres dene.')
+  if (account.blocked) {
+    // Engelli hedefe transfer patlar ve TUM batch'i dusurur.
+    return fail('engelli_adres',
+      'Bu adres USDC ihraccisi tarafindan engellenmis.',
+      'Baska bir adres dene.')
   }
 
   return OK

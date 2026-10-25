@@ -220,8 +220,8 @@ export class SqlitePayoutStore implements PayoutStore {
         opIndex: Number(r.op_index),
         txHash: String(r.tx_hash),
         serializedTx: String(r.serialized_tx),
-        recentBlockhash: String(r.recent_blockhash),
-        lastValidBlockHeight: Number(r.last_valid_block_height),
+        validityRef: String(r.validity_ref),
+        validUntil: Number(r.valid_until),
         state: String(r.state) as PayoutItemState,
         submittedAt: Number(r.submitted_at),
         settledAt: numOrNull(r.settled_at),
@@ -244,7 +244,7 @@ export class SqlitePayoutStore implements PayoutStore {
     const opIndex = [...(mevcut?.opIndex ?? []), { publisherId: rec.publisherId, index: rec.opIndex }]
     this.#receipts.set(rec.batchId, {
       batchId: rec.batchId, txHash: rec.txHash, serializedTx: rec.serializedTx,
-      recentBlockhash: rec.recentBlockhash, lastValidBlockHeight: rec.lastValidBlockHeight,
+      validityRef: rec.validityRef, validUntil: rec.validUntil,
       feeBid: 0n,                       // yalnizca teshis icin; mutabakati etkilemiyor
       opIndex,
     })
@@ -268,7 +268,7 @@ export class SqlitePayoutStore implements PayoutStore {
       return {
         batchId: receipt.batchId, publisherId: it.publisherId, destinationAddress: it.address,
         amount: it.amount, opIndex, txHash: receipt.txHash, serializedTx: receipt.serializedTx,
-        recentBlockhash: receipt.recentBlockhash, lastValidBlockHeight: receipt.lastValidBlockHeight, state: 'submitted',
+        validityRef: receipt.validityRef, validUntil: receipt.validUntil, state: 'submitted',
         submittedAt: input.at, settledAt: null, failureReason: null,
       }
     })
@@ -276,7 +276,7 @@ export class SqlitePayoutStore implements PayoutStore {
     const stmt = this.db.prepare(`
       INSERT INTO payout_items
         (batch_id, publisher_id, destination_address, amount, op_index, tx_hash,
-         serialized_tx, recent_blockhash, last_valid_block_height, state, submitted_at, settled_at, failure_reason)
+         serialized_tx, validity_ref, valid_until, state, submitted_at, settled_at, failure_reason)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
     this.db.exec('BEGIN')
@@ -284,7 +284,7 @@ export class SqlitePayoutStore implements PayoutStore {
       for (const r of yeni) {
         stmt.run(
           r.batchId, r.publisherId, r.destinationAddress, r.amount.toString(), r.opIndex,
-          r.txHash, r.serializedTx, r.recentBlockhash, r.lastValidBlockHeight, r.state, r.submittedAt, null, null,
+          r.txHash, r.serializedTx, r.validityRef, r.validUntil, r.state, r.submittedAt, null, null,
         )
       }
       this.db.exec('COMMIT')

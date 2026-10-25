@@ -2,7 +2,7 @@
  * Yayinci profili — siralamada gorunen kimlik.
  *
  * Kimlik cuzdan adresi (ADR-010) ama siralamada ADRES ASLA GORUNMEZ: bir
- * Solana adresi, o kisinin butun zincir gecmisini acar. Yerine kullanicinin
+ * Arc adresi, o kisinin butun zincir gecmisini acar. Yerine kullanicinin
  * sectigi bir takma ad ve istege bagli bir ulke var.
  *
  * Varsayilan GORUNMEZ. Profil olusturmak siralamaya girmek demek degil;

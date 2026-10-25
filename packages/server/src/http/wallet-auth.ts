@@ -2,19 +2,23 @@
  * Cuzdanla giris — ADR-010 (2026-08-15 revizyonu), ADR-014.
  *
  * Akis:
- *   1. Istemci adresini verir       → sunucu SIWS mesaji uretir
+ *   1. Istemci adresini verir       → sunucu SIWE mesaji uretir
  *   2. Kullanici cuzdaniyla imzalar → sunucu dogrular
  *   3. Sunucu device token uretir   → istemci onu saklar
  *
  * Mesaj bir transaction DEGILDIR; aga HICBIR ZAMAN gonderilemez. Guvenlik
  * yapinin kendisinden gelir, bizim dikkatimizden degil (ADR-014).
  *
- * `publisherId` adresin KENDISIDIR. Ayri bir kullanici tablosu yok:
- * kimlik ile odeme hedefi ayni sey, ikisini ayirmak gereksiz bir eslesme
- * katmani yaratirdi.
+ * `publisherId` adresin KENDISIDIR (EIP-55 checksum bicimi). Ayri bir
+ * kullanici tablosu yok: kimlik ile odeme hedefi ayni sey, ikisini ayirmak
+ * gereksiz bir eslesme katmani yaratirdi.
+ *
+ * Adres HER GIRISTE checksum bicimine cevrilir. Cuzdanlar cogunlukla kucuk
+ * harf dondurur; cevirmeseydik ayni cuzdan iki ayri hesap acardi ve
+ * kazanci ikiye bolunurdu.
  */
 
-import { Siws, checkAddressFormat } from '@linger/payments'
+import { Siwe, checkAddressFormat, normalizeAddress } from '@linger/payments'
 import type { Clock, IdGenerator, TokenScope } from '@linger/protocol'
 
 export interface PendingChallenge {
@@ -27,7 +31,7 @@ export interface PendingChallenge {
 export interface WalletAuthDeps {
   readonly clock: Clock
   readonly ids: IdGenerator
-  readonly siws: Siws
+  readonly siwe: Siwe
   /** Uretilen token'i saklar; ham token DEGIL, hash'i saklanir. */
   readonly issueToken: (input: {
     publisherId: string
@@ -72,14 +76,15 @@ export class WalletAuth {
   constructor(private readonly deps: WalletAuthDeps) {}
 
   /** Adres icin challenge uretir. */
-  challenge(address: string): ChallengeResult {
-    // ADR-020: yalnizca gercek bir cuzdan adresi. PDA'lar burada da reddedilir
-    // — kimlik ile odeme hedefi ayni sey oldugu icin ayni kurallar gecerli.
-    // Gizli anahtar yapistirilmissa DEGERI hata mesajina KONMAZ.
-    const format = checkAddressFormat(address)
-    if (!format.ok) return { ok: false, reason: format.message ?? 'gecersiz Solana adresi' }
+  challenge(input: string): ChallengeResult {
+    // ADR-020: yalnizca gercek bir cuzdan adresi — kimlik ile odeme hedefi
+    // ayni sey oldugu icin ayni kurallar gecerli. Gizli anahtar
+    // yapistirilmissa DEGERI hata mesajina KONMAZ.
+    const format = checkAddressFormat(input)
+    if (!format.ok) return { ok: false, reason: format.message ?? 'gecersiz Arc adresi' }
+    const address = normalizeAddress(input)!
 
-    const c = this.deps.siws.challenge(address)
+    const c = this.deps.siwe.challenge(address)
     this.#pending.set(address, { address, message: c.message, expiresAt: c.expiresAt, consumed: false })
     this.#gc()
     return { ok: true, message: c.message, expiresAt: c.expiresAt }
@@ -87,11 +92,13 @@ export class WalletAuth {
 
   /** Imzalanmis challenge'i dogrular ve token uretir. */
   async verify(
-    address: string,
+    input: string,
     signedMessage: string,
-    signatureBase64: string,
+    signatureHex: string,
     role: Role = 'publisher',
   ): Promise<LoginResult> {
+    const address = normalizeAddress(input)
+    if (!address) return { ok: false, reason: 'gecersiz Arc adresi' }
     const pending = this.#pending.get(address)
     if (!pending) return { ok: false, reason: 'challenge bulunamadi — once /v1/auth/challenge' }
 
@@ -104,7 +111,7 @@ export class WalletAuth {
 
     // Sunucunun URETTIGI mesaj ile istemcinin imzaladigi mesaj birebir ayni
     // olmali; istemcinin kendi sectigi bir metin gecmez.
-    const result = this.deps.siws.verify(address, pending.message, signedMessage, signatureBase64)
+    const result = await this.deps.siwe.verify(address, pending.message, signedMessage, signatureHex)
     if (!result.ok) {
       return { ok: false, reason: 'imza dogrulanamadi', detail: result.reason }
     }

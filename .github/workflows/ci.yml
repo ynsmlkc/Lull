@@ -20,6 +20,18 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
-      # The devnet payout test sends real transactions and is skipped unless
-      # LINGER_DEVNET is set, so CI never touches the network or a wallet.
+      # Unit tests run against a mock rail, so CI never touches a network or a wallet.
       - run: pnpm test
+
+  contracts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts/vault
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: |
+          git clone -q --depth 1 --branch v5.1.0 https://github.com/OpenZeppelin/openzeppelin-contracts lib/openzeppelin-contracts
+          git clone -q --depth 1 --branch v1.9.4 https://github.com/foundry-rs/forge-std lib/forge-std
+      - run: forge test -vv

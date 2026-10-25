@@ -28,8 +28,8 @@
     <p class="body" style="margin: 0 0 26px">This is the wallet you will be paid into. There is no account and no password — your address is your identity.</p>
 
     <div class="note note-accent hidden" id="no-wallet" style="margin-bottom: 18px">
-      No Solana wallet found in this browser.
-      Install <a href="https://phantom.app" target="_blank" rel="noopener" style="color: var(--accent)">Phantom</a>, <a href="https://solflare.com" target="_blank" rel="noopener" style="color: var(--accent)">Solflare</a> or <a href="https://backpack.app" target="_blank" rel="noopener" style="color: var(--accent)">Backpack</a>, then reload this page.
+      No EVM wallet found in this browser.
+      Install <a href="https://metamask.io" target="_blank" rel="noopener" style="color: var(--accent)">MetaMask</a>, <a href="https://rabby.io" target="_blank" rel="noopener" style="color: var(--accent)">Rabby</a> or <a href="https://www.coinbase.com/wallet" target="_blank" rel="noopener" style="color: var(--accent)">Coinbase Wallet</a>, then reload this page.
     </div>
 
     <button class="btn btn-primary" id="connect" style="width: 100%">
@@ -70,7 +70,7 @@
   <div id="v-dash" class="hidden">
 
     <h1 style="margin-bottom: 6px">Earnings</h1>
-    <p class="small" style="margin: 0 0 clamp(26px, 4vw, 40px)">Paid in USDC on Solana devnet. Your USDC account is created automatically on the first payout.</p>
+    <p class="small" style="margin: 0 0 clamp(26px, 4vw, 40px)">Paid in USDC on Arc. Any EVM wallet can receive it — nothing to set up, and the payout settles in under a second.</p>
 
     <!-- bos -->
     <div id="v-empty" class="hidden" style="border: 1px solid var(--line); background: var(--bg-2); border-radius: 10px; padding: clamp(26px, 5vw, 46px)">
@@ -121,7 +121,7 @@
         <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px">
           <code id="address" style="font-size: clamp(11px, 1.25vw, 13.5px)"></code>
           <button class="btn btn-sm btn-quiet" id="copy-addr"><span class="tag">copy</span></button>
-          <a class="link-under" id="explorer-link" target="_blank" rel="noopener" style="font-size: 12.5px">View on Solana Explorer ↗</a>
+          <a class="link-under" id="explorer-link" target="_blank" rel="noopener" style="font-size: 12.5px">View on Arc Explorer ↗</a>
         </div>
         <p class="small" style="margin: 16px 0 0">To be paid into a different wallet, run <span style="color: var(--muted)">linger login --force</span> in your terminal. Changing it needs a signature, so it cannot be done from a web page.</p>
       </section>
@@ -208,7 +208,7 @@
 
 <footer>
   <div class="wrap">
-    <span>✶ linger — devnet</span>
+    <span>✶ linger — <span data-net>arc</span></span>
     <div style="display: flex; gap: 24px">
       <a href="https://github.com/ynsmlkc/Linger" target="_blank" rel="noopener">GitHub</a>
       <a href="/privacy">Privacy</a>

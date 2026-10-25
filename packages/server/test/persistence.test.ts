@@ -180,7 +180,7 @@ describe('cuzdanlar', () => {
 
   it('baglanti yeniden baslatmadan sonra duruyor', () => {
     const w1 = new WalletStore({ clock, holdMs: 0, notify: () => {}, persist: walletPersistence(db) })
-    w1.bind('alice', ADDR, 'devnet')
+    w1.bind('alice', ADDR, 'testnet')
 
     const w2 = new WalletStore({ clock, holdMs: 0, notify: () => {}, persist: walletPersistence(yenidenBaslat()) })
     expect(w2.get('alice')?.address).toBe(ADDR)
@@ -193,8 +193,8 @@ describe('cuzdanlar', () => {
   it('cuzdan degisikligi beklemesi yeniden baslatmayla SIFIRLANMAZ', () => {
     const ADDR2 = 'GB' + 'B'.repeat(53) + 'WHF5'
     const w1 = new WalletStore({ clock, holdMs: 72 * 3600_000, notify: () => {}, persist: walletPersistence(db) })
-    w1.bind('alice', ADDR, 'devnet')
-    const b = w1.bind('alice', ADDR2, 'devnet')
+    w1.bind('alice', ADDR, 'testnet')
+    const b = w1.bind('alice', ADDR2, 'testnet')
     expect(b.holdUntil).not.toBeNull()
 
     const w2 = new WalletStore({ clock, holdMs: 72 * 3600_000, notify: () => {}, persist: walletPersistence(yenidenBaslat()) })
@@ -204,7 +204,7 @@ describe('cuzdanlar', () => {
 
   it('adres sahipligi korunur — baskasi ayni adresi baglayamaz', () => {
     const w1 = new WalletStore({ clock, holdMs: 0, notify: () => {}, persist: walletPersistence(db) })
-    w1.bind('alice', ADDR, 'devnet')
+    w1.bind('alice', ADDR, 'testnet')
 
     const w2 = new WalletStore({ clock, holdMs: 0, notify: () => {}, persist: walletPersistence(yenidenBaslat()) })
     expect(w2.boundToOther(ADDR, 'bob')).toBe(true)
@@ -214,8 +214,8 @@ describe('cuzdanlar', () => {
 
 describe('odeme kayitlari', () => {
   const receipt = {
-    batchId: 'b1', txHash: 'h'.repeat(64), serializedTx: 'AAAAxdr', recentBlockhash: '7',
-    lastValidBlockHeight: 1_700_000_180_000, feeBid: 200n,
+    batchId: 'b1', txHash: 'h'.repeat(64), serializedTx: 'AAAAxdr', validityRef: '7',
+    validUntil: 1_700_000_180_000, feeBid: 200n,
     opIndex: [{ publisherId: 'alice', index: 0 }, { publisherId: 'bob', index: 1 }],
   }
   const items = [

@@ -40,8 +40,8 @@ export interface PayoutItemRecord {
   readonly opIndex: number
   readonly txHash: string
   readonly serializedTx: string
-  readonly recentBlockhash: string
-  readonly lastValidBlockHeight: number
+  readonly validityRef: string
+  readonly validUntil: number
   readonly state: PayoutItemState
   readonly submittedAt: number
   readonly settledAt: number | null
@@ -98,8 +98,8 @@ export class MemoryPayoutStore implements PayoutStore {
         opIndex,
         txHash: receipt.txHash,
         serializedTx: receipt.serializedTx,
-        recentBlockhash: receipt.recentBlockhash,
-        lastValidBlockHeight: receipt.lastValidBlockHeight,
+        validityRef: receipt.validityRef,
+        validUntil: receipt.validUntil,
         state: 'submitted',
         submittedAt: input.at,
         settledAt: null,

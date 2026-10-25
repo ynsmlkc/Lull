@@ -1,8 +1,8 @@
 /**
  * `linger login` sirasinda tarayicida acilan sayfa.
  *
- * Neden tarayici? Cunku ozel anahtari GORMEK ISTEMIYORUZ (ADR-014). Phantom,
- * Solflare ve Backpack tarayici eklentileri; imzayi onlar atar, biz yalnizca
+ * Neden tarayici? Cunku ozel anahtari GORMEK ISTEMIYORUZ (ADR-014). MetaMask,
+ * Rabby ve Coinbase Wallet tarayici eklentileri; imzayi onlar atar, biz yalnizca
  * imzalanmis mesaji aliriz. Terminalden "gizli anahtarini yapistir" demek en
  * kolay yol olurdu ve en kotu karar olurdu.
  *
@@ -195,13 +195,13 @@ export function loginPage(opts: LoginPageOpts): string {
           <div class="facts">
             <span>network <em id="net">—</em></span>
             <span>asset <em>USDC</em></span>
-            <span>token account <em>created on first payout</em></span>
+            <span>chain <em>Arc · gas paid in USDC</em></span>
           </div>
         </div>
       </div>
 
       <button id="primary" class="primary">Connect wallet</button>
-      <p class="hide" id="nowallet" style="margin:0">No Solana wallet detected. Install <a href="https://phantom.app" target="_blank" rel="noreferrer">Phantom</a>, <a href="https://solflare.com" target="_blank" rel="noreferrer">Solflare</a> or <a href="https://backpack.app" target="_blank" rel="noreferrer">Backpack</a>, then reload this page.</p>
+      <p class="hide" id="nowallet" style="margin:0">No EVM wallet detected. Install <a href="https://metamask.io" target="_blank" rel="noreferrer">MetaMask</a>, <a href="https://rabby.io" target="_blank" rel="noreferrer">Rabby</a> or <a href="https://www.coinbase.com/wallet" target="_blank" rel="noreferrer">Coinbase Wallet</a>, then reload this page.</p>
 
       <!-- Istege bagli siralama adimi: yalnizca giristen SONRA gorunur.
            Kutu varsayilan ISARETSIZ — kazanci herkese acmak kullanicinin
@@ -270,20 +270,33 @@ async function post(path, body) {
 /* ─────────────────────────── cuzdan ─────────────────────────── */
 
 /**
- * Enjekte edilen saglayicilar. Uc cuzdan da ayni temel API'yi sunar:
- * connect() ve signMessage(bytes). Onceligi Phantom > Solflare > Backpack.
+ * Enjekte edilen EIP-1193 saglayicilari.
+ *
+ * Once EIP-6963: birden fazla cuzdan kuruluysa hepsi kendini duyurur ve
+ * "window.ethereum" uzerinde kavga etmezler. Duyuru yoksa eski yol,
+ * "window.ethereum". Hepsi ayni API'yi sunar: eth_requestAccounts ve
+ * personal_sign.
  *
  * Eklentiler sayfadan SONRA enjekte olabilir, bu yuzden kisa bir sure
  * tekrar yoklanir.
  *
  * DIKKAT: bu blok bir sablon dizesinin ICINDE — backtick kullanma.
  */
+const announced = []
+window.addEventListener('eip6963:announceProvider', (e) => {
+  const d = e.detail
+  if (d && d.provider && !announced.some((a) => a.p === d.provider)) {
+    announced.push({ name: (d.info && d.info.name) || 'wallet', p: d.provider })
+  }
+})
+window.dispatchEvent(new Event('eip6963:requestProvider'))
+
 function findWallet() {
-  const ph = window.phantom && window.phantom.solana
-  if (ph && ph.isPhantom) return { name: 'Phantom', p: ph }
-  if (window.solflare && window.solflare.isSolflare) return { name: 'Solflare', p: window.solflare }
-  if (window.backpack && window.backpack.isBackpack) return { name: 'Backpack', p: window.backpack }
-  return null
+  if (announced.length > 0) return announced[0]
+  const eth = window.ethereum
+  if (!eth || typeof eth.request !== 'function') return null
+  const name = eth.isRabby ? 'Rabby' : eth.isCoinbaseWallet ? 'Coinbase Wallet' : eth.isMetaMask ? 'MetaMask' : 'wallet'
+  return { name, p: eth }
 }
 
 async function waitForWallet(ms) {
@@ -295,11 +308,11 @@ async function waitForWallet(ms) {
   }
 }
 
-/** Uint8Array → base64 (btoa yalnizca metin ister). */
-function b64(bytes) {
-  let s = ''
-  for (const b of bytes) s += String.fromCharCode(b)
-  return btoa(s)
+/** Metin → 0x'li hex (UTF-8). personal_sign mesaji hex olarak alir. */
+function utf8Hex(text) {
+  let h = '0x'
+  for (const b of new TextEncoder().encode(text)) h += b.toString(16).padStart(2, '0')
+  return h
 }
 
 /* ─────────────────────────── akis ─────────────────────────── */
@@ -324,13 +337,12 @@ async function connect() {
     const w = await waitForWallet(1500)
     if (!w) {
       $('nowallet').classList.remove('hide')
-      throw new Error('no Solana wallet found — install one and reload the page')
+      throw new Error('no EVM wallet found — install one and reload the page')
     }
 
     setPrimary('approve in ' + w.name + '…', { busy: true })
-    const conn = await w.p.connect()
-    const pk = (conn && conn.publicKey) || w.p.publicKey
-    const address = pk && pk.toString()
+    const accounts = await w.p.request({ method: 'eth_requestAccounts' })
+    const address = accounts && accounts[0]
     if (!address) throw new Error(w.name + ' did not return an address')
 
     const ch = await post('/challenge', { address })
@@ -340,14 +352,12 @@ async function connect() {
     setPrimary('sign the message in ' + w.name + '…', { busy: true })
     log('⋯ waiting for your signature in ' + w.name, INK)
 
-    // Mesaj UTF-8 bayt dizisi olarak imzalanir; cuzdan kullaniciya metni gosterir.
-    const bytes = new TextEncoder().encode(ch.message)
-    const res = await w.p.signMessage(bytes, 'utf8')
-    // Phantom/Solflare { signature } dondurur; Backpack dogrudan bayt dizisi.
-    const sig = res && res.signature ? res.signature : res
-    if (!sig || !sig.length) throw new Error('did not receive a signature')
+    // personal_sign: cuzdan metni kullaniciya gosterir ve EIP-191 onekiyle
+    // imzalar — bu onekle imzalanan hicbir sey bir transaction olamaz.
+    const sig = await w.p.request({ method: 'personal_sign', params: [utf8Hex(ch.message), address] })
+    if (typeof sig !== 'string' || !sig.startsWith('0x')) throw new Error('did not receive a signature')
 
-    await finish(address, ch.message, b64(sig))
+    await finish(address, ch.message, sig)
   } catch (e) {
     fail(e)
   } finally {
@@ -369,8 +379,8 @@ async function finish(address, message, signature) {
   status('connected', ACC)
   $('scene').classList.add('on')
 
-  const chain = /Chain: (\S+)/.exec(message)
-  $('net').textContent = chain ? chain[1] : '—'
+  const chain = /Chain ID: (\d+)/.exec(message)
+  $('net').textContent = chain ? (chain[1] === '5042' ? 'Arc mainnet' : 'Arc testnet') : '—'
   $('addr').textContent = res.publisherId
   $('addrbox').classList.remove('hide')
   $('nowallet').classList.add('hide')
@@ -473,7 +483,7 @@ $('p-skip').onclick = async () => {
 // Eklenti sayfadan SONRA enjekte olabilir; sessizce bir kez daha bak.
 waitForWallet(1500).then((w) => {
   if (w) log('  ' + w.name + ' detected', DIM)
-  else log('  no Solana wallet detected — install Phantom, Solflare or Backpack', DIM)
+  else log('  no EVM wallet detected — install MetaMask, Rabby or Coinbase Wallet', DIM)
 })
 </script>
 </body>

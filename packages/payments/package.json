@@ -5,18 +5,14 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "test:devnet": "LINGER_DEVNET=1 vitest run test/integration --testTimeout=180000"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@linger/protocol": "workspace:*",
-    "@solana/web3.js": "^1.98.4",
-    "@solana/spl-token": "^0.4.13",
-    "bs58": "^6.0.0"
+    "viem": "2.21.0"
   },
   "devDependencies": {
-    "@types/node": "^26.2.0",
-    "tweetnacl": "^1.0.3"
+    "@types/node": "^26.2.0"
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",

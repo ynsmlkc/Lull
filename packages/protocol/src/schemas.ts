@@ -200,23 +200,22 @@ export const authStartSchema = z.object({
 /* ─────────────────────────── cuzdan ─────────────────────────── */
 
 /**
- * ADR-020: Solana cuzdan adresi — base58, 32 bayt ed25519 acik anahtari
- * (32-44 karakter). Bicim kontrolu burada; egri ustunde olup olmadigi
- * (PDA reddi) `payments/address.ts` icinde.
+ * ADR-020: Arc (EVM) cuzdan adresi — 0x + 40 hex (20 bayt). Bicim kontrolu
+ * burada; checksum ve kontrat reddi `payments/address.ts` icinde.
  */
-export const solanaAddressSchema = z.string()
-  .min(32).max(44)
-  .regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, 'gecerli bir Solana adresi (base58) bekleniyor')
+export const arcAddressSchema = z.string()
+  .length(42)
+  .regex(/^0x[0-9a-fA-F]{40}$/, 'gecerli bir Arc adresi (0x ile baslayan 42 karakter) bekleniyor')
 
-/** Kolon genisligi notu: base58 kodlu 32 bayt en fazla 44 karakter. */
-export const ADDRESS_COLUMN_WIDTH = 44
+/** Kolon genisligi notu: 0x + 40 hex = 42 karakter. */
+export const ADDRESS_COLUMN_WIDTH = 42
 
 export const walletStatusSchema = z.object({
-  address: solanaAddressSchema.nullable(),
+  address: arcAddressSchema.nullable(),
   verifiedAt: z.number().int().positive().nullable(),
-  network: z.enum(['devnet', 'mainnet']),
-  /** `will_create`: token hesabi yok, ilk odemede biz aciyoruz (engel degil). */
-  tokenAccount: z.enum(['unknown', 'ok', 'will_create', 'frozen']),
+  network: z.enum(['testnet', 'mainnet']),
+  /** `blocked`: USDC ihraccisi adresi engellemis — odeme yapilamaz. */
+  tokenAccount: z.enum(['unknown', 'ok', 'blocked']),
   tokenAccountCheckedAt: z.number().int().positive().nullable(),
   /** Adres degisikligi bekleme suresi bitis zamani (ADR-014). */
   holdUntil: z.number().int().positive().nullable(),

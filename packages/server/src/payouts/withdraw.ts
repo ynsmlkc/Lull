@@ -58,9 +58,9 @@ export interface WithdrawDeps {
   /** Sicak cuzdan kuyrugu — bkz. `createSerial`. Verilmezse sirasiz calisir. */
   readonly serial?: Serial
   /**
-   * Gonderimden sonra zincirin onayini en fazla bu kadar bekle. Solana'da
-   * `finalized` ~13 sn surer; tek bir sorgu neredeyse her zaman "henuz
-   * degil" der ve kullanici cevabi alamaz. Sure dolarsa sonuc yine
+   * Gonderimden sonra zincirin onayini en fazla bu kadar bekle. Arc'ta
+   * kesinlik bir saniyenin altinda ama RPC makbuzu bir iki tur gec
+   * gosterebilir; tek bir sorgu "henuz degil" derse kullanici cevabi alamaz. Sure dolarsa sonuc yine
    * `pending` — mutabakat dongusu sonra kapatir. Varsayilan 0: tek sorgu.
    */
   readonly confirmWaitMs?: number
@@ -155,16 +155,15 @@ export class WithdrawService {
     if (!dest) {
       return { ok: false, reason: 'cuzdan dogrulanamadi', retryable: true }
     }
-    if (!dest.onCurve) {
-      return { ok: false, reason: 'adres bir program hesabi (PDA) — desteklenmiyor', retryable: false }
+    if (!dest.valid) {
+      return { ok: false, reason: 'adres gecerli bir Arc adresi degil', retryable: false }
     }
-    if (dest.isMint || dest.isTokenAccount) {
-      return { ok: false, reason: 'adres bir cuzdan degil (token hesabi ya da mint)', retryable: false }
+    if (dest.isToken || dest.isContract) {
+      return { ok: false, reason: 'adres bir cuzdan degil (kontrat)', retryable: false }
     }
-    if (dest.ataFrozen) {
-      return { ok: false, reason: 'cuzdanindaki USDC hesabi dondurulmus', retryable: false }
+    if (dest.blocked) {
+      return { ok: false, reason: 'adres USDC ihraccisi tarafindan engellenmis', retryable: false }
     }
-    // USDC hesabi (ATA) yoksa ENGEL DEGIL: rail ilk odemede olusturur.
 
     const batchId = this.deps.newBatchId()
     const items = [{ publisherId: id, address: id, amount }]

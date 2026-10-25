@@ -12,7 +12,7 @@
  * hesabina yazilir. Eslesme kendiliginden oluyor, memo yok.
  *
  * Bedeli: borsadan gonderen para eslesmez, cunku gonderen adres borsanindir.
- * Panelde acikca yaziyor. Devnet icin sorun degil; mainnet'te bu paralar
+ * Panelde acikca yaziyor. Testnet icin sorun degil; mainnet'te bu paralar
  * "eslesmeyen yatirma" olarak birikir ve elle cozulur.
  */
 
@@ -24,7 +24,7 @@ import type { Ledger } from '../ledger/ledger.js'
 export interface DepositWatcherDeps {
   readonly clock: Clock
   readonly ledger: Ledger
-  /** Zincirden gelen girisleri okur (Solana RPC ya da test sahtesi). */
+  /** Zincirden gelen girisleri okur (Arc RPC ya da test sahtesi). */
   readonly source: DepositSource
   /** Bu adres bir reklamverene ait mi? Degilse para bekletilir. */
   readonly isKnownAdvertiser: (address: string) => boolean

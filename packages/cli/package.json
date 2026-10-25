@@ -1,12 +1,12 @@
 {
   "name": "lingersh",
   "version": "0.1.16",
-  "description": "AI kodlama araclarinin bekleme anlarini kazanca cevirir. Terminal reklamlari, Solana uzerinden USDC odemesi.",
+  "description": "AI kodlama araclarinin bekleme anlarini kazanca cevirir. Terminal reklamlari, Arc uzerinden USDC odemesi.",
   "keywords": [
     "claude-code",
     "statusline",
     "ads",
-    "solana",
+    "arc",
     "usdc",
     "cli",
     "terminal"
