@@ -1,3 +1,5 @@
+<img src="brand/lull-logo-512.png" width="96" alt="Lull logo">
+
 # Lull on Arc
 
 > Terminal-native ad marketplace that turns AI coding wait states into revenue, paid out in USDC on Arc.
