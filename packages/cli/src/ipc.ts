@@ -8,9 +8,19 @@
 
 import { homedir, tmpdir } from 'node:os'
 import type { TermShape } from './shim/term-shape.js'
-import { join } from 'node:path'
+import { join, win32 } from 'node:path'
 
-export const LULL_HOME = process.env['LULL_HOME'] ?? join(homedir(), '.lull')
+/**
+ * Ev dizini `homedir()`'den, `HOME`'dan DEGIL.
+ *
+ * Windows'ta (PowerShell, cmd) `HOME` tanimli degil. `${HOME}/.lull`
+ * "undefined/.lull", `join(HOME ?? '', ...)` ise calisma dizinine gore
+ * GORELI bir yol veriyordu — shim ile daemon farkli dizinlere bakiyordu.
+ */
+export const lullHome = (env: NodeJS.ProcessEnv = process.env): string =>
+  env['LULL_HOME'] ?? join(homedir(), '.lull')
+
+export const LULL_HOME = lullHome()
 
 /**
  * Unix soket yolunun uzunluk siniri (`sun_path`, NUL haric).
@@ -33,7 +43,16 @@ const SUN_PATH_MAX = process.platform === 'linux' ? 107 : 103
  * duseriz. Deterministik olmasi sart: shim ile daemon ayri sureclerdir ve
  * ayni yolu bagimsiz olarak hesaplamak zorundalar.
  */
-export function socketPathFor(lullHome: string): string {
+export function socketPathFor(lullHome: string, platform: NodeJS.Platform = process.platform): string {
+  // Windows'ta Node unix soket DOSYASI dinleyemez (`listen EACCES`); yerel
+  // IPC named pipe ile olur. Pipe adlari makine geneli oldugu icin ev
+  // dizininden turetilir. Windows yollari buyuk/kucuk harf ve ayirac
+  // duyarsiz: Git Bash'ten gelen "C:/Users/a/.lull" ile PowerShell'den
+  // gelen "c:\Users\a\.lull" AYNI pipe'a cikmali.
+  if (platform === 'win32') {
+    return `\\\\.\\pipe\\lull-${shortHash(win32.resolve(lullHome).toLowerCase())}`
+  }
+
   const normal = join(lullHome, 'lulld.sock')
   if (Buffer.byteLength(normal) <= SUN_PATH_MAX) return normal
 
@@ -66,6 +85,9 @@ function shortHash(s: string): string {
 }
 
 export const SOCKET_PATH = socketPathFor(LULL_HOME)
+
+/** Windows named pipe mi? Pipe'larin dosyasi, dizini ve izin bitleri yok. */
+export const isNamedPipe = (p: string): boolean => /^\\\\[.?]\\pipe\\/i.test(p)
 
 /** Shim'in toplam butcesi. Asarsa bos doner — gec bir reklam, reklamdan kotudur. */
 export const SHIM_BUDGET_MS = 50

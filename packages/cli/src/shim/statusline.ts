@@ -13,14 +13,13 @@
  *
  * Bos cikti = satir yok. Reklam yalnizca aktif tur icinde gelir (ADR-023).
  */
-import { socketPathFor } from '../ipc.js'
+import { socketPathFor, lullHome } from '../ipc.js'
 
 import { connect } from 'node:net'
 import { writeSync } from 'node:fs'
 import { termShape } from './term-shape.js'
 
-const SOCKET = process.env['LULL_SOCKET']
-  ?? socketPathFor(process.env['LULL_HOME'] ?? `${process.env['HOME']}/.lull`)
+const SOCKET = process.env['LULL_SOCKET'] ?? socketPathFor(lullHome())
 const BUDGET_MS = Number(process.env['LULL_BUDGET_MS'] ?? 50) || 50
 
 /** Ne olursa olsun sessizce cik. */

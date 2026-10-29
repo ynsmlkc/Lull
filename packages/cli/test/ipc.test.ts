@@ -3,7 +3,9 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { socketPathFor, encode, decode } from '../src/ipc.js'
+import { homedir } from 'node:os'
+import { join } from 'node:path'
+import { socketPathFor, isNamedPipe, lullHome, encode, decode } from '../src/ipc.js'
 
 describe('encode/decode', () => {
   it('gidis donus bozulmaz', () => {
@@ -60,5 +62,45 @@ describe('socketPathFor', () => {
     const turkce = `/Users/${'ş'.repeat(60)}/.lull`      // 60 karakter, 120 byte
     expect(turkce.length).toBeLessThan(LIMIT)
     expect(Buffer.byteLength(socketPathFor(turkce))).toBeLessThanOrEqual(LIMIT)
+  })
+})
+
+/**
+ * Windows: Node unix soket dosyasi dinleyemez, yerel IPC named pipe ile olur.
+ * Gercek kurulumda bulundu — `lull init` her Windows makinesinde DWL-1001
+ * ile dusuyordu.
+ */
+describe('socketPathFor — Windows', () => {
+  const win = (h: string) => socketPathFor(h, 'win32')
+
+  it('named pipe verir, soket dosyasi DEGIL', () => {
+    const p = win('C:\\Users\\90542\\.lull')
+    expect(p.startsWith('\\\\.\\pipe\\lull-')).toBe(true)
+    expect(isNamedPipe(p)).toBe(true)
+  })
+
+  /** Git Bash'ten gelen yol ile PowerShell'den gelen yol ayni pipe'a cikmali. */
+  it('ayirac ve buyuk/kucuk harf farki AYNI pipe\'i verir', () => {
+    expect(win('C:/Users/90542/.lull')).toBe(win('c:\\users\\90542\\.lull'))
+  })
+
+  it('farkli ev dizinleri CAKISMAZ', () => {
+    expect(win('C:\\Users\\a\\.lull')).not.toBe(win('C:\\Users\\b\\.lull'))
+  })
+
+  it('unix yollari pipe sayilmaz', () => {
+    expect(isNamedPipe('/Users/ali/.lull/lulld.sock')).toBe(false)
+    expect(isNamedPipe('C:\\Users\\a\\.lull\\lulld.sock')).toBe(false)
+  })
+})
+
+/** `HOME` Windows'ta tanimli degil; ev dizini ondan okunursa yol bozulur. */
+describe('lullHome', () => {
+  it('HOME olmadan da mutlak yol verir', () => {
+    expect(lullHome({})).toBe(join(homedir(), '.lull'))
+  })
+
+  it('LULL_HOME her seyi ezer', () => {
+    expect(lullHome({ LULL_HOME: '/tmp/x' })).toBe('/tmp/x')
   })
 })
