@@ -23,10 +23,26 @@ import type { Clock, IdGenerator, TokenScope } from '@lull/protocol'
 
 export interface PendingChallenge {
   readonly address: string
+  /** Sunucunun urettigi SIWE mesaji — gelen imzali mesaj buna birebir eslesmeli. */
   readonly message: string
   readonly expiresAt: number
-  consumed: boolean
 }
+
+/**
+ * Adres basina bekleyen challenge sayisi.
+ *
+ * Adres basina TEK challenge tutulsaydi, baskasinin adresine surekli yeni
+ * challenge isteyen biri o kisinin imzaladigi challenge'i ezip girisini
+ * engellerdi. Birkac tane tutuyoruz; her biri tek kullanimlik. IP basina hiz
+ * siniri (app.ts) tek bir kaynagin bu pencereyi doldurmasini yavaslatir.
+ */
+const MAX_PER_ADDRESS = 20
+
+/**
+ * Bellekteki toplam bekleyen challenge. Rastgele adreslerle spam bellegi
+ * sinirsiz buyutmesin; dolarsa yeni challenge "birazdan tekrar dene" alir.
+ */
+const MAX_TOTAL = 10_000
 
 export interface WalletAuthDeps {
   readonly clock: Clock
@@ -40,6 +56,9 @@ export interface WalletAuthDeps {
     role: Role
   }) => { tokenId: string }
   readonly hashToken: (raw: string) => string
+  /** Testler icin; varsayilanlar `MAX_PER_ADDRESS` / `MAX_TOTAL`. */
+  readonly maxPerAddress?: number
+  readonly maxTotal?: number
 }
 
 /**
@@ -64,14 +83,16 @@ export const LOGIN_SCOPES = SCOPES_BY_ROLE.publisher
 
 export type ChallengeResult =
   | { readonly ok: true; readonly message: string; readonly expiresAt: number }
-  | { readonly ok: false; readonly reason: string }
+  | { readonly ok: false; readonly reason: string; readonly busy?: true }
 
 export type LoginResult =
   | { readonly ok: true; readonly token: string; readonly tokenId: string; readonly publisherId: string }
   | { readonly ok: false; readonly reason: string; readonly detail?: string }
 
 export class WalletAuth {
-  readonly #pending = new Map<string, PendingChallenge>()
+  /** Adres → bekleyen challenge'lar (eskiden yeniye). */
+  readonly #pending = new Map<string, PendingChallenge[]>()
+  #total = 0
 
   constructor(private readonly deps: WalletAuthDeps) {}
 
@@ -84,9 +105,18 @@ export class WalletAuth {
     if (!format.ok) return { ok: false, reason: format.message ?? 'gecersiz Arc adresi' }
     const address = normalizeAddress(input)!
 
-    const c = this.deps.siwe.challenge(address)
-    this.#pending.set(address, { address, message: c.message, expiresAt: c.expiresAt, consumed: false })
     this.#gc()
+    if (this.#total >= (this.deps.maxTotal ?? MAX_TOTAL)) {
+      return { ok: false, reason: 'cok fazla bekleyen giris — birazdan tekrar dene', busy: true }
+    }
+
+    const c = this.deps.siwe.challenge(address)
+    const list = this.#pending.get(address) ?? []
+    list.push({ address, message: c.message, expiresAt: c.expiresAt })
+    this.#total++
+    // Pencere dolduysa en eskisi duser.
+    if (list.length > (this.deps.maxPerAddress ?? MAX_PER_ADDRESS)) { list.shift(); this.#total-- }
+    this.#pending.set(address, list)
     return { ok: true, message: c.message, expiresAt: c.expiresAt }
   }
 
@@ -99,13 +129,20 @@ export class WalletAuth {
   ): Promise<LoginResult> {
     const address = normalizeAddress(input)
     if (!address) return { ok: false, reason: 'gecersiz Arc adresi' }
-    const pending = this.#pending.get(address)
-    if (!pending) return { ok: false, reason: 'challenge bulunamadi — once /v1/auth/challenge' }
+    const list = this.#pending.get(address)
+    if (!list || list.length === 0) {
+      return { ok: false, reason: 'challenge bulunamadi — once /v1/auth/challenge' }
+    }
 
-    // Tek kullanimlik: ayni imzayi ikinci kez gondermek yeni token uretemez.
-    if (pending.consumed) return { ok: false, reason: 'challenge zaten kullanilmis' }
+    // Imzalanan mesaj, BU adres icin SU AN bekleyen challenge'lardan biri
+    // olmali. Kullanilan challenge listeden silinir; yani onceki bir giristen
+    // kalan (ve ele gecirilmis) imzali mesaj ikinci bir token alamaz.
+    const pending = list.find((p) => p.message === signedMessage)
+    if (!pending) {
+      return { ok: false, reason: 'imzalanan mesaj bekleyen bir challenge degil (zaten kullanilmis olabilir)' }
+    }
     if (pending.expiresAt < this.deps.clock.now()) {
-      this.#pending.delete(address)
+      this.#remove(address, pending)
       return { ok: false, reason: 'challenge suresi dolmus' }
     }
 
@@ -116,8 +153,10 @@ export class WalletAuth {
       return { ok: false, reason: 'imza dogrulanamadi', detail: result.reason }
     }
 
-    pending.consumed = true
-    this.#pending.delete(address)
+    // Tek kullanimlik: ayni imzayi ikinci kez gondermek yeni token uretemez.
+    if (!this.#remove(address, pending)) {
+      return { ok: false, reason: 'imzalanan mesaj bekleyen bir challenge degil (zaten kullanilmis olabilir)' }
+    }
 
     // Ham token YALNIZCA burada, bir kez gorunur. Sunucu hash'ini saklar.
     const raw = `lul_${this.deps.ids.randomHex(24)}`
@@ -131,13 +170,27 @@ export class WalletAuth {
     return { ok: true, token: raw, tokenId, publisherId: address }
   }
 
+  /** Listeden siler; zaten yoksa `false`. */
+  #remove(address: string, p: PendingChallenge): boolean {
+    const list = this.#pending.get(address)
+    const i = list ? list.indexOf(p) : -1
+    if (!list || i === -1) return false
+    list.splice(i, 1)
+    this.#total--
+    if (list.length === 0) this.#pending.delete(address)
+    return true
+  }
+
   /** Suresi dolmus challenge'lari at — bellek sinirsiz buyumesin. */
   #gc(): void {
     const now = this.deps.clock.now()
-    for (const [k, v] of this.#pending) {
-      if (v.expiresAt < now - 60_000) this.#pending.delete(k)
+    for (const [k, list] of this.#pending) {
+      const kalan = list.filter((p) => p.expiresAt >= now - 60_000)
+      this.#total -= list.length - kalan.length
+      if (kalan.length === 0) this.#pending.delete(k)
+      else if (kalan.length !== list.length) this.#pending.set(k, kalan)
     }
   }
 
-  pendingCount(): number { return this.#pending.size }
+  pendingCount(): number { return this.#total }
 }

@@ -17,7 +17,7 @@ import { hashToken } from '../src/http/auth.js'
 
 const HOME = 'lull.test'
 
-function setup(now = 1_700_000_000_000) {
+function setup(now = 1_700_000_000_000, limits: { maxPerAddress?: number; maxTotal?: number } = {}) {
   const issued: { publisherId: string; tokenHash: string }[] = []
   const clock = fixedClock(now)
   const ids = cryptoIdGenerator(clock)
@@ -29,6 +29,7 @@ function setup(now = 1_700_000_000_000) {
       issued.push({ publisherId: i.publisherId, tokenHash: i.tokenHash })
       return { tokenId: `tok-${issued.length}` }
     },
+    ...limits,
   })
   return { auth, issued, clock }
 }
@@ -113,6 +114,56 @@ describe('WalletAuth', () => {
     const again = await auth.verify(addr, c.message, sig)
     expect(again.ok).toBe(false)
     expect(issued).toHaveLength(1)
+  })
+
+  /**
+   * Eski imza YENI challenge'la kullanilamaz. Giris bitince ayni adres icin
+   * yeni bir challenge acilirsa, ele gecirilmis eski imzali mesaj ikinci bir
+   * token almamali.
+   */
+  it('eski imza yeni acilan challenge ile token ALAMAZ', async () => {
+    const { auth, issued } = setup()
+    const c1 = auth.challenge(addr)
+    if (!c1.ok) return
+    const eski = await sign(c1.message, user)
+    expect((await auth.verify(addr, c1.message, eski)).ok).toBe(true)
+
+    const c2 = auth.challenge(addr)    // saldirgan acar
+    expect(c2.ok).toBe(true)
+    const r = await auth.verify(addr, c1.message, eski)
+    expect(r.ok).toBe(false)
+    expect(issued).toHaveLength(1)
+  })
+
+  /**
+   * Baskasi kurbanin adresine yeni challenge'lar acsa bile kurbanin
+   * imzaladigi challenge gecerli kalir — girisi engellenemez.
+   */
+  it('baskasinin actigi challenge\'lar kurbanin girisini ENGELLEMEZ', async () => {
+    const { auth } = setup()
+    const kurban = auth.challenge(addr)
+    if (!kurban.ok) return
+    for (let i = 0; i < 5; i++) auth.challenge(addr)   // saldirgan
+
+    expect((await auth.verify(addr, kurban.message, await sign(kurban.message, user))).ok).toBe(true)
+  })
+
+  it('bekleyen challenge toplami sinirli — dolunca "busy"', () => {
+    const { auth } = setup(1_700_000_000_000, { maxTotal: 3 })
+    for (let i = 0; i < 3; i++) expect(auth.challenge(newAccount().address).ok).toBe(true)
+    const r = auth.challenge(newAccount().address)
+    expect(r.ok).toBe(false)
+    expect(!r.ok && r.busy).toBe(true)
+  })
+
+  it('adres basina pencere dolunca en eski challenge duser', async () => {
+    const { auth } = setup(1_700_000_000_000, { maxPerAddress: 2 })
+    const eski = auth.challenge(addr)
+    auth.challenge(addr)
+    auth.challenge(addr)
+    if (!eski.ok) return
+    expect((await auth.verify(addr, eski.message, await sign(eski.message, user))).ok).toBe(false)
+    expect(auth.pendingCount()).toBe(2)
   })
 
   it('challenge alinmadan verify cagrilamaz', async () => {
