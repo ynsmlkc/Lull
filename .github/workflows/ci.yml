@@ -1,8 +1,9 @@
 name: CI
 
 on:
+  # Every branch: a fix can be proven on Windows before it reaches main,
+  # which Railway deploys.
   push:
-    branches: [main]
   pull_request:
 
 jobs:
@@ -22,6 +23,45 @@ jobs:
       - run: pnpm typecheck
       # Unit tests run against a mock rail, so CI never touches a network or a wallet.
       - run: pnpm test
+
+  # Windows'ta daemon unix soket yerine named pipe kullanir. Bu is GERCEK
+  # pipe uzerinde kosar; geri kalan suite unix yollari varsaydigi icin
+  # yalnizca Windows'a ozel dosyalar burada.
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter lullsh exec vitest run test/windows.test.ts test/windows-shell.test.ts test/shell-command.test.ts
+      - run: pnpm --filter lullsh build
+      # Paketlenmis CLI ile uctan uca: daemon pipe uzerinde ayaga kalkmali.
+      - shell: pwsh
+        env:
+          LULL_HOME: ${{ runner.temp }}\lull-home
+          CLAUDE_CONFIG_DIR: ${{ runner.temp }}\claude
+        run: |
+          node packages/cli/dist/lull.mjs init
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $status = node packages/cli/dist/lull.mjs status | Out-String
+          Write-Output $status
+          if ($status -notmatch 'uptime') { Write-Error 'daemon is not answering on the pipe'; exit 1 }
+          # doctor runs the installed commands in Git Bash, PowerShell, pwsh
+          # and cmd. Every one of them must succeed, not just the one Claude
+          # Code happens to pick on this runner.
+          $doctor = node packages/cli/dist/lull.mjs doctor | Out-String
+          Write-Output $doctor
+          if ($doctor -match 'cannot run the Lull commands') { Write-Error 'Claude Code could not run the installed commands'; exit 1 }
+          if ($doctor -match 'exit [^\r\n]*not used by Claude Code') { Write-Error 'a shell could not run the installed commands'; exit 1 }
+          if ($doctor -notmatch 'runs') { Write-Error 'doctor did not run the installed commands'; exit 1 }
+          node packages/cli/dist/lull.mjs uninstall
 
   contracts:
     runs-on: ubuntu-latest
